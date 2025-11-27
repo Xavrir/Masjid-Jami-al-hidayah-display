@@ -340,4 +340,3 @@ For issues, questions, or suggestions, please open an issue on the GitHub reposi
 
 ---
 
-**Made with ❤️ for Muslim communities**
