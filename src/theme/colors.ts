@@ -1,0 +1,32 @@
+export const colors = {
+  background: '#020712',
+  backgroundGradientTop: '#020712',
+  backgroundGradientBottom: '#041622',
+  surfaceDefault: '#07121E',
+  surfaceElevated: '#0C1926',
+  surfaceGlass: 'rgba(12, 25, 38, 0.75)',
+  accentPrimary: '#D4AF37',
+  accentPrimarySoft: 'rgba(212, 175, 55, 0.28)',
+  accentSecondary: '#16A085',
+  accentSecondarySoft: 'rgba(22, 160, 133, 0.18)',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#C1CEDB',
+  textMuted: '#7E8BA3',
+  divider: 'rgba(255, 255, 255, 0.06)',
+  borderSubtle: 'rgba(255, 255, 255, 0.12)',
+  prayerCurrent: '#D4AF37',
+  prayerUpcoming: '#16A085',
+  prayerPassed: '#4C576A',
+  kasPositive: '#27AE60',
+  kasNegative: '#E74C3C',
+  kasNeutral: '#BDC3C7',
+  badgeInfo: 'rgba(52, 152, 219, 0.26)',
+  badgeWarning: 'rgba(241, 196, 15, 0.26)',
+  bannerAlertBackground: 'rgba(192, 57, 43, 0.35)',
+};
+
+export const ramadanColors = {
+  ...colors,
+  accentPrimary: '#11C76F',
+  accentPrimarySoft: 'rgba(17, 199, 111, 0.32)',
+};
