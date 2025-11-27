@@ -37,10 +37,6 @@ export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Text style={styles.icon}>ℹ️</Text>
-      </View>
-
       <View style={styles.textContainer}>
         <Animated.View
           style={[
@@ -59,26 +55,15 @@ export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 72,
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radii.pill,
+    height: 48,
+    backgroundColor: 'rgba(21, 32, 43, 0.85)',
+    borderRadius: radii.small,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.divider,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.55,
-    shadowRadius: 32,
-    elevation: 12,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
     overflow: 'hidden',
-  },
-  iconContainer: {
-    marginRight: spacing.lg,
-  },
-  icon: {
-    fontSize: 24,
   },
   textContainer: {
     flex: 1,
@@ -86,9 +71,13 @@ const styles = StyleSheet.create({
   },
   scrollingTextContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   text: {
     ...typography.bodyM,
     color: colors.textPrimary,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+    lineHeight: 24,
   },
 });

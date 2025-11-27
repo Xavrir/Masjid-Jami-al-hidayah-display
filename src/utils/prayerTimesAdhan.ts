@@ -1,18 +1,59 @@
 import { Prayer, PrayerStatus } from '../types';
 import { format, differenceInMinutes } from 'date-fns';
 
-/**
- * Calculate prayer times using adhan library for accurate astronomical calculations
- * Based on Kemenag RI calculation method
- */
+const DEFAULT_PRAYER_WINDOW_MINUTES = 20;
+const MIN_PRAYER_WINDOW_MINUTES = 5;
+const MAX_PRAYER_WINDOW_MINUTES = 60;
 
-// Note: This requires the 'adhan' package to be installed
-// We'll use a polyfill approach that works in React Native
+const getWindowMinutes = (
+  adhanDate: Date,
+  iqamahDate: Date,
+  override?: number
+): number => {
+  const derived = differenceInMinutes(iqamahDate, adhanDate);
+  const base = override ?? (derived > 0 ? derived : DEFAULT_PRAYER_WINDOW_MINUTES);
+  return Math.min(MAX_PRAYER_WINDOW_MINUTES, Math.max(MIN_PRAYER_WINDOW_MINUTES, base));
+};
 
-interface PrayerTime {
-  name: string;
-  time: Date;
-}
+export const getDateFromTimeString = (time: string, reference: Date): Date => {
+  const [hour, minute] = time.split(':').map(Number);
+  const result = new Date(reference);
+  result.setHours(hour);
+  result.setMinutes(minute);
+  result.setSeconds(0);
+  result.setMilliseconds(0);
+  return result;
+};
+
+export const getPrayerWindowBounds = (
+  prayer: Prayer,
+  referenceDate: Date = new Date()
+): { start: Date; end: Date; iqamahDate: Date; durationMinutes: number } => {
+  const start = getDateFromTimeString(prayer.adhanTime, referenceDate);
+  const iqamahDate = getDateFromTimeString(prayer.iqamahTime, referenceDate);
+  const durationMinutes = getWindowMinutes(start, iqamahDate, prayer.windowMinutes);
+  const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+
+  return { start, end, iqamahDate, durationMinutes };
+};
+
+export const isWithinPrayerWindow = (
+  prayer: Prayer,
+  currentTime: Date,
+  referenceDate: Date = currentTime
+): boolean => {
+  const { start, end } = getPrayerWindowBounds(prayer, referenceDate);
+  return currentTime >= start && currentTime < end;
+};
+
+export const getPrayerPhase = (
+  prayer: Prayer,
+  currentTime: Date,
+  referenceDate: Date = currentTime
+): 'adzan' | 'iqamah' => {
+  const { iqamahDate } = getPrayerWindowBounds(prayer, referenceDate);
+  return currentTime >= iqamahDate ? 'iqamah' : 'adzan';
+};
 
 /**
  * Calculate prayer times for Jakarta Timur, Indonesia
@@ -67,7 +108,13 @@ export const calculatePrayerTimesForJakarta = (date: Date): Prayer[] => {
         iqamahTime: format(new Date(prayerTimes.isha.getTime() + 15 * 60000), 'HH:mm'),
         status: 'upcoming' as PrayerStatus,
       },
-    ];
+    ].map((prayer) => {
+      const { durationMinutes } = getPrayerWindowBounds(prayer, date);
+      return {
+        ...prayer,
+        windowMinutes: durationMinutes,
+      };
+    });
 
     return updatePrayerStatuses(prayers, date);
   } catch (error) {
@@ -112,7 +159,14 @@ const getFallbackPrayerTimes = (date: Date): Prayer[] => {
       iqamahTime: '19:25',
       status: 'upcoming' as PrayerStatus,
     },
-  ];
+  ].map((prayer) => {
+    const start = getDateFromTimeString(prayer.adhanTime, date);
+    const iqamahDate = getDateFromTimeString(prayer.iqamahTime, date);
+    return {
+      ...prayer,
+      windowMinutes: getWindowMinutes(start, iqamahDate),
+    };
+  });
 
   return updatePrayerStatuses(prayers, date);
 };
@@ -121,39 +175,25 @@ const getFallbackPrayerTimes = (date: Date): Prayer[] => {
  * Update prayer statuses based on current time
  */
 export const updatePrayerStatuses = (prayers: Prayer[], currentTime: Date): Prayer[] => {
-  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-
   let foundCurrent = false;
 
-  return prayers.map((prayer, index) => {
-    const [adhanHour, adhanMin] = prayer.adhanTime.split(':').map(Number);
-    const [iqamahHour, iqamahMin] = prayer.iqamahTime.split(':').map(Number);
-
-    const adhanMinutes = adhanHour * 60 + adhanMin;
-    const iqamahMinutes = iqamahHour * 60 + iqamahMin;
-
-    // Determine end time (next prayer's adhan or 30 minutes after iqamah)
-    const nextPrayer = prayers[index + 1];
-    let endMinutes: number;
-
-    if (nextPrayer) {
-      const [nextAdhanHour, nextAdhanMin] = nextPrayer.adhanTime.split(':').map(Number);
-      endMinutes = nextAdhanHour * 60 + nextAdhanMin;
-    } else {
-      endMinutes = iqamahMinutes + 30;
-    }
+  return prayers.map((prayer) => {
+    const { start, end, durationMinutes } = getPrayerWindowBounds(prayer, currentTime);
 
     let status: PrayerStatus;
     let countdown: string | undefined;
 
-    if (currentMinutes >= adhanMinutes && currentMinutes < endMinutes && !foundCurrent) {
+    if (!foundCurrent && currentTime >= start && currentTime < end) {
       status = 'current';
       foundCurrent = true;
-      const remainingMinutes = endMinutes - currentMinutes;
+      const remainingMinutes = Math.max(
+        0,
+        Math.ceil((end.getTime() - currentTime.getTime()) / (60 * 1000))
+      );
       countdown = formatCountdown(remainingMinutes);
-    } else if (currentMinutes < adhanMinutes) {
+    } else if (currentTime < start) {
       status = 'upcoming';
-      const remainingMinutes = adhanMinutes - currentMinutes;
+      const remainingMinutes = Math.max(0, differenceInMinutes(start, currentTime));
       countdown = formatCountdown(remainingMinutes);
     } else {
       status = 'passed';
@@ -163,6 +203,7 @@ export const updatePrayerStatuses = (prayers: Prayer[], currentTime: Date): Pray
       ...prayer,
       status,
       countdown,
+      windowMinutes: durationMinutes,
     };
   });
 };

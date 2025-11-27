@@ -6,6 +6,7 @@ import {
   StatusBar,
   ScrollView,
   Dimensions,
+  ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors } from '../theme/colors';
@@ -76,7 +77,7 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
 
     setNextPrayer(next);
 
-    if (current && current !== currentPrayer) {
+    if (current && current.name !== currentPrayer?.name) {
       setCurrentPrayer(current);
       onPrayerStart?.(current);
     } else if (!current) {
@@ -90,10 +91,15 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
     <View style={styles.container}>
       <StatusBar hidden />
 
-      <LinearGradient
-        colors={[colors.backgroundGradientTop, colors.backgroundGradientBottom]}
-        style={styles.gradient}
+      <ImageBackground
+        source={require('../assets/images/kaaba-background.jpg')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
       >
+        <LinearGradient
+          colors={['rgba(5, 15, 24, 0.92)', 'rgba(5, 15, 24, 0.95)']}
+          style={styles.gradient}
+        >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -112,14 +118,17 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
 
           <View style={styles.headerRight}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>📍 Jakarta Timur</Text>
+              <View style={styles.badgeDot} />
+              <Text style={styles.badgeText}>Jakarta Timur</Text>
             </View>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>📶 Online</Text>
+              <View style={[styles.badgeDot, styles.badgeDotOnline]} />
+              <Text style={styles.badgeText}>Online</Text>
             </View>
             {isRamadanPeriod && (
               <View style={[styles.badge, styles.ramadanBadge]}>
-                <Text style={styles.badgeText}>🌙 Ramadan Kareem</Text>
+                <View style={styles.badgeDot} />
+                <Text style={styles.badgeText}>Ramadan Kareem</Text>
               </View>
             )}
           </View>
@@ -135,7 +144,10 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
             <View style={styles.leftColumn}>
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>🕌 Jadwal Salat Hari Ini</Text>
+                  <View style={styles.cardTitleContainer}>
+                    <View style={styles.cardIconDiamond} />
+                    <Text style={styles.cardTitle}>Jadwal Salat Hari Ini</Text>
+                  </View>
                   <View style={styles.chip}>
                     <Text style={styles.chipText}>WIB</Text>
                   </View>
@@ -188,7 +200,8 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
         <View style={styles.tickerContainer}>
           <AnnouncementTicker announcements={announcements} speed="slow" />
         </View>
-      </LinearGradient>
+        </LinearGradient>
+      </ImageBackground>
     </View>
   );
 };
@@ -197,6 +210,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  backgroundImage: {
+    flex: 1,
   },
   gradient: {
     flex: 1,
@@ -260,18 +276,34 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   badge: {
-    backgroundColor: colors.badgeInfo,
-    borderRadius: radii.small,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(21, 32, 43, 0.7)',
+    borderRadius: radii.medium,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.2)',
+  },
+  badgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentPrimary,
+    marginRight: spacing.sm,
+  },
+  badgeDotOnline: {
+    backgroundColor: '#4ade80',
   },
   ramadanBadge: {
-    backgroundColor: colors.accentSecondarySoft,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderColor: colors.accentPrimary,
   },
   badgeText: {
-    ...typography.bodyS,
+    ...typography.caption,
     color: colors.textSecondary,
+    fontWeight: '600',
   },
   coreContent: {
     flexDirection: 'row',
@@ -306,9 +338,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardIconDiamond: {
+    width: 12,
+    height: 12,
+    backgroundColor: colors.accentPrimary,
+    transform: [{ rotate: '45deg' }],
+    marginRight: spacing.md,
+  },
   cardTitle: {
     ...typography.titleM,
     color: colors.textPrimary,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   chip: {
     backgroundColor: colors.surfaceElevated,

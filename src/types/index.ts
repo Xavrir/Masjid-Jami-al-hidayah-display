@@ -6,6 +6,11 @@ export interface Prayer {
   iqamahTime: string;
   status: PrayerStatus;
   countdown?: string;
+  /**
+   * Optional display window length (minutes) counted from adhan.
+   * Controls how long the "Sedang Berlangsung" view stays active.
+   */
+  windowMinutes?: number;
 }
 
 export interface KasTransaction {
