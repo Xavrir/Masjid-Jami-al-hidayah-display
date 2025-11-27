@@ -7,9 +7,10 @@ import { Prayer } from '../types';
 
 interface NextPrayerCardProps {
   prayer: Prayer | null;
+  isTomorrow?: boolean;
 }
 
-export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({ prayer }) => {
+export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({ prayer, isTomorrow = false }) => {
   if (!prayer) {
     return (
       <View style={styles.container}>
@@ -20,8 +21,15 @@ export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({ prayer }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.chip}>
-        <Text style={styles.chipText}>{prayer.name}</Text>
+      <View style={styles.chipRow}>
+        <View style={styles.chip}>
+          <Text style={styles.chipText}>{prayer.name}</Text>
+        </View>
+        {isTomorrow && (
+          <View style={styles.tomorrowBadge}>
+            <Text style={styles.tomorrowBadgeText}>Besok</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.contentRow}>
@@ -51,35 +59,56 @@ export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({ prayer }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surfaceElevated,
-    borderRadius: radii.large,
-    padding: spacing.xl,
+    borderRadius: radii.medium,
+    padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.accentPrimarySoft,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.75,
-    shadowRadius: 48,
-    elevation: 24,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 8,
+    maxHeight: 180,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   chip: {
-    alignSelf: 'flex-start',
     backgroundColor: colors.accentPrimarySoft,
     borderRadius: radii.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   chipText: {
-    ...typography.bodyM,
+    ...typography.bodyS,
     color: colors.accentPrimary,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    fontSize: 12,
+  },
+  tomorrowBadge: {
+    backgroundColor: colors.accentSecondarySoft,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.accentSecondary,
+  },
+  tomorrowBadgeText: {
+    ...typography.caption,
+    color: colors.accentSecondary,
+    fontWeight: '700',
+    fontSize: 10,
     textTransform: 'uppercase',
   },
   contentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   leftSection: {
     flex: 1,
@@ -93,45 +122,52 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   label: {
-    ...typography.bodyM,
+    ...typography.bodyS,
     color: colors.textSecondary,
+    fontSize: 13,
   },
   timeLabel: {
-    ...typography.bodyS,
+    ...typography.caption,
     color: colors.textMuted,
-    marginBottom: spacing.xs,
+    marginBottom: 2,
+    fontSize: 11,
   },
   timeValue: {
-    ...typography.numericLarge,
+    fontSize: 32,
+    fontWeight: '700',
     color: colors.textPrimary,
   },
   countdownLabel: {
-    ...typography.bodyS,
+    ...typography.caption,
     color: colors.textMuted,
-    marginBottom: spacing.xs,
+    marginBottom: 2,
+    fontSize: 11,
   },
   countdownValue: {
-    ...typography.numericMedium,
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.accentSecondary,
   },
   iqamahRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
   },
   iqamahLabel: {
-    ...typography.bodyM,
+    ...typography.bodyS,
     color: colors.textSecondary,
+    fontSize: 13,
   },
   iqamahTime: {
-    ...typography.numericSmall,
+    fontSize: 20,
+    fontWeight: '600',
     color: colors.textPrimary,
   },
   noDataText: {
-    ...typography.bodyM,
+    ...typography.bodyS,
     color: colors.textMuted,
     textAlign: 'center',
   },

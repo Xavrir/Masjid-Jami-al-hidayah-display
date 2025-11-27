@@ -94,67 +94,66 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
         colors={[colors.backgroundGradientTop, colors.backgroundGradientBottom]}
         style={styles.gradient}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.accentBar} />
-            <View>
-              <Text style={styles.masjidName}>{masjidConfig.name.toUpperCase()}</Text>
-              <Text style={styles.location}>{masjidConfig.location}</Text>
-            </View>
-          </View>
-
-          <View style={styles.headerCenter}>
-            <Text style={styles.currentTime}>{formatTimeWithSeconds(currentTime)}</Text>
-            <Text style={styles.gregorianDate}>{formatGregorianDate(currentTime)}</Text>
-            <Text style={styles.hijriDate}>{getHijriDate(currentTime)}</Text>
-          </View>
-
-          <View style={styles.headerRight}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>📍 {masjidConfig.calculationMethod}</Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>📶 Online</Text>
-            </View>
-            {isRamadanPeriod && (
-              <View style={[styles.badge, styles.ramadanBadge]}>
-                <Text style={styles.badgeText}>🌙 Ramadan Kareem</Text>
+        {/* Header with Clock and Integrated Prayer Times */}
+        <View style={styles.headerSection}>
+          <View style={styles.headerTop}>
+            <View style={styles.headerLeft}>
+              <View style={styles.accentBar} />
+              <View>
+                <Text style={styles.masjidName}>{masjidConfig.name.toUpperCase()}</Text>
+                <Text style={styles.location}>{masjidConfig.location}</Text>
               </View>
-            )}
+            </View>
+
+            <View style={styles.headerCenter}>
+              <Text style={styles.currentTime}>{formatTimeWithSeconds(currentTime)}</Text>
+              <Text style={styles.gregorianDate}>{formatGregorianDate(currentTime)}</Text>
+              <Text style={styles.hijriDate}>{getHijriDate(currentTime)}</Text>
+            </View>
+
+            <View style={styles.headerRight}>
+              <View style={styles.badge}>
+                <View style={styles.badgeDot} />
+                <Text style={styles.badgeText}>{masjidConfig.calculationMethod}</Text>
+              </View>
+              <View style={styles.badge}>
+                <View style={[styles.badgeDot, { backgroundColor: '#22c55e' }]} />
+                <Text style={styles.badgeText}>ONLINE</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Compact Prayer Schedule - Below Clock */}
+          <View style={styles.prayerTimesCompact}>
+            {prayers.map((prayer, index) => (
+              <View key={prayer.name} style={[
+                styles.prayerTimeItem,
+                prayer.status === 'current' && styles.prayerTimeItemActive,
+                prayer.status === 'upcoming' && styles.prayerTimeItemNext,
+              ]}>
+                <Text style={[
+                  styles.prayerTimeName,
+                  prayer.status === 'current' && styles.prayerTimeNameActive,
+                ]}>{prayer.name}</Text>
+                <Text style={[
+                  styles.prayerTimeValue,
+                  prayer.status === 'current' && styles.prayerTimeValueActive,
+                ]}>{prayer.adhanTime}</Text>
+                <Text style={styles.prayerIqamah}>{prayer.iqamahTime}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
         {/* Core Content */}
         <View style={styles.coreContent}>
-          {/* Prayer Table Section */}
-          <View style={styles.prayerTableSection}>
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>🕌 Jadwal Salat Hari Ini</Text>
-                <View style={styles.chip}>
-                  <Text style={styles.chipText}>Local Time</Text>
-                </View>
-              </View>
-
-              <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderText, { flex: 0.2 }]}>Salat</Text>
-                <Text style={[styles.tableHeaderText, { flex: 0.18, textAlign: 'center' }]}>Adzan</Text>
-                <Text style={[styles.tableHeaderText, { flex: 0.18, textAlign: 'center' }]}>Iqamah</Text>
-                <Text style={[styles.tableHeaderText, { flex: 0.22, textAlign: 'center' }]}>Status</Text>
-                <Text style={[styles.tableHeaderText, { flex: 0.22, textAlign: 'right' }]}>Countdown</Text>
-              </View>
-
-              {prayers.map((prayer) => (
-                <PrayerRow key={prayer.name} prayer={prayer} />
-              ))}
-            </View>
+          {/* Next Prayer Card */}
+          <View style={styles.leftColumn}>
+            <NextPrayerCard prayer={nextPrayer} />
           </View>
 
-          {/* Right Column */}
+          {/* Right Column - Info Cards */}
           <View style={styles.rightColumn}>
-            <NextPrayerCard prayer={nextPrayer} />
-            <View style={styles.spacer} />
             <KasSummary kasData={kasData} variant="compact_with_sparkline" />
           </View>
         </View>
@@ -175,17 +174,21 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    paddingTop: safeAreaMargins.top,
-    paddingBottom: safeAreaMargins.bottom,
-    paddingHorizontal: safeAreaMargins.left,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.xxl,
   },
-  header: {
-    height: 120,
+  // Header Section - Integrated with Prayer Times
+  headerSection: {
+    marginBottom: spacing.lg,
+  },
+  headerTop: {
+    height: 80,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.xxl,
-    marginBottom: spacing.sectionGap,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   headerLeft: {
     flex: 1,
@@ -194,9 +197,9 @@ const styles = StyleSheet.create({
   },
   accentBar: {
     width: 4,
-    height: 48,
+    height: 40,
     backgroundColor: colors.accentPrimary,
-    marginRight: spacing.lg,
+    marginRight: spacing.md,
   },
   masjidName: {
     ...typography.headlineM,
@@ -232,81 +235,92 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   badge: {
-    backgroundColor: colors.badgeInfo,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceGlass,
     borderRadius: radii.small,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
-  ramadanBadge: {
-    backgroundColor: colors.accentSecondarySoft,
+  badgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentPrimary,
+    marginRight: spacing.sm,
   },
   badgeText: {
     ...typography.bodyS,
     color: colors.textSecondary,
   },
-  coreContent: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: spacing.xxl,
-    paddingHorizontal: spacing.xxl,
-  },
-  prayerTableSection: {
-    flex: 0.58,
-  },
-  card: {
-    backgroundColor: colors.surfaceGlass,
-    borderRadius: radii.large,
-    padding: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.accentPrimarySoft,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.55,
-    shadowRadius: 32,
-    elevation: 12,
-  },
-  cardHeader: {
+  // Compact Prayer Times - Below Clock
+  prayerTimesCompact: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+  },
+  prayerTimeItem: {
+    flex: 1,
+    backgroundColor: colors.surfaceGlass,
+    borderRadius: radii.small,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    minHeight: 72,
   },
-  cardTitle: {
-    ...typography.titleM,
+  prayerTimeItemActive: {
+    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    borderColor: colors.accentPrimary,
+    borderWidth: 2,
+  },
+  prayerTimeItemNext: {
+    borderColor: colors.accentPrimary,
+    borderWidth: 1,
+  },
+  prayerTimeName: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  prayerTimeNameActive: {
+    color: colors.accentPrimary,
+  },
+  prayerTimeValue: {
+    fontSize: 20,
+    fontWeight: '700',
     color: colors.textPrimary,
+    marginBottom: 2,
   },
-  chip: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+  prayerTimeValueActive: {
+    color: colors.accentPrimary,
   },
-  chipText: {
+  prayerIqamah: {
     ...typography.caption,
     color: colors.textMuted,
+    fontSize: 11,
   },
-  tableHeader: {
+  coreContent: {
     flexDirection: 'row',
+    gap: spacing.lg,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+    maxHeight: 200,
   },
-  tableHeaderText: {
-    ...typography.bodyS,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
+  leftColumn: {
+    flex: 0.5,
   },
   rightColumn: {
-    flex: 0.42,
-  },
-  spacer: {
-    height: spacing.xl,
+    flex: 0.5,
   },
   tickerContainer: {
-    marginTop: spacing.sectionGap,
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
 });

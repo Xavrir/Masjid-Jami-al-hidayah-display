@@ -33,7 +33,8 @@ export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
     animate();
   }, [announcements, speed, scrollAnim, screenWidth]);
 
-  const combinedText = announcements.join('  •  ');
+  // Gabungkan semua pengumuman menjadi 1 teks panjang dengan titik sebagai pemisah
+  const combinedText = announcements.join('. ') + '.';
 
   return (
     <View style={styles.container}>
@@ -46,7 +47,7 @@ export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
             },
           ]}
         >
-          <Text style={styles.text}>{combinedText}  •  {combinedText}</Text>
+          <Text style={styles.text} numberOfLines={1}>{combinedText}     {combinedText}</Text>
         </Animated.View>
       </View>
     </View>
@@ -55,7 +56,7 @@ export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 48,
+    height: 56,
     backgroundColor: 'rgba(21, 32, 43, 0.85)',
     borderRadius: radii.small,
     flexDirection: 'row',
@@ -74,10 +75,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    ...typography.bodyM,
+    fontSize: 24,
     color: colors.textPrimary,
     fontWeight: '500',
     letterSpacing: 0.3,
-    lineHeight: 24,
   },
 });

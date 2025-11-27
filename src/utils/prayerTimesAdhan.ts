@@ -210,9 +210,17 @@ export const updatePrayerStatuses = (prayers: Prayer[], currentTime: Date): Pray
 
 /**
  * Get the next upcoming prayer
+ * If all prayers have passed, fallback to tomorrow's prayers
  */
-export const getNextPrayer = (prayers: Prayer[]): Prayer | null => {
+export const getNextPrayer = (prayers: Prayer[], tomorrowPrayers?: Prayer[]): Prayer | null => {
   const upcoming = prayers.find(p => p.status === 'upcoming');
+
+  // If no upcoming prayer today and tomorrow's prayers are provided
+  if (!upcoming && tomorrowPrayers && tomorrowPrayers.length > 0) {
+    // Return first prayer of tomorrow (Subuh)
+    return tomorrowPrayers[0];
+  }
+
   return upcoming || null;
 };
 
@@ -222,6 +230,13 @@ export const getNextPrayer = (prayers: Prayer[]): Prayer | null => {
 export const getCurrentPrayer = (prayers: Prayer[]): Prayer | null => {
   const current = prayers.find(p => p.status === 'current');
   return current || null;
+};
+
+/**
+ * Check if all prayers for the day have passed
+ */
+export const allPrayersPassed = (prayers: Prayer[]): boolean => {
+  return prayers.every(p => p.status === 'passed');
 };
 
 /**
