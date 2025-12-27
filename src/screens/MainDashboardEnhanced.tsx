@@ -144,20 +144,39 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
                 <Text style={styles.gregorianDate}>
                   {formatGregorianDate(currentTime)}
                 </Text>
+<<<<<<< HEAD
               </View>
 
               <View style={styles.headerRight}>
+=======
+>>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
                 <Text style={styles.hijriDate}>
                   {getHijriDate(currentTime)}
                 </Text>
               </View>
+<<<<<<< HEAD
+=======
+
+              <View style={styles.headerRight}>
+                {isRamadanPeriod && (
+                  <View style={[styles.badge, styles.ramadanBadge]}>
+                    <View style={styles.badgeDot} />
+                    <Text style={styles.badgeText}>Ramadan Kareem</Text>
+                  </View>
+                )}
+              </View>
+>>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
             </View>
 
             {/* Compact Prayer Schedule - Below Clock */}
             <View style={styles.prayerTimesCompact}>
               {displayPrayers.map((prayer, index) => {
+<<<<<<< HEAD
                 // For tomorrow's prayers, highlight the first one (Subuh)
                 const isHighlighted = isNextPrayerTomorrow && index === 0;
+=======
+                const isTheNextPrayer = nextPrayer?.name === prayer.name;
+>>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
                 return (
                   <View
                     key={prayer.name}
@@ -165,8 +184,12 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
                       styles.prayerTimeItem,
                       prayer.status === 'current' &&
                         styles.prayerTimeItemActive,
+<<<<<<< HEAD
                       (prayer.status === 'upcoming' || isHighlighted) &&
                         styles.prayerTimeItemNext,
+=======
+                      isTheNextPrayer && styles.prayerTimeItemNext,
+>>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
                     ]}>
                     <Text
                       style={[
@@ -255,7 +278,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   headerLeft: {
     flex: 1,
