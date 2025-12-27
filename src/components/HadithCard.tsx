@@ -53,25 +53,13 @@ export const HadithCard: React.FC<HadithCardProps> = ({
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.arabicText} numberOfLines={3} ellipsizeMode="tail">
+        <Text style={styles.arabicText} numberOfLines={4} ellipsizeMode="tail">
           {hadith.arabic}
-        </Text>
-
-        <View style={styles.divider} />
-
-        <Text
-          style={styles.translationText}
-          numberOfLines={4}
-          ellipsizeMode="tail">
-          {hadith.translation}
         </Text>
       </View>
 
       <View style={styles.footer}>
         <View style={styles.sourceContainer}>
-          <Text style={styles.narrator} numberOfLines={1} ellipsizeMode="tail">
-            Dari: {hadith.narrator}
-          </Text>
           <Text style={styles.source} numberOfLines={1} ellipsizeMode="tail">
             {hadith.source}
           </Text>
@@ -85,7 +73,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surfaceGlass,
     borderRadius: radii.medium,
-    padding: spacing.lg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.xxl,
     borderWidth: 1,
     borderColor: colors.accentPrimarySoft,
     shadowColor: '#000',
@@ -95,6 +84,7 @@ const styles = StyleSheet.create({
     elevation: 8,
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -122,14 +112,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     marginBottom: spacing.md,
+    marginTop: spacing.xs,
   },
   arabicText: {
-    fontSize: 19,
-    lineHeight: 32,
+    fontSize: 17,
+    lineHeight: 30,
     color: colors.textPrimary,
     textAlign: 'right',
     fontWeight: '500',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     includeFontPadding: false,
   },
   divider: {
@@ -140,8 +131,8 @@ const styles = StyleSheet.create({
   translationText: {
     ...typography.bodyM,
     color: colors.textSecondary,
-    lineHeight: 24,
-    fontSize: 14,
+    lineHeight: 20,
+    fontSize: 12,
     includeFontPadding: false,
   },
   footer: {

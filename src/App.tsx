@@ -114,7 +114,7 @@ const App: React.FC = () => {
         onClose={() => setKasOverlayVisible(false)}
       />
 
-      {currentScreen === 'dashboard' && (
+      {__DEV__ && currentScreen === 'dashboard' && (
         <Pressable
           style={styles.debugButton}
           onPress={triggerDebugPrayerOverlay}>

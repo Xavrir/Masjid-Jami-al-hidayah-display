@@ -58,21 +58,11 @@ export const QuranVerseCard: React.FC<QuranVerseCardProps> = ({
           {verse.arabic}
         </Text>
 
-        <View style={styles.divider} />
-
-        <Text
-          style={styles.translationText}
-          numberOfLines={4}
-          ellipsizeMode="tail">
-          {verse.translation}
-        </Text>
-
         {verse.transliteration && (
           <Text
             style={styles.transliterationText}
             numberOfLines={2}
             ellipsizeMode="tail">
-            <Text style={styles.transliterationLabel}>Transliterasi: </Text>
             {verse.transliteration}
           </Text>
         )}
@@ -89,7 +79,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surfaceGlass,
     borderRadius: radii.medium,
-    padding: spacing.lg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.xxl,
     borderWidth: 1,
     borderColor: colors.accentSecondarySoft,
     shadowColor: '#000',
@@ -99,6 +90,7 @@ const styles = StyleSheet.create({
     elevation: 8,
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -119,14 +111,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     marginBottom: spacing.md,
+    marginTop: spacing.xs,
   },
   arabicText: {
-    fontSize: 20,
-    lineHeight: 34,
+    fontSize: 18,
+    lineHeight: 32,
     color: colors.textPrimary,
     textAlign: 'right',
     fontWeight: '500',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     includeFontPadding: false,
   },
   divider: {
@@ -137,17 +130,18 @@ const styles = StyleSheet.create({
   translationText: {
     ...typography.bodyM,
     color: colors.textSecondary,
-    lineHeight: 24,
-    marginBottom: spacing.sm,
-    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: spacing.xs,
+    fontSize: 12,
     includeFontPadding: false,
   },
   transliterationText: {
     ...typography.caption,
-    color: colors.textMuted,
+    color: colors.accentSecondary,
     fontStyle: 'italic',
-    lineHeight: 18,
-    fontSize: 11,
+    lineHeight: 14,
+    fontSize: 9,
+    marginTop: spacing.xs,
   },
   transliterationLabel: {
     color: colors.accentSecondary,
