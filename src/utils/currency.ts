@@ -9,10 +9,3 @@ export const formatCurrency = (amount: number): string => {
     maximumFractionDigits: 0,
   }).format(amount);
 };
-
-/**
- * Format number with thousand separators
- */
-export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('id-ID').format(num);
-};

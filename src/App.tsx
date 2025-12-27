@@ -3,7 +3,11 @@ import { Pressable, SafeAreaView, StyleSheet, Text } from 'react-native';
 import { MainDashboard } from './screens/MainDashboardEnhanced';
 import { PrayerInProgress } from './screens/PrayerInProgress';
 import { KasDetailOverlay } from './components/KasDetailOverlay';
-import { mockMasjidConfig, mockKasData, mockAnnouncements } from './data/mockData';
+import {
+  mockMasjidConfig,
+  mockKasData,
+  mockAnnouncements,
+} from './data/mockData';
 import { Prayer } from './types';
 import { colors } from './theme/colors';
 import { typography } from './theme/typography';
@@ -28,7 +32,9 @@ const App: React.FC = () => {
   useEffect(() => {
     // Placeholder for TV event handling
     // Can be implemented with react-native-tvos or custom solution
-    console.log('TV event handler would be initialized here');
+    if (__DEV__) {
+      console.log('TV event handler would be initialized here');
+    }
   }, [currentScreen]);
 
   // Shared clock for gating overlays
@@ -55,7 +61,11 @@ const App: React.FC = () => {
 
   // Auto-hide overlay when keluar dari jendela adzan (live mode)
   useEffect(() => {
-    if (!currentPrayer || currentScreen !== 'prayer-in-progress' || forcePrayerDebug) {
+    if (
+      !currentPrayer ||
+      currentScreen !== 'prayer-in-progress' ||
+      forcePrayerDebug
+    ) {
       return;
     }
 
@@ -105,7 +115,9 @@ const App: React.FC = () => {
       />
 
       {currentScreen === 'dashboard' && (
-        <Pressable style={styles.debugButton} onPress={triggerDebugPrayerOverlay}>
+        <Pressable
+          style={styles.debugButton}
+          onPress={triggerDebugPrayerOverlay}>
           <Text style={styles.debugText}>Force layar salat</Text>
         </Pressable>
       )}
