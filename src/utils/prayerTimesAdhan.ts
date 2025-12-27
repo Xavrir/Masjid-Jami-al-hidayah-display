@@ -11,8 +11,12 @@ const getWindowMinutes = (
   override?: number
 ): number => {
   const derived = differenceInMinutes(iqamahDate, adhanDate);
-  const base = override ?? (derived > 0 ? derived : DEFAULT_PRAYER_WINDOW_MINUTES);
-  return Math.min(MAX_PRAYER_WINDOW_MINUTES, Math.max(MIN_PRAYER_WINDOW_MINUTES, base));
+  const base =
+    override ?? (derived > 0 ? derived : DEFAULT_PRAYER_WINDOW_MINUTES);
+  return Math.min(
+    MAX_PRAYER_WINDOW_MINUTES,
+    Math.max(MIN_PRAYER_WINDOW_MINUTES, base)
+  );
 };
 
 export const getDateFromTimeString = (time: string, reference: Date): Date => {
@@ -31,7 +35,11 @@ export const getPrayerWindowBounds = (
 ): { start: Date; end: Date; iqamahDate: Date; durationMinutes: number } => {
   const start = getDateFromTimeString(prayer.adhanTime, referenceDate);
   const iqamahDate = getDateFromTimeString(prayer.iqamahTime, referenceDate);
-  const durationMinutes = getWindowMinutes(start, iqamahDate, prayer.windowMinutes);
+  const durationMinutes = getWindowMinutes(
+    start,
+    iqamahDate,
+    prayer.windowMinutes
+  );
   const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
 
   return { start, end, iqamahDate, durationMinutes };
@@ -65,7 +73,11 @@ export const calculatePrayerTimesForJakarta = (date: Date): Prayer[] => {
 
   try {
     // Dynamic import for adhan (if available)
-    const { Coordinates, CalculationMethod, PrayerTimes: AdhanPrayerTimes } = require('adhan');
+    const {
+      Coordinates,
+      CalculationMethod,
+      PrayerTimes: AdhanPrayerTimes,
+    } = require('adhan');
 
     const coordinates = new Coordinates(latitude, longitude);
     const params = CalculationMethod.Other();
@@ -81,34 +93,49 @@ export const calculatePrayerTimesForJakarta = (date: Date): Prayer[] => {
       {
         name: 'Subuh',
         adhanTime: format(prayerTimes.fajr, 'HH:mm'),
-        iqamahTime: format(new Date(prayerTimes.fajr.getTime() + 15 * 60000), 'HH:mm'),
+        iqamahTime: format(
+          new Date(prayerTimes.fajr.getTime() + 15 * 60000),
+          'HH:mm'
+        ),
         status: 'upcoming' as PrayerStatus,
       },
       {
         name: 'Dzuhur',
         adhanTime: format(prayerTimes.dhuhr, 'HH:mm'),
-        iqamahTime: format(new Date(prayerTimes.dhuhr.getTime() + 15 * 60000), 'HH:mm'),
+        iqamahTime: format(
+          new Date(prayerTimes.dhuhr.getTime() + 15 * 60000),
+          'HH:mm'
+        ),
         status: 'upcoming' as PrayerStatus,
       },
       {
         name: 'Ashar',
         adhanTime: format(prayerTimes.asr, 'HH:mm'),
-        iqamahTime: format(new Date(prayerTimes.asr.getTime() + 15 * 60000), 'HH:mm'),
+        iqamahTime: format(
+          new Date(prayerTimes.asr.getTime() + 15 * 60000),
+          'HH:mm'
+        ),
         status: 'upcoming' as PrayerStatus,
       },
       {
         name: 'Maghrib',
         adhanTime: format(prayerTimes.maghrib, 'HH:mm'),
-        iqamahTime: format(new Date(prayerTimes.maghrib.getTime() + 5 * 60000), 'HH:mm'),
+        iqamahTime: format(
+          new Date(prayerTimes.maghrib.getTime() + 5 * 60000),
+          'HH:mm'
+        ),
         status: 'upcoming' as PrayerStatus,
       },
       {
         name: 'Isya',
         adhanTime: format(prayerTimes.isha, 'HH:mm'),
-        iqamahTime: format(new Date(prayerTimes.isha.getTime() + 15 * 60000), 'HH:mm'),
+        iqamahTime: format(
+          new Date(prayerTimes.isha.getTime() + 15 * 60000),
+          'HH:mm'
+        ),
         status: 'upcoming' as PrayerStatus,
       },
-    ].map((prayer) => {
+    ].map(prayer => {
       const { durationMinutes } = getPrayerWindowBounds(prayer, date);
       return {
         ...prayer,
@@ -118,7 +145,9 @@ export const calculatePrayerTimesForJakarta = (date: Date): Prayer[] => {
 
     return updatePrayerStatuses(prayers, date);
   } catch (error) {
-    console.warn('Adhan library not available, using fallback times', error);
+    if (__DEV__) {
+      console.warn('Adhan library not available, using fallback times', error);
+    }
     return getFallbackPrayerTimes(date);
   }
 };
@@ -159,7 +188,7 @@ const getFallbackPrayerTimes = (date: Date): Prayer[] => {
       iqamahTime: '19:25',
       status: 'upcoming' as PrayerStatus,
     },
-  ].map((prayer) => {
+  ].map(prayer => {
     const start = getDateFromTimeString(prayer.adhanTime, date);
     const iqamahDate = getDateFromTimeString(prayer.iqamahTime, date);
     return {
@@ -174,11 +203,17 @@ const getFallbackPrayerTimes = (date: Date): Prayer[] => {
 /**
  * Update prayer statuses based on current time
  */
-export const updatePrayerStatuses = (prayers: Prayer[], currentTime: Date): Prayer[] => {
+export const updatePrayerStatuses = (
+  prayers: Prayer[],
+  currentTime: Date
+): Prayer[] => {
   let foundCurrent = false;
 
-  return prayers.map((prayer) => {
-    const { start, end, durationMinutes } = getPrayerWindowBounds(prayer, currentTime);
+  return prayers.map(prayer => {
+    const { start, end, durationMinutes } = getPrayerWindowBounds(
+      prayer,
+      currentTime
+    );
 
     let status: PrayerStatus;
     let countdown: string | undefined;
@@ -193,7 +228,10 @@ export const updatePrayerStatuses = (prayers: Prayer[], currentTime: Date): Pray
       countdown = formatCountdown(remainingMinutes);
     } else if (currentTime < start) {
       status = 'upcoming';
-      const remainingMinutes = Math.max(0, differenceInMinutes(start, currentTime));
+      const remainingMinutes = Math.max(
+        0,
+        differenceInMinutes(start, currentTime)
+      );
       countdown = formatCountdown(remainingMinutes);
     } else {
       status = 'passed';
@@ -212,7 +250,10 @@ export const updatePrayerStatuses = (prayers: Prayer[], currentTime: Date): Pray
  * Get the next upcoming prayer
  * If all prayers have passed, fallback to tomorrow's prayers
  */
-export const getNextPrayer = (prayers: Prayer[], tomorrowPrayers?: Prayer[]): Prayer | null => {
+export const getNextPrayer = (
+  prayers: Prayer[],
+  tomorrowPrayers?: Prayer[]
+): Prayer | null => {
   const upcoming = prayers.find(p => p.status === 'upcoming');
 
   // If no upcoming prayer today and tomorrow's prayers are provided
@@ -275,9 +316,18 @@ export const getHijriDate = (date: Date): string => {
   const hijriYear = Math.floor((gregorianYear - 622) * 1.030684);
 
   const hijriMonths = [
-    'Muharram', 'Safar', 'Rabi\'ul Awwal', 'Rabi\'ul Akhir',
-    'Jumadil Awwal', 'Jumadil Akhir', 'Rajab', 'Sya\'ban',
-    'Ramadhan', 'Syawwal', 'Dzulqa\'dah', 'Dzulhijjah'
+    'Muharram',
+    'Safar',
+    "Rabi'ul Awwal",
+    "Rabi'ul Akhir",
+    'Jumadil Awwal',
+    'Jumadil Akhir',
+    'Rajab',
+    "Sya'ban",
+    'Ramadhan',
+    'Syawwal',
+    "Dzulqa'dah",
+    'Dzulhijjah',
   ];
 
   // Approximate month (for display purposes)

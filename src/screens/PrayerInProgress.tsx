@@ -25,6 +25,35 @@ const BEEP_INTERVAL_MS = 1200;
 const BACKGROUND_IMAGE =
   'https://images.unsplash.com/photo-1501446529957-6226bd447c46?auto=format&fit=crop&w=1800&q=80';
 
+type SoundInstance = {
+  play: (callback?: (success: boolean) => void) => void;
+  stop: (callback?: () => void) => void;
+  release: () => void;
+};
+
+type SoundConstructor = new (
+  source: number | string,
+  basePath: string,
+  onError?: (error: unknown) => void
+) => SoundInstance;
+
+type SoundModule = SoundConstructor & {
+  setCategory: (category: string) => void;
+  MAIN_BUNDLE: string;
+};
+
+const isSoundModule = (value: unknown): value is SoundModule => {
+  if (typeof value !== 'function') return false;
+  const maybe = value as unknown as {
+    setCategory?: unknown;
+    MAIN_BUNDLE?: unknown;
+  };
+  return (
+    typeof maybe.setCategory === 'function' &&
+    typeof maybe.MAIN_BUNDLE === 'string'
+  );
+};
+
 interface PrayerInProgressProps {
   prayer: Prayer;
   onComplete?: () => void;
@@ -63,7 +92,7 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
   const autoReturnDeadlineRef = useRef<Date | null>(null);
   const autoReturnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const beepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const soundRef = useRef<any>(null);
+  const soundRef = useRef<SoundInstance | null>(null);
 
   const { start, end, iqamahDate, durationMinutes } = useMemo(
     () => getPrayerWindowBounds(prayer, currentTime),
@@ -76,33 +105,38 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
   }, []);
 
   useEffect(() => {
-    let SoundClass: any;
-    let instance: any;
+    let instance: SoundInstance | null = null;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      SoundClass = require('react-native-sound');
-      SoundClass.setCategory('Playback');
-      instance = new SoundClass(
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const required: unknown = require('react-native-sound');
+      if (!isSoundModule(required)) {
+        throw new Error('Invalid sound module');
+      }
+
+      required.setCategory('Playback');
+      instance = new required(
         require('../assets/sounds/beep.wav'),
-        SoundClass.MAIN_BUNDLE,
+        required.MAIN_BUNDLE,
         (error: unknown) => {
           if (error) {
-            console.warn('Gagal memuat bunyi beep', error);
+            if (__DEV__) {
+              console.warn('Gagal memuat bunyi beep', error);
+            }
           } else {
             setSoundReady(true);
           }
         }
       );
     } catch (error) {
-      console.warn('Modul suara tidak tersedia, fallback ke vibrasi', error);
+      if (__DEV__) {
+        console.warn('Modul suara tidak tersedia, fallback ke vibrasi', error);
+      }
     }
 
     soundRef.current = instance;
 
     return () => {
-      instance?.release?.();
+      instance?.release();
     };
   }, []);
 
@@ -150,10 +184,14 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
   }, [prayer, onComplete]);
 
   const windowRemainingMs = Math.max(0, end.getTime() - currentTime.getTime());
-  const iqamahRemainingMs = Math.max(0, iqamahDate.getTime() - currentTime.getTime());
+  const iqamahRemainingMs = Math.max(
+    0,
+    iqamahDate.getTime() - currentTime.getTime()
+  );
   const autoReturnRemainingMs = Math.max(
     0,
-    (autoReturnDeadlineRef.current?.getTime() ?? Date.now()) - currentTime.getTime()
+    (autoReturnDeadlineRef.current?.getTime() ?? Date.now()) -
+      currentTime.getTime()
   );
   const phase = getPrayerPhase(prayer, currentTime);
 
@@ -164,12 +202,10 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
       <ImageBackground
         source={{ uri: BACKGROUND_IMAGE }}
         blurRadius={18}
-        style={styles.background}
-      >
+        style={styles.background}>
         <LinearGradient
           colors={['rgba(2, 7, 18, 0.84)', 'rgba(4, 13, 26, 0.94)']}
-          style={styles.overlay}
-        >
+          style={styles.overlay}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Text style={styles.masjidName}>{masjidName.toUpperCase()}</Text>
@@ -179,17 +215,25 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
             </View>
 
             <View style={styles.headerCenter}>
-              <Text style={styles.currentTime}>{formatTimeWithSeconds(currentTime)}</Text>
-              <Text style={styles.dateText}>{formatGregorianDate(currentTime)}</Text>
+              <Text style={styles.currentTime}>
+                {formatTimeWithSeconds(currentTime)}
+              </Text>
+              <Text style={styles.dateText}>
+                {formatGregorianDate(currentTime)}
+              </Text>
               <Text style={styles.hijriText}>{getHijriDate(currentTime)}</Text>
             </View>
 
             <View style={styles.headerRight}>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{phase === 'adzan' ? 'Adzan' : 'Iqamah'}</Text>
+                <Text style={styles.badgeText}>
+                  {phase === 'adzan' ? 'Adzan' : 'Iqamah'}
+                </Text>
               </View>
               <View style={[styles.badge, forceDebug && styles.badgeWarning]}>
-                <Text style={styles.badgeText}>{forceDebug ? 'Debug' : 'Live'}</Text>
+                <Text style={styles.badgeText}>
+                  {forceDebug ? 'Debug' : 'Live'}
+                </Text>
               </View>
             </View>
           </View>
@@ -202,7 +246,9 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
                     {phase === 'adzan' ? 'Adzan' : 'Iqamah'} • {prayer.name}
                   </Text>
                 </View>
-                <Text style={styles.windowText}>Jendela {durationMinutes} menit</Text>
+                <Text style={styles.windowText}>
+                  Jendela {durationMinutes} menit
+                </Text>
               </View>
 
               <Text style={styles.cardTitle}>Sedang berlangsung</Text>
@@ -213,27 +259,40 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
               <View style={styles.countdownRow}>
                 <View style={styles.countdownBlock}>
                   <Text style={styles.countdownLabel}>Sisa waktu</Text>
-                  <Text style={styles.countdownValue}>{formatMsToClock(windowRemainingMs)}</Text>
-                  <Text style={styles.countdownHint}>Hingga akhir jendela adzan</Text>
+                  <Text style={styles.countdownValue}>
+                    {formatMsToClock(windowRemainingMs)}
+                  </Text>
+                  <Text style={styles.countdownHint}>
+                    Hingga akhir jendela adzan
+                  </Text>
                 </View>
 
                 <View style={styles.countdownBlock}>
                   <Text style={styles.countdownLabel}>Menuju iqamah</Text>
                   <Text style={styles.countdownValue}>
-                    {phase === 'iqamah' ? '00:00' : formatMsToClock(iqamahRemainingMs)}
+                    {phase === 'iqamah'
+                      ? '00:00'
+                      : formatMsToClock(iqamahRemainingMs)}
                   </Text>
                   <Text style={styles.countdownHint}>
-                    {phase === 'iqamah' ? 'Iqamah berlangsung' : 'Perkiraan ke iqamah'}
+                    {phase === 'iqamah'
+                      ? 'Iqamah berlangsung'
+                      : 'Perkiraan ke iqamah'}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.chipRow}>
-                <View style={[styles.chip, phase === 'adzan' && styles.chipActive]}>
+                <View
+                  style={[styles.chip, phase === 'adzan' && styles.chipActive]}>
                   <Text style={styles.chipLabel}>Adzan</Text>
                   <Text style={styles.chipValue}>{prayer.adhanTime}</Text>
                 </View>
-                <View style={[styles.chip, phase === 'iqamah' && styles.chipActive]}>
+                <View
+                  style={[
+                    styles.chip,
+                    phase === 'iqamah' && styles.chipActive,
+                  ]}>
                   <Text style={styles.chipLabel}>Iqamah</Text>
                   <Text style={styles.chipValue}>{prayer.iqamahTime}</Text>
                 </View>
@@ -246,7 +305,8 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
                   </Text>
                 </View>
                 <Text style={styles.footerText}>
-                  Kembali ke beranda dalam {formatMsToClock(autoReturnRemainingMs)}
+                  Kembali ke beranda dalam{' '}
+                  {formatMsToClock(autoReturnRemainingMs)}
                 </Text>
               </View>
             </View>
@@ -256,13 +316,19 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
             <View>
               <Text style={styles.bottomLabel}>Mulai adzan</Text>
               <Text style={styles.bottomValue}>
-                {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {start.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </Text>
             </View>
             <View>
               <Text style={styles.bottomLabel}>Akhir jendela</Text>
               <Text style={styles.bottomValue}>
-                {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {end.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </Text>
             </View>
             <Pressable onPress={() => onComplete?.()} style={styles.skipButton}>

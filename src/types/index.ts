@@ -40,17 +40,3 @@ export interface MasjidConfig {
   };
   calculationMethod: string;
 }
-
-export interface AppState {
-  currentTime: Date;
-  gregorianDate: string;
-  hijriDate: string;
-  prayers: Prayer[];
-  nextPrayer: Prayer | null;
-  currentPrayer: Prayer | null;
-  kasData: KasData;
-  announcements: string[];
-  isOnline: boolean;
-  masjid: MasjidConfig;
-  isRamadan: boolean;
-}
