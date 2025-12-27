@@ -1,7 +1,5 @@
 # Masjid Display - Prayer Timetable & Kas Display for Android TV
 
-Sleek, minimal, and luxurious prayer timetable display with mosque treasury (kas) information, specifically designed for Android TV using React Native.
-
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![React Native](https://img.shields.io/badge/React%20Native-0.73.2-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)

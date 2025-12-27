@@ -46,23 +46,32 @@ export const QuranVerseCard: React.FC<QuranVerseCardProps> = ({
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <View style={styles.header}>
-        <Text style={styles.icon}>📖</Text>
         <View style={styles.headerText}>
-          <Text style={styles.surahName}>
+          <Text style={styles.surahName} numberOfLines={1} ellipsizeMode="tail">
             QS. {verse.surah} ({verse.surahNumber}): {verse.ayah}
           </Text>
         </View>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.arabicText}>{verse.arabic}</Text>
+        <Text style={styles.arabicText} numberOfLines={3} ellipsizeMode="tail">
+          {verse.arabic}
+        </Text>
 
         <View style={styles.divider} />
 
-        <Text style={styles.translationText}>{verse.translation}</Text>
+        <Text
+          style={styles.translationText}
+          numberOfLines={4}
+          ellipsizeMode="tail">
+          {verse.translation}
+        </Text>
 
         {verse.transliteration && (
-          <Text style={styles.transliterationText}>
+          <Text
+            style={styles.transliterationText}
+            numberOfLines={2}
+            ellipsizeMode="tail">
             <Text style={styles.transliterationLabel}>Transliterasi: </Text>
             {verse.transliteration}
           </Text>
@@ -88,17 +97,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 24,
     elevation: 8,
-    maxHeight: 240,
+    flex: 1,
+    minHeight: 0,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  icon: {
-    fontSize: 22,
-    marginRight: spacing.sm,
-  },
+
   headerText: {
     flex: 1,
   },
@@ -109,6 +116,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   content: {
+    flex: 1,
+    minHeight: 0,
     marginBottom: spacing.md,
   },
   arabicText: {
@@ -118,6 +127,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontWeight: '500',
     marginBottom: spacing.md,
+    includeFontPadding: false,
   },
   divider: {
     height: 1,
@@ -130,6 +140,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: spacing.sm,
     fontSize: 14,
+    includeFontPadding: false,
   },
   transliterationText: {
     ...typography.caption,

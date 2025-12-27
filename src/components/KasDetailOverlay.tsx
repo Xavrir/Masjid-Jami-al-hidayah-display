@@ -46,22 +46,22 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.headerIcon}>💰</Text>
               <Text style={styles.headerTitle}>Ringkasan Kas Masjid</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>✕</Text>
+              <Text style={styles.closeButtonText}>X</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}>
             {/* Balance Highlight */}
             <View style={styles.balanceCard}>
               <Text style={styles.balanceLabel}>Saldo Saat Ini</Text>
@@ -71,8 +71,10 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
               <View style={styles.trendRow}>
                 <Text style={styles.trendIcon}>{getTrendIcon()}</Text>
                 <Text style={styles.trendText}>
-                  {kasData.trendDirection === 'up' && 'Meningkat dari bulan lalu'}
-                  {kasData.trendDirection === 'down' && 'Menurun dari bulan lalu'}
+                  {kasData.trendDirection === 'up' &&
+                    'Meningkat dari bulan lalu'}
+                  {kasData.trendDirection === 'down' &&
+                    'Menurun dari bulan lalu'}
                   {kasData.trendDirection === 'flat' && 'Stabil'}
                 </Text>
               </View>
@@ -88,7 +90,9 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
               </View>
 
               <View style={[styles.statCard, styles.expenseCard]}>
-                <Text style={styles.statLabel}>Total Pengeluaran Bulan Ini</Text>
+                <Text style={styles.statLabel}>
+                  Total Pengeluaran Bulan Ini
+                </Text>
                 <Text style={[styles.statValue, { color: colors.kasNegative }]}>
                   {formatCurrency(kasData.expenseMonth)}
                 </Text>
@@ -100,7 +104,7 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
               <Text style={styles.sectionTitle}>Trend 30 Hari Terakhir</Text>
               <View style={styles.sparklineContainer}>
                 <Text style={styles.sparklinePlaceholder}>
-                  📈 Grafik trend kas ditampilkan di sini
+                  Grafik trend kas ditampilkan di sini
                 </Text>
               </View>
             </View>
@@ -109,10 +113,12 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
             <View style={styles.transactionsCard}>
               <Text style={styles.sectionTitle}>Transaksi Terbaru</Text>
 
-              {kasData.recentTransactions.map((transaction) => (
+              {kasData.recentTransactions.map(transaction => (
                 <View key={transaction.id} style={styles.transactionRow}>
                   <View style={styles.transactionLeft}>
-                    <Text style={styles.transactionDate}>{transaction.date}</Text>
+                    <Text style={styles.transactionDate}>
+                      {transaction.date}
+                    </Text>
                     <Text style={styles.transactionDescription}>
                       {transaction.description}
                     </Text>
@@ -127,8 +133,7 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
                             ? colors.kasPositive
                             : colors.kasNegative,
                       },
-                    ]}
-                  >
+                    ]}>
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(Math.abs(transaction.amount))}
                   </Text>

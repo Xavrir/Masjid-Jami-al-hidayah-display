@@ -1,5 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  Easing,
+  ScrollView,
+} from 'react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing, radii } from '../theme/spacing';
@@ -11,44 +18,71 @@ interface AnnouncementTickerProps {
 
 export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
   announcements,
-  speed = 'slow'
+  speed = 'slow',
 }) => {
   const scrollAnim = useRef(new Animated.Value(0)).current;
-  const screenWidth = Dimensions.get('window').width;
+  const [textWidth, setTextWidth] = useState(0);
+
+  const combinedText =
+    announcements.length > 0 ? announcements.join(' • ') : '';
 
   useEffect(() => {
-    const duration = speed === 'slow' ? 60000 : 40000;
+    if (textWidth === 0 || !combinedText) return;
 
-    const animate = () => {
-      scrollAnim.setValue(0);
-      Animated.loop(
-        Animated.timing(scrollAnim, {
-          toValue: -screenWidth * 2,
-          duration,
-          useNativeDriver: true,
-        })
-      ).start();
+    const pixelsPerSecond = speed === 'slow' ? 50 : 100;
+    const duration = (textWidth / pixelsPerSecond) * 1000;
+
+    scrollAnim.setValue(0);
+
+    const animation = Animated.loop(
+      Animated.timing(scrollAnim, {
+        toValue: -textWidth,
+        duration: duration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
     };
-
-    animate();
-  }, [announcements, speed, scrollAnim, screenWidth]);
-
-  // Gabungkan semua pengumuman menjadi 1 teks panjang dengan titik sebagai pemisah
-  const combinedText = announcements.join('. ') + '.';
+  }, [textWidth, speed, scrollAnim, combinedText]);
 
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
-        <Animated.View
-          style={[
-            styles.scrollingTextContainer,
-            {
-              transform: [{ translateX: scrollAnim }],
-            },
-          ]}
-        >
-          <Text style={styles.text} numberOfLines={1}>{combinedText}     {combinedText}</Text>
-        </Animated.View>
+        <ScrollView
+          horizontal
+          scrollEnabled={false}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
+          <Animated.View
+            style={[
+              styles.scrollingTextContainer,
+              {
+                transform: [{ translateX: scrollAnim }],
+              },
+            ]}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+              onLayout={e => {
+                const width = e.nativeEvent.layout.width;
+                if (width > 0 && Math.abs(width - textWidth) > 1) {
+                  setTextWidth(width);
+                }
+              }}>
+              <Text style={styles.text}>{combinedText}</Text>
+              <View style={{ width: 100 }} />
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.text}>{combinedText}</Text>
+              <View style={{ width: 100 }} />
+            </View>
+          </Animated.View>
+        </ScrollView>
       </View>
     </View>
   );

@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   StatusBar,
-  ScrollView,
-  Dimensions,
   ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -13,7 +11,6 @@ import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing, radii } from '../theme/spacing';
 import { NextPrayerCard } from '../components/NextPrayerCard';
-import { KasSummary } from '../components/KasSummary';
 import { AnnouncementTicker } from '../components/AnnouncementTicker';
 import { QuranVerseCard } from '../components/QuranVerseCard';
 import { HadithCard } from '../components/HadithCard';
@@ -27,9 +24,8 @@ import {
   allPrayersPassed,
 } from '../utils/prayerTimesAdhan';
 import { formatGregorianDate, formatTimeWithSeconds } from '../utils/dateTime';
+import { formatCurrency } from '../utils/currency';
 import { Prayer, KasData, MasjidConfig } from '../types';
-
-const { width, height } = Dimensions.get('window');
 
 interface MainDashboardProps {
   masjidConfig: MasjidConfig;
@@ -107,7 +103,11 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
 
   const isRamadanPeriod = checkIsRamadan(currentTime);
 
-  // Determine which prayers to display in compact view
+  const announcementsWithKas = [
+    ...announcements,
+    `Kas Masjid - Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}`,
+  ];
+
   const displayPrayers =
     allPrayersPassed(prayers) && tomorrowPrayers.length > 0
       ? tomorrowPrayers
@@ -144,18 +144,10 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
                 <Text style={styles.gregorianDate}>
                   {formatGregorianDate(currentTime)}
                 </Text>
-<<<<<<< HEAD
-              </View>
-
-              <View style={styles.headerRight}>
-=======
->>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
                 <Text style={styles.hijriDate}>
                   {getHijriDate(currentTime)}
                 </Text>
               </View>
-<<<<<<< HEAD
-=======
 
               <View style={styles.headerRight}>
                 {isRamadanPeriod && (
@@ -165,18 +157,12 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
                   </View>
                 )}
               </View>
->>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
             </View>
 
             {/* Compact Prayer Schedule - Below Clock */}
             <View style={styles.prayerTimesCompact}>
               {displayPrayers.map((prayer, index) => {
-<<<<<<< HEAD
-                // For tomorrow's prayers, highlight the first one (Subuh)
-                const isHighlighted = isNextPrayerTomorrow && index === 0;
-=======
                 const isTheNextPrayer = nextPrayer?.name === prayer.name;
->>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
                 return (
                   <View
                     key={prayer.name}
@@ -184,12 +170,7 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
                       styles.prayerTimeItem,
                       prayer.status === 'current' &&
                         styles.prayerTimeItemActive,
-<<<<<<< HEAD
-                      (prayer.status === 'upcoming' || isHighlighted) &&
-                        styles.prayerTimeItemNext,
-=======
                       isTheNextPrayer && styles.prayerTimeItemNext,
->>>>>>> 165ea55 (feat: Enhance Main Dashboard layout and add new typography styles)
                     ]}>
                     <Text
                       style={[
@@ -214,36 +195,26 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
             </View>
           </View>
 
-          {/* Main Content - Scrollable 2 Column Layout */}
-          <ScrollView
-            style={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}>
-            <View style={styles.coreContent}>
-              {/* Left Column - Next Prayer & Quran */}
-              <View style={styles.leftColumn}>
-                <NextPrayerCard
-                  prayer={nextPrayer}
-                  isTomorrow={isNextPrayerTomorrow}
-                />
-                <View style={styles.spacer} />
-                <QuranVerseCard autoRotate rotationInterval={40000} />
-              </View>
-
-              {/* Right Column - Hadith & Kas */}
-              <View style={styles.rightColumn}>
-                <HadithCard autoRotate rotationInterval={50000} />
-                <View style={styles.spacer} />
-                <KasSummary
-                  kasData={kasData}
-                  variant="compact_with_sparkline"
-                />
-              </View>
+          <View style={styles.coreContent}>
+            <View style={styles.coreColumn}>
+              <NextPrayerCard
+                prayer={nextPrayer}
+                isTomorrow={isNextPrayerTomorrow}
+              />
             </View>
-          </ScrollView>
+            <View style={styles.coreColumn}>
+              <QuranVerseCard autoRotate rotationInterval={40000} />
+            </View>
+            <View style={styles.coreColumn}>
+              <HadithCard autoRotate rotationInterval={50000} />
+            </View>
+          </View>
 
-          {/* Ticker */}
           <View style={styles.tickerContainer}>
-            <AnnouncementTicker announcements={announcements} speed="slow" />
+            <AnnouncementTicker
+              announcements={announcementsWithKas}
+              speed="slow"
+            />
           </View>
         </LinearGradient>
       </ImageBackground>
@@ -269,9 +240,7 @@ const styles = StyleSheet.create({
   headerSection: {
     marginBottom: spacing.lg,
   },
-  scrollContainer: {
-    flex: 1,
-  },
+
   headerTop: {
     height: 80,
     flexDirection: 'row',
@@ -325,6 +294,33 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(21, 32, 43, 0.7)',
+    borderRadius: radii.small,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.2)',
+  },
+  badgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentPrimary,
+    marginRight: spacing.sm,
+  },
+  ramadanBadge: {
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderColor: colors.accentPrimary,
+  },
+  badgeText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
   // Compact Prayer Times - Below Clock
   prayerTimesCompact: {
     flexDirection: 'row',
@@ -377,19 +373,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   coreContent: {
+    flex: 1,
+    minHeight: 0,
     flexDirection: 'row',
     gap: spacing.lg,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
+    alignItems: 'stretch',
   },
-  leftColumn: {
-    flex: 0.5,
-  },
-  rightColumn: {
-    flex: 0.5,
-  },
-  spacer: {
-    height: spacing.md,
+  coreColumn: {
+    flex: 1,
+    minHeight: 0,
   },
   tickerContainer: {
     paddingHorizontal: spacing.lg,

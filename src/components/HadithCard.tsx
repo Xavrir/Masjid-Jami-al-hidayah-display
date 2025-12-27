@@ -46,7 +46,6 @@ export const HadithCard: React.FC<HadithCardProps> = ({
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <View style={styles.header}>
-        <Text style={styles.icon}>📜</Text>
         <View style={styles.headerText}>
           <Text style={styles.title}>Hadits Pilihan</Text>
           <Text style={styles.category}>{hadith.category}</Text>
@@ -54,17 +53,28 @@ export const HadithCard: React.FC<HadithCardProps> = ({
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.arabicText}>{hadith.arabic}</Text>
+        <Text style={styles.arabicText} numberOfLines={3} ellipsizeMode="tail">
+          {hadith.arabic}
+        </Text>
 
         <View style={styles.divider} />
 
-        <Text style={styles.translationText}>{hadith.translation}</Text>
+        <Text
+          style={styles.translationText}
+          numberOfLines={4}
+          ellipsizeMode="tail">
+          {hadith.translation}
+        </Text>
       </View>
 
       <View style={styles.footer}>
         <View style={styles.sourceContainer}>
-          <Text style={styles.narrator}>Dari: {hadith.narrator}</Text>
-          <Text style={styles.source}>{hadith.source}</Text>
+          <Text style={styles.narrator} numberOfLines={1} ellipsizeMode="tail">
+            Dari: {hadith.narrator}
+          </Text>
+          <Text style={styles.source} numberOfLines={1} ellipsizeMode="tail">
+            {hadith.source}
+          </Text>
         </View>
       </View>
     </Animated.View>
@@ -83,17 +93,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 24,
     elevation: 8,
-    maxHeight: 220,
+    flex: 1,
+    minHeight: 0,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  icon: {
-    fontSize: 22,
-    marginRight: spacing.sm,
-  },
+
   headerText: {
     flex: 1,
   },
@@ -111,6 +119,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   content: {
+    flex: 1,
+    minHeight: 0,
     marginBottom: spacing.md,
   },
   arabicText: {
@@ -120,6 +130,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontWeight: '500',
     marginBottom: spacing.md,
+    includeFontPadding: false,
   },
   divider: {
     height: 1,
@@ -131,6 +142,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
     fontSize: 14,
+    includeFontPadding: false,
   },
   footer: {
     borderTopWidth: 1,
@@ -141,17 +153,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.md,
   },
   narrator: {
     ...typography.caption,
     color: colors.textMuted,
     flex: 1,
+    flexShrink: 1,
     fontSize: 11,
+    includeFontPadding: false,
   },
   source: {
     ...typography.caption,
     color: colors.accentPrimary,
     fontWeight: '600',
     fontSize: 11,
+    flexShrink: 0,
+    includeFontPadding: false,
   },
 });

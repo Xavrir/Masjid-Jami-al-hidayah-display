@@ -10,7 +10,10 @@ interface NextPrayerCardProps {
   isTomorrow?: boolean;
 }
 
-export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({ prayer, isTomorrow = false }) => {
+export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({
+  prayer,
+  isTomorrow = false,
+}) => {
   if (!prayer) {
     return (
       <View style={styles.container}>
@@ -33,18 +36,19 @@ export const NextPrayerCard: React.FC<NextPrayerCardProps> = ({ prayer, isTomorr
       </View>
 
       <View style={styles.contentRow}>
-        <View style={styles.leftSection}>
-          <Text style={styles.label}>Berikutnya:</Text>
-        </View>
-
-        <View style={styles.centerSection}>
+        <View style={styles.timeSection}>
+          <Text style={styles.label}>Berikutnya</Text>
           <Text style={styles.timeLabel}>Adzan</Text>
-          <Text style={styles.timeValue}>{prayer.adhanTime}</Text>
+          <Text style={styles.timeValue} numberOfLines={1}>
+            {prayer.adhanTime}
+          </Text>
         </View>
 
         <View style={styles.rightSection}>
           <Text style={styles.countdownLabel}>Dalam</Text>
-          <Text style={styles.countdownValue}>{prayer.countdown || '--:--'}</Text>
+          <Text style={styles.countdownValue} numberOfLines={1}>
+            {prayer.countdown || '--:--'}
+          </Text>
         </View>
       </View>
 
@@ -68,7 +72,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 24,
     elevation: 8,
-    maxHeight: 180,
+    flex: 1,
+    minHeight: 0,
   },
   chipRow: {
     flexDirection: 'row',
@@ -107,15 +112,12 @@ const styles = StyleSheet.create({
   contentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.md,
   },
-  leftSection: {
+  timeSection: {
     flex: 1,
-  },
-  centerSection: {
-    flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   rightSection: {
     flex: 1,
@@ -136,6 +138,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     color: colors.textPrimary,
+    includeFontPadding: false,
   },
   countdownLabel: {
     ...typography.caption,
@@ -147,6 +150,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.accentSecondary,
+    includeFontPadding: false,
   },
   iqamahRow: {
     flexDirection: 'row',
