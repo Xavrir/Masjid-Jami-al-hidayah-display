@@ -17,8 +17,8 @@ interface UsePrayerNotificationsReturn {
   isIqamahAlert: boolean;
 }
 
-const ADHAN_ALERT_DURATION_MS = 10000;
-const IQAMAH_ALERT_DURATION_MS = 15000;
+export const ADHAN_ALERT_DURATION_MS = 10000;
+export const IQAMAH_ALERT_DURATION_MS = 15000;
 
 export const usePrayerNotifications = (
   prayers: Prayer[],
