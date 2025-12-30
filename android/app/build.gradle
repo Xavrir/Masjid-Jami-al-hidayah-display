@@ -67,6 +67,12 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -89,6 +95,15 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
     }
 
     buildTypes {
@@ -96,9 +111,21 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // For production builds, create android/keystore.properties and point to your keystore.
+            // If you *really* want to build a release variant with debug signing, pass:
+            //   ./gradlew assembleRelease -PallowDebugSigningForRelease=true
+            def isReleaseBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+            def allowDebugSigningForRelease =
+                project.hasProperty('allowDebugSigningForRelease') &&
+                project.property('allowDebugSigningForRelease').toString().toBoolean()
+
+            if (isReleaseBuild && !keystorePropertiesFile.exists() && !allowDebugSigningForRelease) {
+                throw new GradleException(
+                    'Missing android/keystore.properties. Refusing to sign release with debug key.'
+                )
+            }
+
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
@@ -108,7 +135,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    implementation("com.facebook.react:flipper-integration")
+    debugImplementation("com.facebook.react:flipper-integration")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

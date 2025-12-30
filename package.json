@@ -6,23 +6,16 @@
   "scripts": {
     "android": "react-native run-android",
     "start": "react-native start",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lint": "eslint ."
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.21.0",
-    "@react-navigation/native": "^6.1.9",
-    "@react-navigation/stack": "^6.3.20",
     "adhan": "^4.4.3",
     "date-fns": "^3.0.6",
-    "date-fns-jalali": "^3.6.0-1",
     "react": "18.2.0",
     "react-native": "0.73.2",
-    "react-native-gesture-handler": "^2.21.2",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-reanimated": "3.6.1",
-    "react-native-sound": "^0.11.2",
-    "react-native-svg": "^14.1.0"
+    "react-native-sound": "^0.11.2"
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",

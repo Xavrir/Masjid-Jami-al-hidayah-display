@@ -14,10 +14,3 @@ export const formatGregorianDate = (date: Date): string => {
 export const formatTimeWithSeconds = (date: Date): string => {
   return format(date, 'HH:mm:ss');
 };
-
-/**
- * Format time without seconds
- */
-export const formatTimeSimple = (date: Date): string => {
-  return format(date, 'HH:mm');
-};

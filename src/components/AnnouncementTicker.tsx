@@ -8,7 +8,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
 import { spacing, radii } from '../theme/spacing';
 
 interface AnnouncementTickerProps {
@@ -27,7 +26,9 @@ export const AnnouncementTicker: React.FC<AnnouncementTickerProps> = ({
     announcements.length > 0 ? announcements.join(' • ') : '';
 
   useEffect(() => {
-    if (textWidth === 0 || !combinedText) return;
+    if (textWidth === 0 || !combinedText) {
+      return;
+    }
 
     const pixelsPerSecond = speed === 'slow' ? 50 : 100;
     const duration = (textWidth / pixelsPerSecond) * 1000;

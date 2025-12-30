@@ -1,7 +1,7 @@
 import { KasData, MasjidConfig, KasTransaction } from '../types';
 
 export const mockMasjidConfig: MasjidConfig = {
-  name: 'Masjid Jami\' Al-Hidayah',
+  name: "Masjid Jami' Al-Hidayah",
   location: 'Jl. Tanah Merdeka II No.8, Rambutan, Ciracas, Jakarta Timur 13830',
   tagline: 'Memakmurkan Masjid, Mencerahkan Umat',
   coordinates: {
@@ -11,7 +11,7 @@ export const mockMasjidConfig: MasjidConfig = {
   calculationMethod: 'Kemenag RI',
 };
 
-export const mockKasTransactions: KasTransaction[] = [
+const mockKasTransactions: KasTransaction[] = [
   {
     id: '1',
     date: '2025-11-26',
@@ -63,15 +63,14 @@ export const mockKasData: KasData = {
   trendDirection: 'up',
   recentTransactions: mockKasTransactions,
   trendData: [
-    42000000, 42500000, 43000000, 42800000, 43200000,
-    43500000, 44000000, 43800000, 44200000, 44500000,
-    44800000, 45000000, 45250000,
+    42000000, 42500000, 43000000, 42800000, 43200000, 43500000, 44000000,
+    43800000, 44200000, 44500000, 44800000, 45000000, 45250000,
   ],
 };
 
 export const mockAnnouncements: string[] = [
   'Mohon menonaktifkan atau membisukan ponsel sebelum salat dimulai.',
-  'Kajian rutin setiap Ahad ba\'da Maghrib bersama Ustadz Ahmad.',
+  "Kajian rutin setiap Ahad ba'da Maghrib bersama Ustadz Ahmad.",
   'Infaq pembangunan gedung baru telah mencapai 75% dari target.',
   'Pendaftaran TPA dibuka untuk tahun ajaran baru, hubungi panitia di ruang sekretariat.',
 ];

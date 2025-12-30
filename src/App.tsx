@@ -16,6 +16,7 @@ import {
   isWithinPrayerWindow,
   getNextPrayer,
 } from './utils/prayerTimesAdhan';
+import { soundNotificationService } from './services/soundNotification';
 
 type Screen = 'dashboard' | 'prayer-in-progress';
 
@@ -26,16 +27,11 @@ const App: React.FC = () => {
   const [appClock, setAppClock] = useState(new Date());
   const [kasOverlayVisible, setKasOverlayVisible] = useState(false);
 
-  // TV Remote control handler
-  // Note: TVEventHandler is deprecated in newer React Native versions
-  // For production, implement proper TV navigation using react-native-tvos
   useEffect(() => {
-    // Placeholder for TV event handling
-    // Can be implemented with react-native-tvos or custom solution
-    if (__DEV__) {
-      console.log('TV event handler would be initialized here');
-    }
-  }, [currentScreen]);
+    return () => {
+      soundNotificationService.cleanup();
+    };
+  }, []);
 
   // Shared clock for gating overlays
   useEffect(() => {
@@ -77,7 +73,9 @@ const App: React.FC = () => {
   const triggerDebugPrayerOverlay = () => {
     const prayersToday = calculatePrayerTimesForJakarta(new Date());
     const next = getNextPrayer(prayersToday) || prayersToday[0];
-    if (!next) return;
+    if (!next) {
+      return;
+    }
 
     setForcePrayerDebug(true);
     setCurrentPrayer({

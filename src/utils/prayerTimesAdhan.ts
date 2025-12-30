@@ -1,6 +1,48 @@
 import { Prayer, PrayerStatus } from '../types';
 import { format, differenceInMinutes } from 'date-fns';
 
+export const calculateShuruqTimeForJakarta = (date: Date): string => {
+  const latitude = -6.3140892;
+  const longitude = 106.8776666;
+
+  const referenceDate = new Date(date);
+  referenceDate.setHours(0);
+  referenceDate.setMinutes(0);
+  referenceDate.setSeconds(0);
+  referenceDate.setMilliseconds(0);
+
+  try {
+    const {
+      Coordinates,
+      CalculationMethod,
+      PrayerTimes: AdhanPrayerTimes,
+    } = require('adhan');
+
+    const coordinates = new Coordinates(latitude, longitude);
+    const params = CalculationMethod.Other();
+
+    params.fajrAngle = 20.0;
+    params.ishaAngle = 18.0;
+    params.method = 'Kemenag';
+
+    const prayerTimes = new AdhanPrayerTimes(
+      coordinates,
+      referenceDate,
+      params
+    );
+
+    if (prayerTimes?.sunrise instanceof Date) {
+      return format(prayerTimes.sunrise, 'HH:mm');
+    }
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('Adhan library not available, using fallback shuruq', error);
+    }
+  }
+
+  return '05:45';
+};
+
 const DEFAULT_PRAYER_WINDOW_MINUTES = 20;
 const MIN_PRAYER_WINDOW_MINUTES = 5;
 const MAX_PRAYER_WINDOW_MINUTES = 60;
@@ -82,7 +124,6 @@ export const calculatePrayerTimesForJakarta = (date: Date): Prayer[] => {
     const coordinates = new Coordinates(latitude, longitude);
     const params = CalculationMethod.Other();
 
-    // Kemenag RI parameters
     params.fajrAngle = 20.0;
     params.ishaAngle = 18.0;
     params.method = 'Kemenag';
@@ -205,14 +246,15 @@ const getFallbackPrayerTimes = (date: Date): Prayer[] => {
  */
 export const updatePrayerStatuses = (
   prayers: Prayer[],
-  currentTime: Date
+  currentTime: Date,
+  referenceDate: Date = currentTime
 ): Prayer[] => {
   let foundCurrent = false;
 
   return prayers.map(prayer => {
     const { start, end, durationMinutes } = getPrayerWindowBounds(
       prayer,
-      currentTime
+      referenceDate
     );
 
     let status: PrayerStatus;
@@ -230,7 +272,7 @@ export const updatePrayerStatuses = (
       status = 'upcoming';
       const remainingMinutes = Math.max(
         0,
-        differenceInMinutes(start, currentTime)
+        Math.ceil((start.getTime() - currentTime.getTime()) / (60 * 1000))
       );
       countdown = formatCountdown(remainingMinutes);
     } else {
@@ -284,7 +326,9 @@ export const allPrayersPassed = (prayers: Prayer[]): boolean => {
  * Format countdown time
  */
 export const formatCountdown = (minutes: number): string => {
-  if (minutes < 0) return '--:--';
+  if (minutes < 0) {
+    return '--:--';
+  }
 
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
@@ -293,13 +337,6 @@ export const formatCountdown = (minutes: number): string => {
     return `${hours}j ${mins}m`;
   }
   return `${mins}m`;
-};
-
-/**
- * Format time for display
- */
-export const formatTime = (date: Date): string => {
-  return format(date, 'HH:mm:ss');
 };
 
 /**
