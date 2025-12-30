@@ -1,4 +1,8 @@
 {
-  "name": "MasjidDisplay",
-  "displayName": "Masjid Display"
+  "expo": {
+    "name": "MasjidDisplay",
+    "slug": "masjid-display",
+    "jsEngine": "hermes",
+    "platforms": ["android"]
+  }
 }

@@ -40,3 +40,4 @@ export interface MasjidConfig {
   };
   calculationMethod: string;
 }
+
