@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.masjiddisplay.data.MockData
 import com.masjiddisplay.data.Prayer
+import com.masjiddisplay.services.SoundNotificationService
 import com.masjiddisplay.ui.screens.MainDashboard
 import com.masjiddisplay.ui.screens.PrayerInProgress
 import com.masjiddisplay.ui.theme.MasjidDisplayTheme
@@ -36,6 +37,11 @@ class MainActivity : ComponentActivity() {
                 MasjidDisplayApp()
             }
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        SoundNotificationService.stopAlert()
     }
 }
 

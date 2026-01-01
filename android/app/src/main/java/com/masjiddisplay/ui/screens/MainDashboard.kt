@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.data.*
+import com.masjiddisplay.services.SoundNotificationService
 import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
@@ -105,6 +106,7 @@ fun MainDashboard(
             if (prayer.name.lowercase() in listOf("shuruq", "syuruq", "sunrise")) continue
             
             if (currentTimeStr == prayer.adhanTime) {
+                SoundNotificationService.playAdhanAlert()
                 currentAlert = "adhan" to prayer
                 delay(10000)
                 currentAlert = null to null
@@ -112,6 +114,7 @@ fun MainDashboard(
             }
             
             if (currentTimeStr == prayer.iqamahTime) {
+                SoundNotificationService.playIqamahAlert()
                 currentAlert = "iqamah" to prayer
                 delay(15000)
                 currentAlert = null to null
