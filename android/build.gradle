@@ -6,7 +6,9 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "25.1.8937393"
         kotlinVersion = "1.9.22"
-        reactNativeVersion = "0.73.2"
+        composeVersion = "1.5.8"
+        composeMaterial3Version = "1.1.2"
+        composeCompilerVersion = "1.5.8"
     }
     repositories {
         google()
@@ -14,22 +16,13 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.1.1")
-        classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
     }
 }
 
 allprojects {
     repositories {
-        maven {
-            url("$rootDir/../node_modules/react-native/android")
-        }
-        maven {
-            url("$rootDir/../node_modules/jsc-android/dist")
-        }
         google()
         mavenCentral()
     }
 }
-
-apply plugin: "com.facebook.react.rootproject"
