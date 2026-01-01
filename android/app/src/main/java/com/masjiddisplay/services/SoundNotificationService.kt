@@ -22,9 +22,12 @@ object SoundNotificationService {
     fun initialize(context: Context) {
         release()
         try {
-            mediaPlayer = MediaPlayer.create(context, com.masjiddisplay.R.raw.beep_alarm_sound_effect)
-            mediaPlayer?.isLooping = true
-            mediaPlayer?.setVolume(1.0f, 1.0f)
+            val player = MediaPlayer.create(context, com.masjiddisplay.R.raw.beep_alarm_sound_effect)
+            if (player != null) {
+                player.isLooping = true
+                player.setVolume(1.0f, 1.0f)
+                mediaPlayer = player
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -49,9 +52,10 @@ object SoundNotificationService {
         
         try {
             mediaPlayer?.let { player ->
+                // Set state before starting to avoid race condition
+                isPlayingState = true
                 player.seekTo(0)
                 player.start()
-                isPlayingState = true
                 
                 stopJob = serviceScope.launch {
                     delay(durationMs)

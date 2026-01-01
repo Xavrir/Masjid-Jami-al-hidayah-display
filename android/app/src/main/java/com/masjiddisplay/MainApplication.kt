@@ -22,8 +22,9 @@ class MainApplication : Application() {
         }
     }
     
-    override fun onTerminate() {
-        super.onTerminate()
+    override fun onLowMemory() {
+        super.onLowMemory()
+        // Release sound resources when system is low on memory
         SoundNotificationService.release()
     }
 }
