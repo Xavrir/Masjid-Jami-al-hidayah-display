@@ -59,8 +59,8 @@ fun getHijriDate(date: Date): String {
         "Dzulhijjah"
     )
     
-    // Approximate month (for display purposes)
-    val hijriMonth = hijriMonths[gregorianMonth]
+    // Approximate month (for display purposes) with bounds checking
+    val hijriMonth = hijriMonths.getOrElse(gregorianMonth.coerceIn(0, 11)) { "Unknown" }
     val hijriDay = gregorianDay // Simplified
     
     return "$hijriDay $hijriMonth $hijriYear H"

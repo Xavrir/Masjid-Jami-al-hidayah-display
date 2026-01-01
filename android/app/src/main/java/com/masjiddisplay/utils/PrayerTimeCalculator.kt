@@ -15,8 +15,6 @@ object PrayerTimeCalculator {
     private const val FAJR_ANGLE = 20.0
     private const val ISHA_ANGLE = 18.0
     private const val DEFAULT_PRAYER_WINDOW_MINUTES = 20
-    private const val MIN_PRAYER_WINDOW_MINUTES = 5
-    private const val MAX_PRAYER_WINDOW_MINUTES = 60
     
     // Default coordinates for Masjid Jami' Al-Hidayah, Jakarta Timur
     private const val DEFAULT_LATITUDE = -6.3140892

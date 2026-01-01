@@ -12,10 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.ui.theme.*
+
+private const val SLOW_PIXELS_PER_SECOND = 50f
+private const val FAST_PIXELS_PER_SECOND = 100f
+private const val DEFAULT_DURATION_MS = 10000
+private const val GAP_WIDTH_DP = 100
 
 /**
  * Horizontally scrolling announcement ticker
@@ -32,23 +36,22 @@ fun AnnouncementTicker(
         ""
     }
     
-    val density = LocalDensity.current
     var textWidth by remember { mutableIntStateOf(0) }
     var containerWidth by remember { mutableIntStateOf(0) }
     
     val infiniteTransition = rememberInfiniteTransition(label = "ticker")
     
     // Calculate animation duration based on text width and speed
-    val pixelsPerSecond = if (speed == "slow") 50f else 100f
+    val pixelsPerSecond = if (speed == "slow") SLOW_PIXELS_PER_SECOND else FAST_PIXELS_PER_SECOND
     val duration = if (textWidth > 0) {
         ((textWidth + containerWidth) / pixelsPerSecond * 1000).toInt()
     } else {
-        10000
+        DEFAULT_DURATION_MS
     }
     
     val offset by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = if (textWidth > 0) -(textWidth.toFloat() + 100f) else 0f,
+        targetValue = if (textWidth > 0) -(textWidth.toFloat() + GAP_WIDTH_DP.toFloat()) else 0f,
         animationSpec = infiniteRepeatable(
             animation = tween(
                 durationMillis = duration,
@@ -91,7 +94,7 @@ fun AnnouncementTicker(
                 }
             )
             
-            Spacer(modifier = Modifier.width(100.dp))
+            Spacer(modifier = Modifier.width(GAP_WIDTH_DP.dp))
             
             // Second copy for seamless loop
             Text(

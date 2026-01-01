@@ -189,12 +189,32 @@ val hadiths = listOf(
     )
 )
 
+// Default fallback content
+private val defaultQuranVerse = QuranVerse(
+    id = "default",
+    surah = "Al-Fatihah",
+    surahNumber = 1,
+    ayah = 1,
+    arabic = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    translation = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.",
+    transliteration = "Bismillahir-rahmanir-rahim"
+)
+
+private val defaultHadith = Hadith(
+    id = "default",
+    narrator = "Rasulullah SAW",
+    arabic = "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+    translation = "Sesungguhnya setiap amalan tergantung pada niatnya.",
+    source = "HR. Bukhari & Muslim",
+    category = "Niat"
+)
+
 /**
  * Get a random Quran verse for display
  */
-fun getRandomQuranVerse(): QuranVerse = quranVerses.random()
+fun getRandomQuranVerse(): QuranVerse = quranVerses.randomOrNull() ?: defaultQuranVerse
 
 /**
  * Get a random Hadith for display
  */
-fun getRandomHadith(): Hadith = hadiths.random()
+fun getRandomHadith(): Hadith = hadiths.randomOrNull() ?: defaultHadith
