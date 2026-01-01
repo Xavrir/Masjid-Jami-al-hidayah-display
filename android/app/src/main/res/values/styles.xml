@@ -1,9 +1,9 @@
 <resources>
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
+    <!-- Base application theme for Compose -->
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@android:color/black</item>
     </style>
 </resources>

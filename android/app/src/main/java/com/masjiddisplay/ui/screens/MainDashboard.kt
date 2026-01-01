@@ -79,7 +79,7 @@ fun MainDashboard(
                 val tomorrowRef = Calendar.getInstance().apply {
                     add(Calendar.DAY_OF_YEAR, 1)
                 }.time
-                PrayerTimeCalculator.updatePrayerStatuses(tomorrowPrayers, currentTime)
+                PrayerTimeCalculator.updatePrayerStatuses(tomorrowPrayers, currentTime, tomorrowRef)
             } else {
                 tomorrowPrayers
             }
@@ -192,14 +192,14 @@ fun MainDashboard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
+                        .height(100.dp)
                         .padding(horizontal = Spacing.lg, vertical = 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Left - Masjid name
                     Row(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(0.8f),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
@@ -227,7 +227,7 @@ fun MainDashboard(
                     
                     // Center - Clock
                     Column(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1.5f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -242,14 +242,14 @@ fun MainDashboard(
                         )
                         Text(
                             text = getHijriDate(currentTime),
-                            style = AppTypography.bodyS,
+                            style = AppTypography.bodyM,
                             color = AppColors.accentPrimary
                         )
                     }
                     
                     // Right - Badges
                     Column(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(0.7f),
                         horizontalAlignment = Alignment.End
                     ) {
                         if (isRamadanPeriod) {

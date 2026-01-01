@@ -87,8 +87,12 @@ object PrayerTimeCalculator {
         
         // Convert decimal hours to HH:mm format
         fun formatPrayerTime(decimalHours: Double): String {
-            val hours = decimalHours.toInt()
-            val minutes = ((decimalHours - hours) * 60).toInt()
+            // Normalize to 0-24 range
+            var normalizedHours = decimalHours % 24
+            if (normalizedHours < 0) normalizedHours += 24
+            
+            val hours = normalizedHours.toInt()
+            val minutes = ((normalizedHours - hours) * 60).toInt().coerceIn(0, 59)
             return "%02d:%02d".format(hours, minutes)
         }
         
@@ -141,7 +145,7 @@ object PrayerTimeCalculator {
             windowMinutes = 15
         ))
         
-        return updatePrayerStatuses(prayers, Date())
+        return updatePrayerStatuses(prayers, Date(), date)
     }
     
     /**
@@ -175,8 +179,11 @@ object PrayerTimeCalculator {
         
         val sunriseTime = dhuhr - sunriseAngle
         
-        val hours = sunriseTime.toInt()
-        val minutes = ((sunriseTime - hours) * 60).toInt()
+        var normalizedHours = sunriseTime % 24
+        if (normalizedHours < 0) normalizedHours += 24
+        
+        val hours = normalizedHours.toInt()
+        val minutes = ((normalizedHours - hours) * 60).toInt().coerceIn(0, 59)
         return "%02d:%02d".format(hours, minutes)
     }
     
@@ -205,11 +212,11 @@ object PrayerTimeCalculator {
     /**
      * Update prayer statuses based on current time
      */
-    fun updatePrayerStatuses(prayers: List<Prayer>, currentTime: Date): List<Prayer> {
+    fun updatePrayerStatuses(prayers: List<Prayer>, currentTime: Date, prayerDate: Date = currentTime): List<Prayer> {
         var foundCurrent = false
         
         return prayers.map { prayer ->
-            val adhanCalendar = parseTimeToCalendar(prayer.adhanTime, currentTime)
+            val adhanCalendar = parseTimeToCalendar(prayer.adhanTime, prayerDate)
             val windowMinutes = prayer.windowMinutes ?: DEFAULT_PRAYER_WINDOW_MINUTES
             val endCalendar = (adhanCalendar.clone() as Calendar).apply {
                 add(Calendar.MINUTE, windowMinutes)
