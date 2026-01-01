@@ -10,7 +10,8 @@ import kotlinx.coroutines.*
 object SoundNotificationService {
     private var mediaPlayer: MediaPlayer? = null
     private var stopJob: Job? = null
-    private var isPlaying = false
+    private var isPlayingState = false
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     
     private const val ADHAN_ALERT_DURATION_MS = 10000L
     private const val IQAMAH_ALERT_DURATION_MS = 15000L
@@ -50,16 +51,16 @@ object SoundNotificationService {
             mediaPlayer?.let { player ->
                 player.seekTo(0)
                 player.start()
-                isPlaying = true
+                isPlayingState = true
                 
-                stopJob = CoroutineScope(Dispatchers.Main).launch {
+                stopJob = serviceScope.launch {
                     delay(durationMs)
                     stopAlert()
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            isPlaying = false
+            isPlayingState = false
         }
     }
     
@@ -72,16 +73,21 @@ object SoundNotificationService {
         
         try {
             mediaPlayer?.let { player ->
-                if (player.isPlaying) {
-                    player.pause()
-                    player.seekTo(0)
+                // Use tracked state instead of isPlaying to avoid IllegalStateException
+                if (isPlayingState) {
+                    try {
+                        player.pause()
+                        player.seekTo(0)
+                    } catch (e: Exception) {
+                        // Player might be in invalid state, just ignore
+                    }
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
         
-        isPlaying = false
+        isPlayingState = false
     }
     
     /**
@@ -93,8 +99,13 @@ object SoundNotificationService {
         
         try {
             mediaPlayer?.let { player ->
-                if (player.isPlaying) {
-                    player.stop()
+                // Use tracked state instead of isPlaying to avoid IllegalStateException
+                if (isPlayingState) {
+                    try {
+                        player.stop()
+                    } catch (e: Exception) {
+                        // Player might be in invalid state, just ignore
+                    }
                 }
                 player.release()
             }
@@ -103,11 +114,11 @@ object SoundNotificationService {
         }
         
         mediaPlayer = null
-        isPlaying = false
+        isPlayingState = false
     }
     
     /**
      * Check if sound is currently playing
      */
-    fun isPlaying(): Boolean = isPlaying
+    fun isPlaying(): Boolean = isPlayingState
 }
