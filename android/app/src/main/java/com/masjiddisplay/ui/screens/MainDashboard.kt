@@ -15,10 +15,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.data.*
+import com.masjiddisplay.services.SoundNotificationService
 import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -38,6 +40,10 @@ fun MainDashboard(
     var nextPrayer by remember { mutableStateOf<Prayer?>(null) }
     var isNextPrayerTomorrow by remember { mutableStateOf(false) }
     var currentAlert by remember { mutableStateOf<Pair<String?, Prayer?>>(null to null) }
+    
+    // Track last triggered alerts to prevent duplicates
+    var lastAdhanAlert by remember { mutableStateOf("") }
+    var lastIqamahAlert by remember { mutableStateOf("") }
     
     // Initialize prayer times
     LaunchedEffect(Unit) {
@@ -100,21 +106,32 @@ fun MainDashboard(
     // Check for prayer alerts (adhan/iqamah time)
     LaunchedEffect(currentTime, prayers) {
         val currentTimeStr = formatTime(currentTime)
+        val currentDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentTime)
         
         for (prayer in prayers) {
             if (prayer.name.lowercase() in listOf("shuruq", "syuruq", "sunrise")) continue
             
             if (currentTimeStr == prayer.adhanTime) {
-                currentAlert = "adhan" to prayer
-                delay(10000)
-                currentAlert = null to null
+                val alertKey = "$currentDateStr-${prayer.name}-adhan"
+                if (lastAdhanAlert != alertKey) {
+                    lastAdhanAlert = alertKey
+                    SoundNotificationService.playAdhanAlert()
+                    currentAlert = "adhan" to prayer
+                    delay(10000)
+                    currentAlert = null to null
+                }
                 break
             }
             
             if (currentTimeStr == prayer.iqamahTime) {
-                currentAlert = "iqamah" to prayer
-                delay(15000)
-                currentAlert = null to null
+                val alertKey = "$currentDateStr-${prayer.name}-iqamah"
+                if (lastIqamahAlert != alertKey) {
+                    lastIqamahAlert = alertKey
+                    SoundNotificationService.playIqamahAlert()
+                    currentAlert = "iqamah" to prayer
+                    delay(15000)
+                    currentAlert = null to null
+                }
                 break
             }
         }
