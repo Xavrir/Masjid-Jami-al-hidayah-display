@@ -52,8 +52,15 @@ class MainActivity : ComponentActivity() {
         }
     }
     
+    override fun onStop() {
+        super.onStop()
+        // Stop any playing alert when activity is stopped
+        soundService?.stopAlert()
+    }
+    
     override fun onDestroy() {
         super.onDestroy()
+        // Full cleanup only on destroy
         SoundNotificationServiceHolder.release()
     }
 }
