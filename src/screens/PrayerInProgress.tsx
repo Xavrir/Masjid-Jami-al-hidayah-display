@@ -5,7 +5,6 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  Vibration,
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -21,38 +20,7 @@ import {
 } from '../utils/prayerTimesAdhan';
 
 const AUTO_RETURN_MS = 60_000;
-const BEEP_INTERVAL_MS = 1200;
-const BACKGROUND_IMAGE =
-  'https://images.unsplash.com/photo-1501446529957-6226bd447c46?auto=format&fit=crop&w=1800&q=80';
-
-type SoundInstance = {
-  play: (callback?: (success: boolean) => void) => void;
-  stop: (callback?: () => void) => void;
-  release: () => void;
-};
-
-type SoundConstructor = new (
-  source: number | string,
-  basePath: string,
-  onError?: (error: unknown) => void
-) => SoundInstance;
-
-type SoundModule = SoundConstructor & {
-  setCategory: (category: string) => void;
-  MAIN_BUNDLE: string;
-};
-
-const isSoundModule = (value: unknown): value is SoundModule => {
-  if (typeof value !== 'function') return false;
-  const maybe = value as unknown as {
-    setCategory?: unknown;
-    MAIN_BUNDLE?: unknown;
-  };
-  return (
-    typeof maybe.setCategory === 'function' &&
-    typeof maybe.MAIN_BUNDLE === 'string'
-  );
-};
+const BACKGROUND_IMAGE = require('../assets/images/kaaba-background.jpg');
 
 interface PrayerInProgressProps {
   prayer: Prayer;
@@ -63,7 +31,9 @@ interface PrayerInProgressProps {
 }
 
 const formatMsToClock = (ms: number): string => {
-  if (ms <= 0) return '00:00';
+  if (ms <= 0) {
+    return '00:00';
+  }
 
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
@@ -87,12 +57,9 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
   forceDebug = false,
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [soundReady, setSoundReady] = useState(false);
 
   const autoReturnDeadlineRef = useRef<Date | null>(null);
   const autoReturnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const beepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const soundRef = useRef<SoundInstance | null>(null);
 
   const { start, end, iqamahDate, durationMinutes } = useMemo(
     () => getPrayerWindowBounds(prayer, currentTime),
@@ -105,77 +72,14 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
   }, []);
 
   useEffect(() => {
-    let instance: SoundInstance | null = null;
-
-    try {
-      const required: unknown = require('react-native-sound');
-      if (!isSoundModule(required)) {
-        throw new Error('Invalid sound module');
-      }
-
-      required.setCategory('Playback');
-      instance = new required(
-        require('../assets/sounds/beep.wav'),
-        required.MAIN_BUNDLE,
-        (error: unknown) => {
-          if (error) {
-            if (__DEV__) {
-              console.warn('Gagal memuat bunyi beep', error);
-            }
-          } else {
-            setSoundReady(true);
-          }
-        }
-      );
-    } catch (error) {
-      if (__DEV__) {
-        console.warn('Modul suara tidak tersedia, fallback ke vibrasi', error);
-      }
-    }
-
-    soundRef.current = instance;
-
-    return () => {
-      instance?.release();
-    };
-  }, []);
-
-  const stopBeepLoop = () => {
-    if (beepIntervalRef.current) {
-      clearInterval(beepIntervalRef.current);
-      beepIntervalRef.current = null;
-    }
-    soundRef.current?.stop?.();
-  };
-
-  const playBeep = () => {
-    if (soundRef.current && soundReady) {
-      soundRef.current.stop?.(() => {
-        soundRef.current?.play?.();
-      });
-    } else {
-      Vibration.vibrate(120);
-    }
-  };
-
-  const startBeepLoop = () => {
-    stopBeepLoop();
-    playBeep();
-    beepIntervalRef.current = setInterval(playBeep, BEEP_INTERVAL_MS);
-  };
-
-  useEffect(() => {
-    startBeepLoop();
     const deadline = new Date(Date.now() + AUTO_RETURN_MS);
     autoReturnDeadlineRef.current = deadline;
 
     autoReturnTimerRef.current = setTimeout(() => {
-      stopBeepLoop();
       onComplete?.();
     }, AUTO_RETURN_MS);
 
     return () => {
-      stopBeepLoop();
       if (autoReturnTimerRef.current) {
         clearTimeout(autoReturnTimerRef.current);
         autoReturnTimerRef.current = null;
@@ -200,7 +104,7 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
       <StatusBar hidden />
 
       <ImageBackground
-        source={{ uri: BACKGROUND_IMAGE }}
+        source={BACKGROUND_IMAGE}
         blurRadius={18}
         style={styles.background}>
         <LinearGradient
@@ -210,7 +114,12 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
             <View style={styles.headerLeft}>
               <Text style={styles.masjidName}>{masjidName.toUpperCase()}</Text>
               {masjidLocation ? (
-                <Text style={styles.masjidLocation}>{masjidLocation}</Text>
+                <Text
+                  style={styles.masjidLocation}
+                  numberOfLines={2}
+                  ellipsizeMode="tail">
+                  {masjidLocation}
+                </Text>
               ) : null}
             </View>
 
@@ -301,19 +210,15 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
               <View style={styles.footerRow}>
                 <View style={styles.beepBadge}>
                   <Text style={styles.beepBadgeText}>
-                    Beep 60 detik {soundReady ? 'aktif' : 'vibrasi'}
+                    Notifikasi suara hanya saat adzan & iqamah
                   </Text>
                 </View>
-                <Text style={styles.footerText}>
-                  Kembali ke beranda dalam{' '}
-                  {formatMsToClock(autoReturnRemainingMs)}
-                </Text>
               </View>
             </View>
           </View>
 
           <View style={styles.bottomBar}>
-            <View>
+            <View style={styles.bottomTimeBlock}>
               <Text style={styles.bottomLabel}>Mulai adzan</Text>
               <Text style={styles.bottomValue}>
                 {start.toLocaleTimeString([], {
@@ -322,7 +227,7 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
                 })}
               </Text>
             </View>
-            <View>
+            <View style={styles.bottomTimeBlock}>
               <Text style={styles.bottomLabel}>Akhir jendela</Text>
               <Text style={styles.bottomValue}>
                 {end.toLocaleTimeString([], {
@@ -331,9 +236,17 @@ export const PrayerInProgress: React.FC<PrayerInProgressProps> = ({
                 })}
               </Text>
             </View>
-            <Pressable onPress={() => onComplete?.()} style={styles.skipButton}>
-              <Text style={styles.skipText}>Kembali</Text>
-            </Pressable>
+            <View style={styles.bottomRight}>
+              <Text style={styles.autoReturnText} numberOfLines={1}>
+                Kembali ke beranda dalam{' '}
+                {formatMsToClock(autoReturnRemainingMs)}
+              </Text>
+              <Pressable
+                onPress={() => onComplete?.()}
+                style={styles.skipButton}>
+                <Text style={styles.skipText}>Kembali</Text>
+              </Pressable>
+            </View>
           </View>
         </LinearGradient>
       </ImageBackground>
@@ -363,6 +276,8 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
+    maxWidth: 520,
+    paddingRight: spacing.xxl,
   },
   masjidName: {
     ...typography.headlineS,
@@ -373,7 +288,8 @@ const styles = StyleSheet.create({
   masjidLocation: {
     ...typography.bodyS,
     color: colors.textSecondary,
-    maxWidth: 360,
+    maxWidth: 520,
+    lineHeight: 18,
   },
   headerCenter: {
     flex: 1,
@@ -429,12 +345,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.65,
     shadowRadius: 42,
     elevation: 20,
+    marginBottom: spacing.xxl,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   statusPill: {
     backgroundColor: colors.accentPrimarySoft,
@@ -454,6 +371,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     ...typography.headlineL,
     color: colors.textPrimary,
+    marginTop: spacing.xs,
     marginBottom: spacing.sm,
   },
   cardSubtitle: {
@@ -534,18 +452,25 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     letterSpacing: 0.2,
   },
-  footerText: {
-    ...typography.bodyS,
-    color: colors.textSecondary,
-  },
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.xxl,
+    alignItems: 'flex-end',
     borderTopWidth: 1,
     borderTopColor: colors.divider,
     paddingTop: spacing.lg,
+  },
+  bottomTimeBlock: {
+    minWidth: 220,
+  },
+  bottomRight: {
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  autoReturnText: {
+    ...typography.bodyS,
+    color: colors.textSecondary,
   },
   bottomLabel: {
     ...typography.caption,

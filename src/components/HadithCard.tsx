@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -16,10 +16,12 @@ export const HadithCard: React.FC<HadithCardProps> = ({
   rotationInterval = 45000, // 45 seconds
 }) => {
   const [hadith, setHadith] = useState<Hadith>(getRandomHadith());
-  const fadeAnim = new Animated.Value(1);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (!autoRotate) return;
+    if (!autoRotate) {
+      return;
+    }
 
     const interval = setInterval(() => {
       // Fade out
@@ -41,7 +43,7 @@ export const HadithCard: React.FC<HadithCardProps> = ({
     }, rotationInterval);
 
     return () => clearInterval(interval);
-  }, [autoRotate, rotationInterval]);
+  }, [autoRotate, fadeAnim, rotationInterval]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>

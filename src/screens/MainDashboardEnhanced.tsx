@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
   ImageBackground,
+  Linking,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors } from '../theme/colors';
@@ -14,8 +15,11 @@ import { NextPrayerCard } from '../components/NextPrayerCard';
 import { AnnouncementTicker } from '../components/AnnouncementTicker';
 import { QuranVerseCard } from '../components/QuranVerseCard';
 import { HadithCard } from '../components/HadithCard';
+import { PrayerAlertBanner } from '../components/PrayerAlertBanner';
+import { usePrayerNotifications } from '../hooks/usePrayerNotifications';
 import {
   calculatePrayerTimesForJakarta,
+  calculateShuruqTimeForJakarta,
   updatePrayerStatuses,
   getNextPrayer,
   getCurrentPrayer,
@@ -26,6 +30,7 @@ import {
 import { formatGregorianDate, formatTimeWithSeconds } from '../utils/dateTime';
 import { formatCurrency } from '../utils/currency';
 import { Prayer, KasData, MasjidConfig } from '../types';
+import { soundNotificationService } from '../services/soundNotification';
 
 interface MainDashboardProps {
   masjidConfig: MasjidConfig;
@@ -44,12 +49,253 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [tomorrowPrayers, setTomorrowPrayers] = useState<Prayer[]>([]);
   const [nextPrayer, setNextPrayer] = useState<Prayer | null>(null);
-  const [currentPrayer, setCurrentPrayer] = useState<Prayer | null>(null);
   const [isNextPrayerTomorrow, setIsNextPrayerTomorrow] = useState(false);
+
+  const { currentAlert } = usePrayerNotifications(prayers, currentTime);
+  const currentPrayerNameRef = useRef<string | null>(null);
+
+  const [debugAlert, setDebugAlert] = useState<{
+    type: 'adhan' | 'iqamah' | null;
+    prayer: Prayer | null;
+  }>({
+    type: null,
+    prayer: null,
+  });
+
+  const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTriggerRef = useRef<{ url: string; ts: number } | null>(null);
+  const prayersForLookupRef = useRef<Prayer[]>([]);
+
+  useEffect(() => {
+    prayersForLookupRef.current = prayers;
+  }, [prayers]);
+
+  useEffect(() => {
+    return () => {
+      if (dismissTimeoutRef.current) {
+        clearTimeout(dismissTimeoutRef.current);
+        dismissTimeoutRef.current = null;
+      }
+      soundNotificationService.cleanup();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+
+    const clearDebugAlert = () => {
+      if (dismissTimeoutRef.current) {
+        clearTimeout(dismissTimeoutRef.current);
+        dismissTimeoutRef.current = null;
+      }
+
+      setDebugAlert({
+        type: null,
+        prayer: null,
+      });
+    };
+
+    const safeDecode = (value: string) => {
+      try {
+        return decodeURIComponent(value);
+      } catch (_error) {
+        return value;
+      }
+    };
+
+    const parseQuery = (query: string): Record<string, string> => {
+      const params: Record<string, string> = {};
+      if (!query) {
+        return params;
+      }
+
+      for (const part of query.split('&')) {
+        if (!part) {
+          continue;
+        }
+        const [rawKey, rawValue = ''] = part.split('=');
+        const key = safeDecode(rawKey);
+        if (!key) {
+          continue;
+        }
+        params[key] = safeDecode(rawValue);
+      }
+
+      return params;
+    };
+
+    const resolvePrayerName = (value: string) => {
+      if (!value) {
+        return '';
+      }
+      if (value === 'subuh' || value === 'fajr') {
+        return 'subuh';
+      }
+      if (
+        value === 'dzuhur' ||
+        value === 'dzhuhur' ||
+        value === 'dhuhr' ||
+        value === 'zuhur'
+      ) {
+        return 'dzuhur';
+      }
+      if (value === 'ashar' || value === 'asr') {
+        return 'ashar';
+      }
+      if (value === 'maghrib') {
+        return 'maghrib';
+      }
+      if (value === 'isya' || value === 'isha') {
+        return 'isya';
+      }
+      return value;
+    };
+
+    const handleBeepDeepLink = (url: string) => {
+      const match = url.match(
+        /^([a-zA-Z0-9+.-]+):\/\/([^/?#]+)(?:\/[^?#]*)?(?:\?([^#]*))?/
+      );
+      if (!match) {
+        return;
+      }
+
+      const scheme = match[1];
+      const host = match[2];
+      if (scheme !== 'masjiddisplay' || host !== 'beep') {
+        return;
+      }
+
+      const params = parseQuery(match[3] ?? '');
+      const rawTypeParam = (params.type ?? '').toLowerCase();
+      const target = (params.target ?? '').toLowerCase();
+      const jsFlag = (params.js ?? '').toLowerCase();
+
+      const isJsTarget =
+        target === 'js' ||
+        jsFlag === '1' ||
+        jsFlag === 'true' ||
+        rawTypeParam.startsWith('js_') ||
+        rawTypeParam.startsWith('js-') ||
+        rawTypeParam.endsWith('_js') ||
+        rawTypeParam.endsWith('-js') ||
+        rawTypeParam.includes('_js_') ||
+        rawTypeParam.includes('-js-');
+
+      if (!isJsTarget) {
+        return;
+      }
+
+      const normalizedTypeParam = rawTypeParam
+        .replace(/^js[_-]/, '')
+        .replace(/[_-]js$/, '')
+        .replace(/[_-]js[_-]/g, '_');
+
+      const parts = normalizedTypeParam.split(/[_-]+/).filter(Boolean);
+      const typePart = parts[0] ?? '';
+      const type: 'adhan' | 'iqamah' =
+        typePart === 'iqamah' ? 'iqamah' : 'adhan';
+
+      const prayerFromType = parts.slice(1).join('_');
+      const requestedPrayerRaw = String(
+        params.prayer ?? params.p ?? prayerFromType ?? ''
+      ).trim();
+      const requestedPrayer = requestedPrayerRaw.toLowerCase();
+
+      if (
+        requestedPrayer === 'shuruq' ||
+        requestedPrayer === 'syuruq' ||
+        requestedPrayer === 'sunrise'
+      ) {
+        return;
+      }
+
+      const now = Date.now();
+      if (
+        lastTriggerRef.current &&
+        lastTriggerRef.current.url === url &&
+        now - lastTriggerRef.current.ts < 800
+      ) {
+        return;
+      }
+      lastTriggerRef.current = { url, ts: now };
+
+      const normalizedPrayer = resolvePrayerName(requestedPrayer);
+      const overridePrayer = normalizedPrayer
+        ? (prayersForLookupRef.current.find(
+            (p: Prayer) => p.name.toLowerCase() === normalizedPrayer
+          ) ??
+          prayersForLookupRef.current.find((p: Prayer) =>
+            p.name.toLowerCase().includes(normalizedPrayer)
+          ))
+        : null;
+
+      const prayerForBanner: Prayer = overridePrayer ?? {
+        name: requestedPrayerRaw || 'Debug',
+        adhanTime: '00:00',
+        iqamahTime: '00:00',
+        status: 'upcoming',
+      };
+
+      if (type === 'adhan') {
+        soundNotificationService.playAdhanAlert();
+      } else {
+        soundNotificationService.playIqamahAlert();
+      }
+
+      setDebugAlert({
+        type,
+        prayer: prayerForBanner,
+      });
+
+      if (dismissTimeoutRef.current) {
+        clearTimeout(dismissTimeoutRef.current);
+      }
+
+      const durationMs = type === 'adhan' ? 10_000 : 15_000;
+      dismissTimeoutRef.current = setTimeout(() => {
+        clearDebugAlert();
+      }, durationMs);
+
+      console.log(
+        `[MasjidDisplay] JS deep-link alert triggered: type=${type}, prayer=${prayerForBanner.name}`
+      );
+    };
+
+    const subscription = Linking.addEventListener(
+      'url',
+      (event: { url?: string }) => {
+        if (event?.url) {
+          handleBeepDeepLink(event.url);
+        }
+      }
+    );
+
+    Linking.getInitialURL()
+      .then((initialUrl: string | null) => {
+        if (initialUrl) {
+          handleBeepDeepLink(initialUrl);
+        }
+      })
+      .catch((error: unknown) => {
+        if (__DEV__) {
+          console.debug('[MasjidDisplay] getInitialURL failed', error);
+        }
+      });
+
+    return () => {
+      subscription.remove();
+      clearDebugAlert();
+    };
+  }, []);
 
   // Initialize prayer times
   useEffect(() => {
-    const today = new Date();
+    const now = new Date();
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -71,35 +317,57 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
 
   // Update prayer statuses when time changes
   useEffect(() => {
-    if (prayers.length === 0) return;
+    setPrayers(previousPrayers => {
+      if (previousPrayers.length === 0) {
+        return previousPrayers;
+      }
 
-    const updatedPrayers = updatePrayerStatuses(prayers, currentTime);
-    setPrayers(updatedPrayers);
+      return updatePrayerStatuses(previousPrayers, currentTime);
+    });
+  }, [currentTime]);
 
-    // Check if all prayers have passed, if so use tomorrow's prayers
-    const allPassed = allPrayersPassed(updatedPrayers);
-    const next = getNextPrayer(
-      updatedPrayers,
-      allPassed ? tomorrowPrayers : undefined
+  const tomorrowPrayersLive = useMemo(() => {
+    if (tomorrowPrayers.length === 0) {
+      return tomorrowPrayers;
+    }
+
+    const tomorrowReference = new Date(currentTime);
+    tomorrowReference.setDate(tomorrowReference.getDate() + 1);
+
+    return updatePrayerStatuses(
+      tomorrowPrayers,
+      currentTime,
+      tomorrowReference
     );
-    const current = getCurrentPrayer(updatedPrayers);
+  }, [currentTime, tomorrowPrayers]);
+
+  useEffect(() => {
+    if (prayers.length === 0) {
+      setNextPrayer(null);
+      setIsNextPrayerTomorrow(false);
+      currentPrayerNameRef.current = null;
+      return;
+    }
+
+    const allPassedToday = allPrayersPassed(prayers);
+
+    const next = getNextPrayer(
+      prayers,
+      allPassedToday ? tomorrowPrayersLive : undefined
+    );
+
+    const current = getCurrentPrayer(prayers);
 
     setNextPrayer(next);
-    setIsNextPrayerTomorrow(allPassed && next !== null);
+    setIsNextPrayerTomorrow(allPassedToday && next !== null);
 
-    // If all prayers passed, show tomorrow's schedule in the compact view
-    if (allPassed && tomorrowPrayers.length > 0) {
-      // Update compact prayer times to show tomorrow's schedule
-      // We'll keep today's prayers in the state but display tomorrow's in UI
-    }
-
-    if (current && current.name !== currentPrayer?.name) {
-      setCurrentPrayer(current);
+    if (current && currentPrayerNameRef.current !== current.name) {
+      currentPrayerNameRef.current = current.name;
       onPrayerStart?.(current);
     } else if (!current) {
-      setCurrentPrayer(null);
+      currentPrayerNameRef.current = null;
     }
-  }, [currentTime, tomorrowPrayers]);
+  }, [currentTime, onPrayerStart, prayers, tomorrowPrayersLive]);
 
   const isRamadanPeriod = checkIsRamadan(currentTime);
 
@@ -108,10 +376,57 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
     `Kas Masjid - Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}`,
   ];
 
-  const displayPrayers =
-    allPrayersPassed(prayers) && tomorrowPrayers.length > 0
-      ? tomorrowPrayers
-      : prayers;
+  const isShowingTomorrowSchedule =
+    allPrayersPassed(prayers) && tomorrowPrayers.length > 0;
+
+  const displayPrayers = isShowingTomorrowSchedule
+    ? tomorrowPrayersLive
+    : prayers;
+
+  const scheduleDayKey = `${currentTime.getFullYear()}-${String(
+    currentTime.getMonth() + 1
+  ).padStart(2, '0')}-${String(currentTime.getDate()).padStart(2, '0')}`;
+
+  const shuruqTimeForSchedule = useMemo(() => {
+    const [year, month, day] = scheduleDayKey.split('-').map(Number);
+    const referenceDate = new Date(year, month - 1, day);
+    referenceDate.setHours(0, 0, 0, 0);
+
+    if (isShowingTomorrowSchedule) {
+      referenceDate.setDate(referenceDate.getDate() + 1);
+    }
+
+    return calculateShuruqTimeForJakarta(referenceDate);
+  }, [isShowingTomorrowSchedule, scheduleDayKey]);
+
+  const displayPrayersCompact = (() => {
+    if (displayPrayers.length === 0) {
+      return displayPrayers;
+    }
+
+    const shuruqPrayer: Prayer = {
+      name: 'Shuruq',
+      adhanTime: shuruqTimeForSchedule,
+      iqamahTime: '—',
+      status: 'upcoming',
+    };
+
+    const subuhIndex = displayPrayers.findIndex(
+      prayer => prayer.name.toLowerCase() === 'subuh'
+    );
+
+    if (subuhIndex === -1) {
+      return [shuruqPrayer, ...displayPrayers];
+    }
+
+    return [
+      ...displayPrayers.slice(0, subuhIndex + 1),
+      shuruqPrayer,
+      ...displayPrayers.slice(subuhIndex + 1),
+    ];
+  })();
+
+  const alertToShow = debugAlert.type ? debugAlert : currentAlert;
 
   return (
     <View style={styles.container}>
@@ -124,6 +439,12 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
         <LinearGradient
           colors={['rgba(5, 15, 24, 0.92)', 'rgba(5, 15, 24, 0.95)']}
           style={styles.gradient}>
+          {alertToShow.prayer && alertToShow.type && (
+            <PrayerAlertBanner
+              type={alertToShow.type}
+              prayer={alertToShow.prayer}
+            />
+          )}
           {/* Header with Clock and Integrated Prayer Times */}
           <View style={styles.headerSection}>
             <View style={styles.headerTop}>
@@ -161,7 +482,7 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
 
             {/* Compact Prayer Schedule - Below Clock */}
             <View style={styles.prayerTimesCompact}>
-              {displayPrayers.map((prayer, index) => {
+              {displayPrayersCompact.map(prayer => {
                 const isTheNextPrayer = nextPrayer?.name === prayer.name;
                 return (
                   <View

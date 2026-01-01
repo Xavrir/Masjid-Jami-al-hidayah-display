@@ -10,7 +10,7 @@ import {
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing, radii } from '../theme/spacing';
-import { KasData, KasTransaction } from '../types';
+import { KasData } from '../types';
 import { formatCurrency } from '../utils/currency';
 
 interface KasDetailOverlayProps {
@@ -25,8 +25,12 @@ export const KasDetailOverlay: React.FC<KasDetailOverlayProps> = ({
   onClose,
 }) => {
   const getBalanceColor = () => {
-    if (kasData.balance > 0) return colors.kasPositive;
-    if (kasData.balance < 0) return colors.kasNegative;
+    if (kasData.balance > 0) {
+      return colors.kasPositive;
+    }
+    if (kasData.balance < 0) {
+      return colors.kasNegative;
+    }
     return colors.kasNeutral;
   };
 

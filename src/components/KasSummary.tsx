@@ -7,16 +7,17 @@ import { KasData } from '../types';
 
 interface KasSummaryProps {
   kasData: KasData;
-  variant?: 'compact_with_sparkline' | 'simple';
+  variant?: string;
 }
 
-export const KasSummary: React.FC<KasSummaryProps> = ({
-  kasData,
-  variant = 'compact_with_sparkline'
-}) => {
+export const KasSummary: React.FC<KasSummaryProps> = ({ kasData }) => {
   const getBalanceColor = () => {
-    if (kasData.balance > 0) return colors.kasPositive;
-    if (kasData.balance < 0) return colors.kasNegative;
+    if (kasData.balance > 0) {
+      return colors.kasPositive;
+    }
+    if (kasData.balance < 0) {
+      return colors.kasNegative;
+    }
     return colors.kasNeutral;
   };
 
