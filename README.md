@@ -1,17 +1,21 @@
 # Masjid Display - Prayer Timetable & Kas Display for Android TV
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![React Native](https://img.shields.io/badge/React%20Native-0.73.2-blue.svg)
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-blue.svg)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2024.01-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+
+A beautiful, native Android TV application for mosque prayer time display, built with **Kotlin** and **Jetpack Compose**.
 
 ## Features
 
 ### 🕌 Prayer Times Display
-- **Real-time Prayer Schedule**: Displays 5 daily prayers (Subuh, Dzuhur, Ashar, Maghrib, Isya)
+- **Real-time Prayer Schedule**: Displays 5 daily prayers (Subuh, Dzuhur, Ashar, Maghrib, Isya) plus Shuruq
 - **Adzan & Iqamah Times**: Shows both adzan and iqamah times for each prayer
 - **Live Countdown**: Real-time countdown to next prayer
 - **Status Indicators**: Visual distinction between passed, current, and upcoming prayers
 - **Prayer In Progress View**: Special full-screen view when prayer is in progress
+- **Sound Notifications**: Audio alerts for adhan and iqamah times
 
 ### 💰 Mosque Treasury (Kas) Management
 - **Balance Display**: Current mosque treasury balance
@@ -31,112 +35,97 @@
 - **TV Remote Control Support**: Navigate using standard TV remote
 - **Leanback UI**: Optimized for 10-foot TV viewing experience
 - **Full HD & 4K Support**: Scales beautifully on 1080p, 1440p, and 4K displays
-- **Auto-rotation Disabled**: Fixed landscape orientation
+- **Immersive Mode**: Full-screen display without system bars
 - **TV Launcher Integration**: Appears in Android TV launcher
 
 ### 🌙 Special Features
 - **Ramadan Mode**: Special theme variant for Ramadan month
 - **Hijri Calendar**: Displays both Gregorian and Hijri dates
 - **Announcement Ticker**: Scrolling announcements at bottom of screen
+- **Quran Verse Display**: Rotating Quran verses with Arabic text
+- **Hadith of the Day**: Daily Hadith with source citation
 - **Offline Support**: Works without internet connection
-
-## Screenshots
-
-### Main Dashboard
-The main dashboard displays:
-- Prayer times table with status indicators
-- Next prayer highlight card
-- Current mosque treasury summary
-- Announcement ticker
-- Current time with both Gregorian and Hijri dates
-
-### Prayer In Progress
-Full-screen view when prayer is ongoing:
-- Large prayer name display
-- Countdown to prayer end
-- Prayer timeline indicator
-- Calm, focused design
-
-### Treasury (Kas) Detail Overlay
-Accessible via TV remote:
-- Current balance with trend
-- Monthly income/expense breakdown
-- Recent transaction list
-- 30-day trend visualization
 
 ## Technology Stack
 
-- **Framework**: React Native 0.73.2
-- **Language**: TypeScript
-- **Platform**: Android TV
-- **Styling**: StyleSheet API with custom design tokens
-- **Animation**: React Native Animated API
-- **Date Handling**: date-fns
-- **Gradients**: react-native-linear-gradient
+- **Language**: Kotlin 1.9.22
+- **UI Framework**: Jetpack Compose with Material 3
+- **Platform**: Android TV (API 21+)
+- **Architecture**: Single Activity with Compose Navigation
+- **Animation**: Compose Animation API
+- **Coroutines**: For async operations and timers
+- **Date/Time**: kotlinx-datetime
 
 ## Project Structure
 
 ```
-Rifqi masjid/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── PrayerRow.tsx
-│   │   ├── NextPrayerCard.tsx
-│   │   ├── KasSummary.tsx
-│   │   ├── AnnouncementTicker.tsx
-│   │   └── KasDetailOverlay.tsx
-│   ├── screens/             # Main screen components
-│   │   ├── MainDashboard.tsx
-│   │   └── PrayerInProgress.tsx
-│   ├── theme/               # Design tokens and theme
-│   │   ├── colors.ts
-│   │   ├── typography.ts
-│   │   ├── spacing.ts
-│   │   ├── motion.ts
-│   │   └── index.ts
-│   ├── types/               # TypeScript type definitions
-│   │   └── index.ts
-│   ├── utils/               # Utility functions
-│   │   ├── prayerTimes.ts
-│   │   ├── dateTime.ts
-│   │   └── currency.ts
-│   ├── data/                # Mock data for testing
-│   │   └── mockData.ts
-│   └── App.tsx              # Main application component
-├── android/                 # Android native code
-├── package.json
-├── tsconfig.json
-└── README.md
+android/
+├── app/
+│   ├── src/main/
+│   │   ├── java/com/masjiddisplay/
+│   │   │   ├── MainActivity.kt          # Main entry point
+│   │   │   ├── MainApplication.kt       # Application class
+│   │   │   ├── data/                    # Data models & mock data
+│   │   │   │   ├── Models.kt
+│   │   │   │   ├── MockData.kt
+│   │   │   │   └── IslamicContent.kt
+│   │   │   ├── ui/
+│   │   │   │   ├── screens/             # Main screens
+│   │   │   │   │   ├── MainDashboard.kt
+│   │   │   │   │   └── PrayerInProgress.kt
+│   │   │   │   ├── components/          # Reusable UI components
+│   │   │   │   │   ├── NextPrayerCard.kt
+│   │   │   │   │   ├── AnnouncementTicker.kt
+│   │   │   │   │   ├── QuranVerseCard.kt
+│   │   │   │   │   ├── HadithCard.kt
+│   │   │   │   │   ├── PrayerAlertBanner.kt
+│   │   │   │   │   ├── KasSummary.kt
+│   │   │   │   │   └── KasDetailOverlay.kt
+│   │   │   │   ├── theme/               # Design system
+│   │   │   │   │   ├── Color.kt
+│   │   │   │   │   ├── Typography.kt
+│   │   │   │   │   ├── Dimensions.kt
+│   │   │   │   │   └── Theme.kt
+│   │   │   │   └── state/               # State management
+│   │   │   │       └── PrayerNotificationState.kt
+│   │   │   ├── services/                # Background services
+│   │   │   │   └── SoundNotificationService.kt
+│   │   │   └── utils/                   # Utility functions
+│   │   │       ├── PrayerTimeCalculator.kt
+│   │   │       ├── DateTimeUtils.kt
+│   │   │       └── CurrencyUtils.kt
+│   │   └── res/                         # Resources
+│   │       ├── drawable/
+│   │       ├── mipmap-*/
+│   │       ├── raw/                     # Sound files
+│   │       └── values/
+│   └── build.gradle.kts                 # App build config
+├── build.gradle                         # Project build config
+└── settings.gradle
 ```
 
 ## Installation & Setup
 
 ### Prerequisites
 
-- Node.js >= 18
-- npm or yarn
-- Android Studio with Android SDK
+- Android Studio Arctic Fox or later
+- Android SDK with API Level 34
+- JDK 17 or later
 - Android TV emulator or physical Android TV device
 
-### Step 1: Install Dependencies
+### Step 1: Clone the Repository
 
 ```bash
-npm install
-# or
-yarn install
+git clone https://github.com/Xavrir/Masjid-Jami-al-hidayah-display.git
+cd Masjid-Jami-al-hidayah-display
 ```
 
-### Step 2: Setup Android SDK
+### Step 2: Open in Android Studio
 
-Make sure you have Android SDK installed and `ANDROID_HOME` environment variable set:
-
-```bash
-export ANDROID_HOME=$HOME/Android/Sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/tools/bin
-export PATH=$PATH:$ANDROID_HOME/platform-tools
-```
+1. Open Android Studio
+2. Select "Open an existing project"
+3. Navigate to the `android` folder
+4. Wait for Gradle sync to complete
 
 ### Step 3: Run on Android TV
 
@@ -144,13 +133,7 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 1. Create an Android TV emulator in Android Studio (API 21+)
 2. Start the emulator
-3. Run the app:
-
-```bash
-npm run android
-# or
-yarn android
-```
+3. Click Run or press `Shift+F10`
 
 #### Using Physical Android TV Device
 
@@ -162,117 +145,95 @@ yarn android
 adb connect <TV_IP_ADDRESS>:5555
 ```
 
-4. Run the app:
-
-```bash
-npm run android
-# or
-yarn android
-```
-
-### Step 4: Start Metro Bundler
-
-```bash
-npm start
-# or
-yarn start
-```
+4. Click Run in Android Studio
 
 ## Configuration
 
 ### Customize Mosque Information
 
-Edit [src/data/mockData.ts](src/data/mockData.ts):
+Edit `MockData.kt`:
 
-```typescript
-export const mockMasjidConfig: MasjidConfig = {
-  name: 'Your Masjid Name',
-  location: 'Your City, Country',
-  tagline: 'Your Tagline',
-  coordinates: {
-    latitude: YOUR_LATITUDE,
-    longitude: YOUR_LONGITUDE,
-  },
-  calculationMethod: 'Your Calculation Method',
-};
+```kotlin
+val masjidConfig = MasjidConfig(
+    name = "Your Masjid Name",
+    location = "Your Location",
+    tagline = "Your Tagline",
+    latitude = YOUR_LATITUDE,
+    longitude = YOUR_LONGITUDE,
+    calculationMethod = "Kemenag RI"
+)
 ```
 
 ### Customize Prayer Times
 
-The app currently uses simplified prayer times. For production use with accurate astronomical calculations:
+The app uses astronomical calculations based on Kemenag RI method. To customize:
 
-1. Install a prayer time calculation library like `adhan-js`
-2. Update [src/utils/prayerTimes.ts](src/utils/prayerTimes.ts) to use the library
-3. Configure calculation method, madhab, and high latitude rule
+1. Update `PrayerTimeCalculator.kt`
+2. Modify `FAJR_ANGLE` and `ISHA_ANGLE` constants
+3. Update default coordinates
 
 ### Customize Treasury Data
 
-Update treasury information in [src/data/mockData.ts](src/data/mockData.ts):
+Update treasury information in `MockData.kt`:
 
-```typescript
-export const mockKasData: KasData = {
-  balance: YOUR_BALANCE,
-  incomeMonth: YOUR_MONTHLY_INCOME,
-  expenseMonth: YOUR_MONTHLY_EXPENSE,
-  // ... other fields
-};
+```kotlin
+val kasData = KasData(
+    balance = YOUR_BALANCE,
+    incomeMonth = YOUR_MONTHLY_INCOME,
+    expenseMonth = YOUR_MONTHLY_EXPENSE,
+    // ... other fields
+)
 ```
 
 ### Customize Announcements
 
-Edit announcements array in [src/data/mockData.ts](src/data/mockData.ts):
+Edit the announcements list in `MockData.kt`:
 
-```typescript
-export const mockAnnouncements: string[] = [
-  'Your announcement 1',
-  'Your announcement 2',
-  // Add more announcements
-];
+```kotlin
+val announcements = listOf(
+    "Your announcement 1",
+    "Your announcement 2",
+    // Add more announcements
+)
 ```
-
-## TV Remote Control
-
-The app supports standard Android TV remote control:
-
-- **Menu Button**: Toggle treasury detail overlay
-- **Play/Pause**: Toggle between dashboard and prayer view (demo mode)
-- **Back Button**: Close overlays / exit app
-- **D-pad**: Navigate through settings (when implemented)
 
 ## Theme Customization
 
 ### Colors
 
-Edit [src/theme/colors.ts](src/theme/colors.ts) to customize colors:
+Edit `Color.kt` to customize the color palette:
 
-```typescript
-export const colors = {
-  accentPrimary: '#D4AF37',  // Gold
-  accentSecondary: '#16A085', // Teal
-  // ... other colors
-};
+```kotlin
+object AppColors {
+    val accentPrimary = Color(0xFFD4AF37)  // Gold
+    val accentSecondary = Color(0xFF16A085) // Teal
+    // ... other colors
+}
 ```
 
 ### Typography
 
-Adjust font sizes in [src/theme/typography.ts](src/theme/typography.ts):
+Adjust font sizes in `Typography.kt`:
 
-```typescript
-export const typography = {
-  displayXL: {
-    fontSize: 72,
-    lineHeight: 80,
-    // ... other properties
-  },
-  // ... other styles
-};
+```kotlin
+object AppTypography {
+    val displayXL = TextStyle(
+        fontSize = 72.sp,
+        lineHeight = 80.sp,
+        fontWeight = FontWeight.Bold
+    )
+    // ... other styles
+}
 ```
 
-### Ramadan Mode
-
-To enable Ramadan mode, the app automatically detects Ramadan month. You can also manually enable it by importing and using `ramadanColors` from [src/theme/colors.ts](src/theme/colors.ts).
-
 ## Building for Production
+
+### Generate Debug APK
+
+```bash
+cd android
+./gradlew assembleDebug
+```
 
 ### Generate Release APK
 
@@ -294,26 +255,39 @@ android/app/build/outputs/apk/release/app-release.apk
 keytool -genkey -v -keystore masjid-display.keystore -alias masjid-display -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-2. Update [android/app/build.gradle](android/app/build.gradle) with your keystore info
+2. Update `build.gradle.kts` with your keystore info
 
 3. Build signed APK:
 
 ```bash
-cd android
 ./gradlew assembleRelease
 ```
+
+## Features Implemented
+
+- [x] Prayer times calculation (Kemenag RI method)
+- [x] Real-time clock display
+- [x] Hijri date display
+- [x] Prayer countdown
+- [x] Next prayer highlight
+- [x] Prayer in progress screen
+- [x] Quran verse rotation
+- [x] Hadith rotation
+- [x] Announcement ticker
+- [x] Kas summary display
+- [x] Kas detail overlay
+- [x] Sound notifications
+- [x] Ramadan detection
+- [x] TV remote support
+- [x] Immersive full-screen mode
 
 ## Future Enhancements
 
 - [ ] Backend integration for real-time data updates
 - [ ] Admin panel for remote configuration
 - [ ] Multiple language support (Arabic, English, Indonesian)
-- [ ] Quranic verse display
 - [ ] Weather information
-- [ ] Hadith of the day
-- [ ] Settings screen with TV remote navigation
 - [ ] QR code for donation
-- [ ] Sound alerts for adzan time
 - [ ] Custom calculation methods
 
 ## Contributing
@@ -326,7 +300,9 @@ This project is licensed under the MIT License.
 
 ## Credits
 
-Developed based on comprehensive design specifications focusing on:
+Developed for Masjid Jami' Al-Hidayah, Jakarta Timur.
+
+Design specifications focus on:
 - Readability from 5-10 meters distance
 - Calm, elegant, non-flashy design
 - Single-glance clarity

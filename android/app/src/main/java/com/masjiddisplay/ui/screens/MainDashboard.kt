@@ -30,6 +30,7 @@ fun MainDashboard(
     kasData: KasData,
     announcements: List<String>,
     onPrayerStart: (Prayer) -> Unit = {},
+    onKasDetailRequested: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var currentTime by remember { mutableStateOf(Date()) }
