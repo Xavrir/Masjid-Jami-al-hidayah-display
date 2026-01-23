@@ -1,17 +1,20 @@
 package com.masjiddisplay.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.data.*
@@ -19,11 +22,9 @@ import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
 import java.util.*
 
-/**
- * Main dashboard screen displaying prayer times, clock, and Islamic content
- */
 @Composable
 fun MainDashboard(
     masjidConfig: MasjidConfig,
@@ -37,10 +38,8 @@ fun MainDashboard(
     var prayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     var tomorrowPrayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     var nextPrayer by remember { mutableStateOf<Prayer?>(null) }
-    var isNextPrayerTomorrow by remember { mutableStateOf(false) }
-    var currentAlert by remember { mutableStateOf<Pair<String?, Prayer?>>(null to null) }
+    var shuruqTime by remember { mutableStateOf("5:51 AM") }
     
-    // Initialize prayer times
     LaunchedEffect(Unit) {
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
@@ -59,9 +58,9 @@ fun MainDashboard(
         
         prayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(today)
         tomorrowPrayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(tomorrow)
+        shuruqTime = PrayerTimeCalculator.calculateShuruqTimeForJakarta(today)
     }
     
-    // Update time every second
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = Date()
@@ -69,7 +68,6 @@ fun MainDashboard(
         }
     }
     
-    // Update prayer statuses
     LaunchedEffect(currentTime, prayers) {
         if (prayers.isNotEmpty()) {
             prayers = PrayerTimeCalculator.updatePrayerStatuses(prayers, currentTime)
@@ -88,9 +86,7 @@ fun MainDashboard(
                 prayers,
                 if (allPassed) updatedTomorrowPrayers else null
             )
-            isNextPrayerTomorrow = allPassed && nextPrayer != null
             
-            // Check for current prayer to trigger overlay
             val current = PrayerTimeCalculator.getCurrentPrayer(prayers)
             if (current != null) {
                 onPrayerStart(current)
@@ -98,282 +94,257 @@ fun MainDashboard(
         }
     }
     
-    // Check for prayer alerts (adhan/iqamah time)
-    LaunchedEffect(currentTime, prayers) {
-        val currentTimeStr = formatTime(currentTime)
-        
-        for (prayer in prayers) {
-            if (prayer.name.lowercase() in listOf("shuruq", "syuruq", "sunrise")) continue
-            
-            if (currentTimeStr == prayer.adhanTime) {
-                currentAlert = "adhan" to prayer
-                delay(10000)
-                currentAlert = null to null
-                break
-            }
-            
-            if (currentTimeStr == prayer.iqamahTime) {
-                currentAlert = "iqamah" to prayer
-                delay(15000)
-                currentAlert = null to null
-                break
-            }
-        }
+    val countdownText = remember(currentTime, nextPrayer) {
+        nextPrayer?.let { prayer ->
+            val timeToNext = calculateTimeUntilPrayer(prayer, currentTime)
+            if (timeToNext.isNotEmpty()) timeToNext else "—"
+        } ?: "—"
     }
     
-    val isRamadanPeriod = isRamadan(currentTime)
+    val mainPrayers = prayers.filter { 
+        it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise") 
+    }
     
-    // Combine announcements with kas info
     val announcementsWithKas = announcements + listOf(
         "Kas Masjid - Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
     )
     
-    val isShowingTomorrowSchedule = PrayerTimeCalculator.allPrayersPassed(prayers) && tomorrowPrayers.isNotEmpty()
-    val displayPrayers = if (isShowingTomorrowSchedule) tomorrowPrayers else prayers
-    
-    // Add Shuruq to display prayers
-    val shuruqTime = PrayerTimeCalculator.calculateShuruqTimeForJakarta(
-        if (isShowingTomorrowSchedule) {
-            Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }.time
-        } else {
-            currentTime
-        }
-    )
-    
-    val displayPrayersCompact = remember(displayPrayers, shuruqTime) {
-        val shuruqPrayer = Prayer(
-            name = "Shuruq",
-            adhanTime = shuruqTime,
-            iqamahTime = "—",
-            status = PrayerStatus.UPCOMING
+    Box(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF1A4A6E),
+                            Color(0xFF2D6A8F),
+                            Color(0xFF1A4A6E)
+                        )
+                    )
+                )
         )
         
-        val subuhIndex = displayPrayers.indexOfFirst { it.name.lowercase() == "subuh" }
-        if (subuhIndex == -1) {
-            listOf(shuruqPrayer) + displayPrayers
-        } else {
-            displayPrayers.subList(0, subuhIndex + 1) + 
-            listOf(shuruqPrayer) + 
-            displayPrayers.subList(subuhIndex + 1, displayPrayers.size)
-        }
-    }
-    
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        AppColors.backgroundGradientTop.copy(alpha = 0.92f),
-                        AppColors.backgroundGradientBottom.copy(alpha = 0.95f)
-                    )
-                )
-            )
-            .padding(top = Spacing.lg, bottom = Spacing.lg, start = Spacing.xxl, end = Spacing.xxl)
-    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+        )
+        
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 48.dp, vertical = 24.dp)
         ) {
-            // Alert banner
-            currentAlert.first?.let { alertType ->
-                currentAlert.second?.let { prayer ->
-                    PrayerAlertBanner(
-                        type = alertType,
-                        prayer = prayer
-                    )
-                }
-            }
-            
-            // Header section
-            Column(
-                modifier = Modifier.padding(bottom = Spacing.lg)
-            ) {
-                // Header top row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .padding(horizontal = Spacing.lg, vertical = 0.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Left - Masjid name
-                    Row(
-                        modifier = Modifier.weight(0.8f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(4.dp)
-                                .height(40.dp)
-                                .background(AppColors.accentPrimary)
-                        )
-                        Spacer(modifier = Modifier.width(Spacing.md))
-                        Column {
-                            Text(
-                                text = masjidConfig.name.uppercase(),
-                                style = AppTypography.headlineM.copy(letterSpacing = 2.sp),
-                                color = AppColors.textPrimary
-                            )
-                            masjidConfig.tagline?.let { tagline ->
-                                Text(
-                                    text = tagline,
-                                    style = AppTypography.bodyS.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic),
-                                    color = AppColors.textSecondary.copy(alpha = 0.9f)
-                                )
-                            }
-                        }
-                    }
-                    
-                    // Center - Clock
-                    Column(
-                        modifier = Modifier.weight(1.5f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = formatTimeWithSeconds(currentTime),
-                            style = AppTypography.displayL,
-                            color = AppColors.textPrimary
-                        )
-                        Text(
-                            text = formatGregorianDate(currentTime),
-                            style = AppTypography.bodyM,
-                            color = AppColors.textSecondary
-                        )
-                        Text(
-                            text = getHijriDate(currentTime),
-                            style = AppTypography.bodyM,
-                            color = AppColors.accentPrimary
-                        )
-                    }
-                    
-                    // Right - Badges
-                    Column(
-                        modifier = Modifier.weight(0.7f),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        if (isRamadanPeriod) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(Radii.small))
-                                    .background(AppColors.accentPrimarySoft.copy(alpha = 0.15f))
-                                    .border(1.dp, AppColors.accentPrimary, RoundedCornerShape(Radii.small))
-                                    .padding(horizontal = Spacing.md, vertical = Spacing.sm)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(8.dp)
-                                            .clip(CircleShape)
-                                            .background(AppColors.accentPrimary)
-                                    )
-                                    Spacer(modifier = Modifier.width(Spacing.sm))
-                                    Text(
-                                        text = "RAMADAN KAREEM",
-                                        style = AppTypography.caption,
-                                        color = AppColors.textSecondary
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(Spacing.xl))
-                
-                // Compact prayer schedule
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Spacing.lg),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-                ) {
-                    displayPrayersCompact.forEach { prayer ->
-                        val isTheNextPrayer = nextPrayer?.name == prayer.name
-                        val isCurrent = prayer.status == PrayerStatus.CURRENT
-                        
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(Radii.small))
-                                .background(
-                                    if (isCurrent) AppColors.accentPrimarySoft.copy(alpha = 0.25f)
-                                    else AppColors.surfaceGlass.copy(alpha = 0.6f)
-                                )
-                                .border(
-                                    width = if (isCurrent) 2.dp else 1.dp,
-                                    color = if (isCurrent) AppColors.accentPrimary
-                                           else if (isTheNextPrayer) AppColors.accentPrimary
-                                           else AppColors.accentPrimarySoft.copy(alpha = 0.15f),
-                                    shape = RoundedCornerShape(Radii.small)
-                                )
-                                .padding(vertical = Spacing.md, horizontal = Spacing.sm)
-                                .heightIn(min = 72.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = prayer.name,
-                                    style = AppTypography.bodyS.copy(fontSize = 13.sp),
-                                    color = if (isCurrent) AppColors.accentPrimary else AppColors.textSecondary
-                                )
-                                Text(
-                                    text = prayer.adhanTime,
-                                    style = AppTypography.numericSmall.copy(fontSize = 20.sp),
-                                    color = if (isCurrent) AppColors.accentPrimary else AppColors.textPrimary
-                                )
-                                Text(
-                                    text = prayer.iqamahTime,
-                                    style = AppTypography.caption.copy(fontSize = 11.sp),
-                                    color = AppColors.textMuted
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Core content - Three columns
             Row(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.lg, vertical = 0.dp)
-                    .padding(bottom = Spacing.xxl),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.lg)
+                    .padding(bottom = 32.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                // Next prayer card
-                NextPrayerCard(
-                    prayer = nextPrayer,
-                    isTomorrow = isNextPrayerTomorrow,
-                    modifier = Modifier.weight(1f)
-                )
+                Column {
+                    Text(
+                        text = masjidConfig.name,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = formatDayDate(currentTime).uppercase(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp
+                    )
+                }
                 
-                // Quran verse card
-                QuranVerseCard(
-                    autoRotate = true,
-                    rotationInterval = 40000,
-                    modifier = Modifier.weight(1f)
-                )
-                
-                // Hadith card
-                HadithCard(
-                    autoRotate = true,
-                    rotationInterval = 50000,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = formatTimeAmPm(currentTime),
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Light,
+                        color = Color.White
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "☀️", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "SUNRISE $shuruqTime",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFFFFA500),
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                }
             }
             
-            // Announcement ticker
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "UNTIL",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = countdownText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(2.dp)
+                    ) {
+                        val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
+                        drawLine(
+                            color = Color(0xFF4ECDC4),
+                            start = Offset(0f, size.height / 2),
+                            end = Offset(size.width, size.height / 2),
+                            strokeWidth = 3f,
+                            pathEffect = dashEffect,
+                            cap = StrokeCap.Round
+                        )
+                    }
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        mainPrayers.forEach { prayer ->
+                            val isPassed = prayer.status == PrayerStatus.PASSED
+                            val isCurrent = prayer.status == PrayerStatus.CURRENT
+                            val isNext = nextPrayer?.name == prayer.name
+                            
+                            Box(
+                                modifier = Modifier
+                                    .size(if (isCurrent || isNext) 12.dp else 8.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        when {
+                                            isCurrent -> Color(0xFF4ECDC4)
+                                            isNext -> Color(0xFF4ECDC4)
+                                            isPassed -> Color(0xFF4ECDC4).copy(alpha = 0.5f)
+                                            else -> Color(0xFF4ECDC4).copy(alpha = 0.3f)
+                                        }
+                                    )
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    mainPrayers.forEach { prayer ->
+                        val isCurrent = prayer.status == PrayerStatus.CURRENT
+                        val isNext = nextPrayer?.name == prayer.name
+                        
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = getPrayerIcon(prayer.name),
+                                fontSize = 32.sp
+                            )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Text(
+                                text = prayer.name.uppercase(),
+                                fontSize = 14.sp,
+                                fontWeight = if (isCurrent || isNext) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isCurrent || isNext) Color(0xFFFFA500) else Color.White,
+                                letterSpacing = 1.sp
+                            )
+                            
+                            Text(
+                                text = prayer.adhanTime,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+            
             AnnouncementTicker(
                 announcements = announcementsWithKas,
-                speed = "slow",
-                modifier = Modifier.padding(horizontal = Spacing.lg)
+                speed = "slow"
             )
         }
+    }
+}
+
+private fun getPrayerIcon(prayerName: String): String {
+    return when (prayerName.lowercase()) {
+        "subuh", "fajr" -> "🌙"
+        "dzuhur", "dhuhr", "zuhur" -> "☀️"
+        "ashar", "asr" -> "🌤️"
+        "maghrib" -> "🌅"
+        "isya", "isha" -> "⭐"
+        else -> "🕌"
+    }
+}
+
+private fun formatTimeAmPm(date: Date): String {
+    val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
+    return sdf.format(date)
+}
+
+private fun formatDayDate(date: Date): String {
+    val sdf = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
+    return sdf.format(date)
+}
+
+private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String {
+    try {
+        val timeParts = prayer.adhanTime.split(":")
+        if (timeParts.size != 2) return "—"
+        
+        val prayerCal = Calendar.getInstance().apply {
+            time = currentTime
+            set(Calendar.HOUR_OF_DAY, timeParts[0].toInt())
+            set(Calendar.MINUTE, timeParts[1].toInt())
+            set(Calendar.SECOND, 0)
+        }
+        
+        if (prayerCal.time.before(currentTime)) {
+            prayerCal.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        
+        val diffMs = prayerCal.timeInMillis - currentTime.time
+        val hours = diffMs / (1000 * 60 * 60)
+        val minutes = (diffMs % (1000 * 60 * 60)) / (1000 * 60)
+        
+        return when {
+            hours > 0 -> "${hours}h ${minutes}m"
+            minutes > 0 -> "${minutes}m"
+            else -> "Now"
+        }
+    } catch (e: Exception) {
+        return "—"
     }
 }
