@@ -30,6 +30,9 @@ fun MainDashboard(
     masjidConfig: MasjidConfig,
     kasData: KasData,
     announcements: List<String>,
+    quranVerses: List<String> = emptyList(),
+    hadiths: List<String> = emptyList(),
+    pengajian: List<String> = emptyList(),
     onPrayerStart: (Prayer) -> Unit = {},
     onKasDetailRequested: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -290,9 +293,11 @@ fun MainDashboard(
                 }
             }
             
-            AnnouncementTicker(
+            MultiSourceRunningText(
                 announcements = announcementsWithKas,
-                speed = "slow"
+                quranVerses = quranVerses,
+                hadiths = hadiths,
+                pengajian = pengajian
             )
         }
     }

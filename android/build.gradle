@@ -5,18 +5,18 @@ buildscript {
         compileSdkVersion = 34
         targetSdkVersion = 34
         ndkVersion = "25.1.8937393"
-        kotlinVersion = "1.9.22"
-        composeVersion = "1.5.8"
-        composeMaterial3Version = "1.1.2"
-        composeCompilerVersion = "1.5.8"
+        kotlinVersion = "1.9.0"
+        composeVersion = "1.5.0"
+        composeMaterial3Version = "1.1.0"
+        composeCompilerVersion = "1.5.0"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.1.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
+        classpath("com.android.tools.build:gradle:7.3.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
     }
 }
 

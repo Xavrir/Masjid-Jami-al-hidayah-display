@@ -15,6 +15,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.masjiddisplay.data.MockData
 import com.masjiddisplay.data.Prayer
 import com.masjiddisplay.data.PrayerStatus
+import com.masjiddisplay.data.SupabaseRepository
+import com.masjiddisplay.data.KasData
 import com.masjiddisplay.services.SoundNotificationService
 import com.masjiddisplay.services.SoundNotificationServiceHolder
 import com.masjiddisplay.ui.components.KasDetailOverlay
@@ -75,6 +77,31 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?) {
     var kasOverlayVisible by remember { mutableStateOf(false) }
     var appClock by remember { mutableStateOf(Date()) }
     
+    // Data State from Supabase
+    var kasData by remember { mutableStateOf(MockData.kasData) }
+    var quranVerses by remember { mutableStateOf<List<String>>(emptyList()) }
+    var hadiths by remember { mutableStateOf<List<String>>(emptyList()) }
+    var pengajian by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    // Fetch data from Supabase
+    LaunchedEffect(Unit) {
+        try {
+            // Run fetches in parallel or sequence
+            kasData = SupabaseRepository.getKasData()
+            
+            val fetchedQuran = SupabaseRepository.getQuranVerses()
+            quranVerses = fetchedQuran.map { "QS ${it.surah} (${it.surahNumber}):${it.ayah} - ${it.translation}" }
+            
+            val fetchedHadiths = SupabaseRepository.getHadiths()
+            hadiths = fetchedHadiths.map { "${it.source}: ${it.translation}" }
+            
+            val fetchedPengajian = SupabaseRepository.getPengajian()
+            pengajian = fetchedPengajian.map { "${it.judul} oleh ${it.pembicara} (${it.hari}, ${it.jam})" }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
     // Initialize prayer notification state
     val prayerNotificationState = rememberPrayerNotificationState(soundService)
     
@@ -106,8 +133,11 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?) {
             is Screen.Dashboard -> {
                 MainDashboard(
                     masjidConfig = MockData.masjidConfig,
-                    kasData = MockData.kasData,
+                    kasData = kasData,
                     announcements = MockData.announcements,
+                    quranVerses = quranVerses,
+                    hadiths = hadiths,
+                    pengajian = pengajian,
                     onPrayerStart = { prayer ->
                         val now = Date()
                         if (PrayerTimeCalculator.isWithinPrayerWindow(prayer, now)) {

@@ -21,6 +21,7 @@ object AppColors {
     val textPrimary = Color(0xFFFFFFFF)
     val textSecondary = Color(0xFFC1CEDB)
     val textMuted = Color(0xFF7E8BA3)
+    val textInverse = Color(0xFF000000)
     
     val divider = Color(0x0FFFFFFF)
     val borderSubtle = Color(0x1FFFFFFF)
@@ -36,6 +37,11 @@ object AppColors {
     val badgeInfo = Color(0x4234A2DB)
     val badgeWarning = Color(0x42F1C40F)
     val bannerAlertBackground = Color(0x59C0392B)
+    
+    val successColor = Color(0xFF27AE60)
+    val warningColor = Color(0xFFF39C12)
+    val infoColor = Color(0xFF3498DB)
+    val errorColor = Color(0xFFE74C3C)
 }
 
 /**
