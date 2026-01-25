@@ -1,9 +1,11 @@
 package com.masjiddisplay.ui.screens
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,9 +16,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.masjiddisplay.R
 import com.masjiddisplay.data.*
 import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
@@ -113,24 +118,17 @@ fun MainDashboard(
     )
     
     Box(modifier = modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF1A4A6E),
-                            Color(0xFF2D6A8F),
-                            Color(0xFF1A4A6E)
-                        )
-                    )
-                )
+        Image(
+            painter = painterResource(id = R.drawable.beautiful_wallpapers_for_laptop),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
         
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
+                .background(Color.Black.copy(alpha = 0.5f))
         )
         
         Column(
@@ -267,9 +265,11 @@ fun MainDashboard(
                         val isNext = nextPrayer?.name == prayer.name
                         
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = getPrayerIcon(prayer.name),
-                                fontSize = 32.sp
+                            Icon(
+                                painter = painterResource(id = getPrayerIconRes(prayer.name)),
+                                contentDescription = prayer.name,
+                                modifier = Modifier.size(32.dp),
+                                tint = if (isCurrent || isNext) Color(0xFF4ECDC4) else Color.White.copy(alpha = 0.8f)
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
@@ -303,14 +303,14 @@ fun MainDashboard(
     }
 }
 
-private fun getPrayerIcon(prayerName: String): String {
+private fun getPrayerIconRes(prayerName: String): Int {
     return when (prayerName.lowercase()) {
-        "subuh", "fajr" -> "🌙"
-        "dzuhur", "dhuhr", "zuhur" -> "☀️"
-        "ashar", "asr" -> "🌤️"
-        "maghrib" -> "🌅"
-        "isya", "isha" -> "⭐"
-        else -> "🕌"
+        "subuh", "fajr" -> R.drawable.ic_subuh
+        "dzuhur", "dhuhr", "zuhur" -> R.drawable.ic_dzuhur
+        "ashar", "asr" -> R.drawable.ic_ashar
+        "maghrib" -> R.drawable.ic_maghrib
+        "isya", "isha" -> R.drawable.ic_isya
+        else -> R.drawable.ic_subuh
     }
 }
 

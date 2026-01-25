@@ -1,26 +1,29 @@
 package com.masjiddisplay.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.ui.theme.*
 import kotlinx.coroutines.delay
 
-/**
- * Enhanced running text component that displays data from Supabase
- * Rotates through announcements, Quran verses, Hadiths, and Pengajian
- */
 @Composable
 fun EnhancedRunningText(
     content: String,
@@ -28,37 +31,80 @@ fun EnhancedRunningText(
     backgroundColor: Color = AppColors.accentPrimary,
     textColor: Color = AppColors.textInverse
 ) {
-    var displayText by remember { mutableStateOf(content) }
+    val density = LocalDensity.current
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+    var textWidth by remember { mutableStateOf(0) }
     
-    // Create repeating animation
-    val animationDuration = (displayText.length * 50).coerceIn(5000, 20000)
+    val totalScrollDistance = remember(textWidth, containerSize) {
+        if (textWidth > 0 && containerSize.width > 0) {
+            (textWidth + containerSize.width).toFloat()
+        } else {
+            1f
+        }
+    }
+    
+    val durationMs = remember(textWidth) {
+        (content.length * 300).coerceIn(20000, 60000)
+    }
+    
+    val infiniteTransition = rememberInfiniteTransition(label = "marquee")
+    val offsetX by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = durationMs, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "marquee_offset"
+    )
+    
+    val translationX = remember(offsetX, totalScrollDistance, containerSize) {
+        if (containerSize.width > 0) {
+            containerSize.width - (offsetX * totalScrollDistance)
+        } else {
+            0f
+        }
+    }
     
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(
+                        Color(0xFF0D2137),
+                        Color(0xFF164A5F),
+                        Color(0xFF16A085).copy(alpha = 0.8f),
+                        Color(0xFF164A5F),
+                        Color(0xFF0D2137)
+                    )
+                )
+            )
+            .onSizeChanged { containerSize = it }
+            .clipToBounds(),
+        contentAlignment = Alignment.CenterStart
     ) {
         Text(
-            text = displayText,
+            text = content,
             style = AppTypography.bodyM.copy(
                 fontSize = 16.sp,
                 lineHeight = 24.sp
             ),
-            color = textColor,
+            color = Color.White,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            softWrap = false,
+            overflow = TextOverflow.Visible,
+            onTextLayout = { textLayoutResult ->
+                textWidth = textLayoutResult.size.width
+            },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md)
+                .offset(x = with(density) { translationX.toDp() })
+                .padding(vertical = Spacing.md)
         )
     }
 }
 
-/**
- * Multi-source running text that rotates between different types of content
- */
 @Composable
 fun MultiSourceRunningText(
     announcements: List<String>,
@@ -67,11 +113,7 @@ fun MultiSourceRunningText(
     pengajian: List<String>,
     modifier: Modifier = Modifier
 ) {
-    var currentIndex by remember { mutableStateOf(0) }
-    var displayText by remember { mutableStateOf("") }
-    
-    // Combine all content
-    val allContent = remember {
+    val allContent = remember(announcements, quranVerses, hadiths, pengajian) {
         mutableListOf<String>().apply {
             addAll(announcements.map { "📢 Pengumuman: $it" })
             addAll(quranVerses.map { "📖 Ayat Quran: $it" })
@@ -80,14 +122,18 @@ fun MultiSourceRunningText(
         }
     }
     
-    LaunchedEffect(Unit) {
+    var currentIndex by remember { mutableStateOf(0) }
+    var displayText by remember(allContent) { 
+        mutableStateOf(if (allContent.isNotEmpty()) allContent[0] else "Selamat datang di Masjid Jami' Al-Hidayah") 
+    }
+    
+    LaunchedEffect(allContent) {
+        if (allContent.isEmpty()) return@LaunchedEffect
+        
         while (true) {
-            if (allContent.isNotEmpty()) {
-                displayText = allContent[currentIndex % allContent.size]
-                currentIndex++
-                delay(8000) // Display each item for 8 seconds
-            }
-            delay(1000)
+            delay(8000) // Display each item for 8 seconds
+            currentIndex = (currentIndex + 1) % allContent.size
+            displayText = allContent[currentIndex]
         }
     }
     
