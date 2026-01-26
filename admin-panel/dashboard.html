@@ -1,0 +1,9 @@
+<script src="js/supabase.js"></script>
+<script>
+(async () => {
+  const { data } = await supabase.auth.getUser()
+  if (!data.user) {
+    window.location.href = "index.html"
+  }
+})()
+</script>
