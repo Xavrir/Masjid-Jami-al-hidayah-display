@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Admin Masjid Jami' Al-Hidayah</title>
+    
+    <!-- AdminLTE v4 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .login-body {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        /* Error Message */
+        .alert-error {
+            background-color: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error.show {
+            display: flex;
+        }
+
+        .alert-error i {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .alert-error-message {
+            flex: 1;
+        }
+
+        /* Login Button */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-login-text {
+            flex: 1;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .login-footer {
+            padding: 20px 40px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 10px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 20px;
+            }
+
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+
+            .login-body {
+                padding: 25px;
+            }
+
+            .login-footer {
+                padding: 15px 20px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #2c2c54 0%, #1a1a2e 100%);
+            }
+
+            .login-box {
+                background: #2c2c54;
+                color: #f0f0f0;
+            }
+
+            .login-header h1,
+            .login-header p {
+                color: #f0f0f0;
+            }
+
+            .form-group label {
+                color: #e0e0e0;
+            }
+
+            .form-group input {
+                background: #1a1a2e;
+                color: #f0f0f0;
+                border-color: #404060;
+            }
+
+            .form-group input::placeholder {
+                color: #999;
+            }
+
+            .form-group input:focus {
+                border-color: #667eea;
+            }
+
+            .login-footer {
+                background: #1a1a2e;
+                border-top-color: #404060;
+                color: #999;
+            }
+        }
+
+        /* Loading state */
+        .loading-disabled {
+            pointer-events: none;
+        }
+
+        .success-message {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #e8f5e9;
+            border: 2px solid #c8e6c9;
+            color: #2e7d32;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success-message.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <!-- Header with Branding -->
+            <div class="login-header">
+                <div class="logo">🕌</div>
+                <h1>Admin Masjid</h1>
+                <p>Jami' Al-Hidayah</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="login-body">
+                <!-- Success Message -->
+                <div class="success-message" id="successMessage">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Login berhasil! Mengarahkan...</span>
+                </div>
+
+                <!-- Error Message -->
+                <div class="alert-error" id="errorMessage">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <div class="alert-error-message" id="errorText"></div>
+                </div>
+
+                <form id="loginForm">
+                    <!-- Email Input -->
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="bi bi-envelope"></i> Email
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email"
+                            placeholder="admin@masjid.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            placeholder="Masukkan password Anda"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" class="btn-login" id="loginBtn">
+                        <span class="btn-login-text">Masuk ke Dashboard</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <p>© 2026 Masjid Jami' Al-Hidayah. Sistem Admin v1.0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Library from CDN -->
+    <script type="module">
+        // Import Supabase from CDN
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://wqupptqjbkuldglnpvor.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMDA5MzYsImV4cCI6MjA4MjU3NjkzNn0.-MJ1IYVHeQTHMOhXftTW8l_-bb0sA5yPco2T_sRq5M4';
+
+        // Create Supabase client
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Make supabase globally available
+        window.supabase = supabase;
+
+        console.log('✅ Supabase initialized successfully');
+        console.log('URL:', SUPABASE_URL);
+    </script>
+
+    <!-- Login Logic -->
+    <script>
+        /**
+         * Login Page Script
+         * Handles email/password authentication with Supabase
+         */
+
+        // Wait for supabase to be available
+        function waitForSupabase(callback, timeout = 5000) {
+            const startTime = Date.now();
+            const checkInterval = setInterval(() => {
+                if (window.supabase && window.supabase.auth) {
+                    clearInterval(checkInterval);
+                    callback();
+                    return;
+                }
+                if (Date.now() - startTime > timeout) {
+                    clearInterval(checkInterval);
+                    console.error('Supabase took too long to initialize');
+                    callback();
+                }
+            }, 100);
+        }
+
+        // Initialize when Supabase is ready
+        waitForSupabase(() => {
+            const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const successMessage = document.getElementById('successMessage');
+
+        // ============================================
+        // CHECK IF ALREADY LOGGED IN
+        // ============================================
+
+        /**
+         * If user is already logged in, redirect to dashboard
+         */
+        async function checkAuth() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    // User is already logged in, redirect to dashboard
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+
+        // Check auth on page load
+        checkAuth();
+
+        // ============================================
+        // LOGIN HANDLER
+        // ============================================
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            // Hide error message
+            errorMessage.classList.remove('show');
+            errorText.textContent = '';
+
+            // Validate inputs
+            if (!email || !password) {
+                showError('Email dan password harus diisi');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showError('Format email tidak valid');
+                return;
+            }
+
+            // Start loading state
+            setLoadingState(true);
+
+            try {
+                console.log('Attempting login with email:', email);
+                console.log('Supabase instance:', supabase);
+                
+                // Check if supabase is properly initialized
+                if (!supabase || !supabase.auth) {
+                    throw new Error('Supabase tidak terinitalisasi dengan benar');
+                }
+
+                // Sign in with Supabase
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                console.log('Login response:', { data, error });
+
+                if (error) {
+                    console.error('Auth error details:', error);
+                    
+                    // Handle specific error messages
+                    if (error.message && error.message.includes('Invalid login credentials')) {
+                        showError('Email atau password salah');
+                    } else if (error.message && error.message.includes('Email not confirmed')) {
+                        showError('Email Anda belum dikonfirmasi. Cek email untuk link konfirmasi.');
+                    } else if (error.message && error.message.includes('Over email send rate limit')) {
+                        showError('Terlalu banyak percobaan. Coba beberapa menit lagi.');
+                    } else if (error.status === 400) {
+                        showError('Email atau password salah');
+                    } else if (error.status === 429) {
+                        showError('Terlalu banyak percobaan. Silakan tunggu sebentar.');
+                    } else {
+                        showError(error.message || 'Terjadi kesalahan saat login');
+                    }
+                    setLoadingState(false);
+                    return;
+                }
+
+                if (data && data.user && data.session) {
+                    console.log('✅ Login successful! User:', data.user.email);
+                    console.log('Session:', data.session);
+                    
+                    // Show success message
+                    successMessage.classList.add('show');
+
+                    // Wait for DOM to update, then redirect
+                    console.log('Waiting 2 seconds before redirect...');
+                    setTimeout(() => {
+                        const dashboardUrl = 'dashboard.html';
+                        console.log('Redirecting to:', dashboardUrl);
+                        window.location.href = dashboardUrl;
+                        
+                        // Fallback redirect in case first doesn't work
+                        setTimeout(() => {
+                            if (window.location.pathname.includes('login')) {
+                                console.warn('Redirect failed, trying alternative path...');
+                                window.location.href = './dashboard.html';
+                            }
+                        }, 3000);
+                    }, 2000);
+                } else {
+                    console.error('Login response missing user or session:', data);
+                    showError('Login gagal. Data tidak lengkap. Silakan coba lagi.');
+                    setLoadingState(false);
+                }
+
+            } catch (error) {
+                console.error('Login try-catch error:', error);
+                console.error('Error stack:', error.stack);
+                showError(error.message || 'Terjadi kesalahan pada server. Silakan coba lagi.');
+                setLoadingState(false);
+            }
+        });
+
+        // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+
+        /**
+         * Show error message to user
+         */
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+            console.error('Login error:', message);
+        }
+
+        /**
+         * Set loading/disabled state for form
+         */
+        function setLoadingState(isLoading) {
+            loginBtn.disabled = isLoading;
+            emailInput.disabled = isLoading;
+            passwordInput.disabled = isLoading;
+
+            if (isLoading) {
+                loginBtn.innerHTML = '<div class="spinner"></div><span class="btn-login-text">Sedang memproses...</span>';
+            } else {
+                loginBtn.innerHTML = '<span class="btn-login-text">Masuk ke Dashboard</span>';
+            }
+        }
+
+        /**
+         * Simple email validation
+         */
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // ============================================
+        // KEYBOARD NAVIGATION
+        // ============================================
+
+        /**
+         * Allow Enter key to submit form
+         */
+        loginForm.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.target !== loginBtn) {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Clear error on user input
+        emailInput.addEventListener('input', () => {
+            errorMessage.classList.remove('show');
+        });
+
+        passwordInput.addEventListener('input', () => {
+            errorMessage.classList.remove('show');
+        });
+
+        // ============================================
+        // ACCESSIBILITY
+        // ============================================
+
+        // Focus first input on load
+        window.addEventListener('load', () => {
+            emailInput.focus();
+        });
+        }); // Close waitForSupabase callback
+    </script>
+</body>
+</html>
