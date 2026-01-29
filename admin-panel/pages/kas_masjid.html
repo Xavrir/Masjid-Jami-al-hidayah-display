@@ -449,6 +449,36 @@
         </div>
     </nav>
 
+    <aside class="sidebar">
+        <nav class="sidebar-menu">
+        <a href="../dashboard.html" class="nav-link nav-back">
+         <i class="bi bi-chevron-left"></i>
+            <span>Kembali ke Dashboard</span>
+        </a>
+
+        <div class="sidebar-section" style="font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; padding: 15px 20px 8px 20px; letter-spacing: 0.5px;">Manajemen Data</div>
+            <a href="kas_masjid.html" class="nav-link">
+                <i class="bi bi-wallet2"></i>
+                <span>Kas Masjid</span>
+            </a>
+
+            <a href="ayat_quran.html" class="nav-link active">
+                <i class="bi bi-book-half"></i>
+                <span>Ayat Al-Quran</span>
+            </a>
+
+            <a href="hadist.html" class="nav-link">
+                <i class="bi bi-chat-left-quote"></i>
+                <span>Hadist</span>
+            </a>
+
+            <a href="pengajian.html" class="nav-link">
+                <i class="bi bi-calendar-event"></i>
+                <span>Pengajian</span>
+            </a>
+        </nav>
+    </aside>
+
     <!-- Main Content -->
     <div class="main-content">
         <!-- Page Header -->
@@ -747,17 +777,33 @@
             try {
                 const supabase = await waitForSupabase();
                 
-                // For now, initialize with empty array
-                // Later, we'll load from Supabase database
-                transactions = [];
+                const { data, error } = await supabase
+                    .from('kas_transaksi')
+                    .select('*')
+                    .order('tanggal', { ascending: false });
+                
+                if (error) throw error;
+                
+                // isi array JS dari DB
+                transactions = (data || []).map(t => ({
+                    id: t.id,
+                    type: t.jenis,                 // 'masuk' / 'keluar'
+                    amount: Number(t.nominal) || 0,
+                    category: t.kategori || 'general',
+                    description: t.keterangan || '-',
+                    date: t.tanggal,               // date
+                    created_at: t.created_at
+                }));
+            
                 updateSummary();
                 renderTransactions();
-
+            
             } catch (error) {
                 console.error('Load error:', error);
-                showError('Gagal memuat transaksi');
+                showError('Gagal memuat transaksi: ' + error.message);
             }
         }
+
 
         // ============================================
         // FORM HANDLING
@@ -767,49 +813,60 @@
             e.preventDefault();
 
             try {
+                const supabase = await waitForSupabase();
+            
                 const type = transactionTypeSelect.value;
                 const amount = parseFloat(amountInput.value);
                 const category = categorySelect.value;
                 const description = descriptionInput.value;
                 const date = transactionDateInput.value;
-
-                if (!type || !amount || !category || !date) {
+            
+                if (!type || !amount || amount <= 0 || !category || !date) {
                     showError('Silakan isi semua field yang diperlukan');
                     return;
                 }
-
-                // Create transaction object
-                const transaction = {
-                    id: Date.now(),
-                    type: type,
-                    amount: amount,
-                    category: category,
-                    description: description,
-                    date: date,
-                    created_at: new Date().toISOString()
-                };
-
-                // Add to array
-                transactions.push(transaction);
-
-                // Update display
+            
+                // 1) insert transaksi ke DB (kas_transaksi)
+                const { data, error } = await supabase
+                    .from('kas_transaksi')
+                    .insert([{
+                        jenis: type,                 // 'masuk' / 'keluar'
+                        nominal: amount,             // number
+                        kategori: category,          // string
+                        keterangan: description || null,
+                        tanggal: date                // date
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                // 2) update array lokal biar UI langsung refresh
+                transactions.unshift({
+                    id: data.id,
+                    type: data.jenis,
+                    amount: Number(data.nominal),
+                    category: data.kategori,
+                    description: data.keterangan || '-',
+                    date: data.tanggal,
+                    created_at: data.created_at
+                });
+            
                 updateSummary();
                 renderTransactions();
-
+            
                 // Reset form
                 kasForm.reset();
                 transactionDateInput.value = new Date().toISOString().split('T')[0];
-
+            
                 showSuccess('Transaksi berhasil ditambahkan');
-
-                // In real app, save to Supabase here
-                // await saveTransactionToDatabase(transaction);
-
+            
             } catch (error) {
                 console.error('Submit error:', error);
-                showError('Gagal menyimpan transaksi');
+                showError('Gagal menyimpan transaksi: ' + error.message);
             }
         }
+
 
         // ============================================
         // DISPLAY UPDATES
@@ -868,12 +925,26 @@
             `).join('');
         }
 
-        function deleteTransaction(id) {
-            if (confirm('Yakin ingin menghapus transaksi ini?')) {
+        async function deleteTransaction(id) {
+            if (!confirm('Yakin ingin menghapus transaksi ini?')) return;
+
+            try {
+                const supabase = await waitForSupabase();
+                const { error } = await supabase
+                    .from('kas_transaksi')
+                    .delete()
+                    .eq('id', id);
+            
+                if (error) throw error;
+            
                 transactions = transactions.filter(t => t.id !== id);
                 updateSummary();
                 renderTransactions();
                 showSuccess('Transaksi berhasil dihapus');
+            
+            } catch (error) {
+                console.error('Delete error:', error);
+                showError('Gagal menghapus transaksi: ' + error.message);
             }
         }
 

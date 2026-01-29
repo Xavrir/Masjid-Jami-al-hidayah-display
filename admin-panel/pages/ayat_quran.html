@@ -519,7 +519,7 @@
         <nav class="navbar navbar-expand navbar-white navbar-light">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="navbar-brand" href="../dashboard.html">
+                    <a class="navbar-brand" href="../pages/dashboard.html">
                         <span style="font-size: 28px; margin-right: 10px;">🕌</span>
                         <span>Kelola Ayat Al-Quran</span>
                     </a>
@@ -621,14 +621,19 @@
                                     </div>
 
                                     <div class="form-group">
+                                        <label for="surahNumber"><i class="bi bi-123"></i> Nomor Surah</label>
+                                        <input type="number" id="surahNumber" placeholder="Contoh: 1" required min="1">
+                                    </div>
+
+                                    <div class="form-group">
                                         <label for="verseNumber">
                                             <i class="bi bi-hash"></i> Nomor Ayat
                                         </label>
                                         <input 
-                                            type="text" 
+                                            type="number" 
                                             id="verseNumber" 
                                             placeholder="Contoh: 1"
-                                            required
+                                            required min="1"
                                         >
                                     </div>
                                 </div>
@@ -751,6 +756,7 @@
         const saveBtn = document.getElementById('saveBtn');
 
         const surahNameInput = document.getElementById('surahName');
+        const surahNumberInput = document.getElementById('surahNumber');
         const verseNumberInput = document.getElementById('verseNumber');
         const arabicVerseInput = document.getElementById('arabicVerse');
         const translationInput = document.getElementById('translation');
@@ -797,12 +803,34 @@
          */
         async function loadActiveVerse() {
             try {
-                // TODO: Replace with actual Supabase query
-                // For now, show empty form
-                console.log('Loaded active verse');
+            const { data, error } = await window.supabase
+                .from('ayat_quran')
+                .select('*')
+                .order('updated_at', { ascending: false })
+                .limit(1);
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                console.log('No ayat found');
+                updatePreview();
+                return;
+            }
+          
+            const row = data[0];
+          
+            surahNameInput.value = row.surah ?? '';
+            surahNumberInput.value = row.surahNumber ?? '';
+            verseNumberInput.value = row.ayah ?? '';
+            arabicVerseInput.value = row.arabic ?? '';
+            translationInput.value = row.transliteration ?? '';
+          
+            updatePreview();
+            console.log('Loaded active verse:', row);
+          
             } catch (error) {
                 console.error('Load verse error:', error);
-                showError('Gagal memuat ayat aktif');
+                showError('Gagal memuat ayat aktif: ' + error.message);
             }
         }
 
@@ -817,6 +845,7 @@
             arabicVerseInput.addEventListener('input', updatePreview);
             translationInput.addEventListener('input', updatePreview);
             surahNameInput.addEventListener('input', updatePreview);
+            surahNumberInput.addEventListener('input', updatePreview);
             verseNumberInput.addEventListener('input', updatePreview);
         }
 
@@ -825,14 +854,28 @@
          */
         function updatePreview() {
             const surah = surahNameInput.value.trim();
-            const verseNum = verseNumberInput.value.trim();
+            const surahNum = surahNumberInput.value.trim();
+            const ayah = verseNumberInput.value.trim();
             const arabic = arabicVerseInput.value.trim();
             const translation = translationInput.value.trim();
 
-            // Update preview
-            previewSurah.textContent = surah && verseNum ? `${surah} : ${verseNum}` : '-';
+            previewSurah.textContent =
+                surah && ayah ? `${surah} (${surahNum}) : ${ayah}` : '-';
+
             previewVerse.textContent = arabic || 'Ayat akan ditampilkan di sini';
             previewTranslation.textContent = translation || 'Terjemahan akan ditampilkan di sini';
+
+            //Old version
+
+            // const surah = surahNameInput.value.trim();
+            // const verseNum = verseNumberInput.value.trim();
+            // const arabic = arabicVerseInput.value.trim();
+            // const translation = translationInput.value.trim();
+
+            // // Update preview
+            // previewSurah.textContent = surah && verseNum ? `${surah} : ${verseNum}` : '-';
+            // previewVerse.textContent = arabic || 'Ayat akan ditampilkan di sini';
+            // previewTranslation.textContent = translation || 'Terjemahan akan ditampilkan di sini';
         }
 
         // ============================================
@@ -842,53 +885,100 @@
         /**
          * Handle form submission
          */
+
         verseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            // Validate inputs
+                
             const surah = surahNameInput.value.trim();
-            const verseNum = verseNumberInput.value.trim();
+            const surahNumber = Number(surahNumberInput.value);
+            const ayah = Number(verseNumberInput.value);
             const arabic = arabicVerseInput.value.trim();
-            const translation = translationInput.value.trim();
-
-            if (!surah || !verseNum || !arabic || !translation) {
+            const translation = translationInput.value.trim(); // masuk transliteration
+                
+            if (!surah || !surahNumber || !ayah || !arabic || !translation) {
                 showError('Semua kolom harus diisi');
                 return;
             }
-
-            // Disable button
+        
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div><span>Menyimpan...</span>';
-
+        
             try {
-                // TODO: Save to Supabase
-                // Example Supabase query:
-                // const { error } = await supabase
-                //   .from('quran_verses')
-                //   .update({
-                //     surah_name: surah,
-                //     verse_number: verseNum,
-                //     arabic_text: arabic,
-                //     translation: translation,
-                //     is_active: true,
-                //     updated_at: new Date().toISOString()
-                //   })
-                //   .eq('is_active', true);
+                const { error } = await window.supabase
+                    .from('ayat_quran')
+                    .insert([{
+                      surah: surah,
+                      surahNumber: surahNumber,
+                      ayah: ayah,
+                      arabic: arabic,
+                      transliteration: translation,
+                      updated_at: new Date().toISOString()
+                    }]);
                 
-                // For now, simulate success
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
+                if (error) throw error;
+              
                 showSuccess('Ayat berhasil disimpan dan ditampilkan di layar TV');
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
-
+                await loadActiveVerse();
+              
             } catch (error) {
-                console.error('Save error:', error);
-                showError('Gagal menyimpan ayat. Coba lagi.');
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
+              console.error('Save error:', error);
+              showError('Gagal menyimpan ayat: ' + error.message);
+            
+            } finally {
+              saveBtn.disabled = false;
+              saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
             }
         });
+
+        //Old Version, before trying to connect to Supabase
+
+        // verseForm.addEventListener('submit', async (e) => {
+        //     e.preventDefault();
+
+        //     // Validate inputs
+        //     const surah = surahNameInput.value.trim();
+        //     const verseNum = verseNumberInput.value.trim();
+        //     const arabic = arabicVerseInput.value.trim();
+        //     const translation = translationInput.value.trim();
+
+        //     if (!surah || !verseNum || !arabic || !translation) {
+        //         showError('Semua kolom harus diisi');
+        //         return;
+        //     }
+
+        //     // Disable button
+        //     saveBtn.disabled = true;
+        //     saveBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div><span>Menyimpan...</span>';
+
+        //     try {
+        //         // TODO: Save to Supabase
+        //         // Example Supabase query:
+        //         // const { error } = await supabase
+        //         //   .from('quran_verses')
+        //         //   .update({
+        //         //     surah_name: surah,
+        //         //     verse_number: verseNum,
+        //         //     arabic_text: arabic,
+        //         //     translation: translation,
+        //         //     is_active: true,
+        //         //     updated_at: new Date().toISOString()
+        //         //   })
+        //         //   .eq('is_active', true);
+                
+        //         // For now, simulate success
+        //         await new Promise(resolve => setTimeout(resolve, 1000));
+
+        //         showSuccess('Ayat berhasil disimpan dan ditampilkan di layar TV');
+        //         saveBtn.disabled = false;
+        //         saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
+
+        //     } catch (error) {
+        //         console.error('Save error:', error);
+        //         showError('Gagal menyimpan ayat. Coba lagi.');
+        //         saveBtn.disabled = false;
+        //         saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
+        //     }
+        // });
 
         // ============================================
         // UI HELPERS
@@ -914,6 +1004,11 @@
             }, 5000);
         }
 
+        async function logout() {
+          await window.supabase.auth.signOut();
+          window.location.href = '../login.html';
+        }
+        
         async function handleLogout() {
             const confirmed = confirm('Apakah Anda yakin ingin keluar?');
             if (confirmed) {

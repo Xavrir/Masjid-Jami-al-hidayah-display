@@ -778,12 +778,37 @@
          */
         async function loadActiveHadith() {
             try {
-                // TODO: Replace with actual Supabase query
-                // For now, show empty form
-                console.log('Loaded active hadith');
+                const supabase = await waitForSupabase();
+                        
+                const { data, error } = await supabase
+                    .from('hadits')
+                    .select('id, teks, terjemahan, sumber, kategori, aktif')
+                    .eq('aktif', true)
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                        
+                if (error) throw error;
+
+                if (!data) {
+                    // kosong
+                    hadithSourceInput.value = '';
+                    arabicHadithInput.value = '';
+                    translationInput.value = '';
+                    updatePreview();
+                    return;
+                }
+          
+                hadithSourceInput.value = data.sumber || '';
+                arabicHadithInput.value = data.teks || '';
+                translationInput.value = data.terjemahan || '';
+                
+                updatePreview();
+                console.log('Loaded active hadith:', data);
+          
             } catch (error) {
                 console.error('Load hadith error:', error);
-                showError('Gagal memuat hadist aktif');
+                showError('Gagal memuat hadist aktif: ' + error.message);
             }
         }
 
@@ -839,29 +864,37 @@
             saveBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div><span>Menyimpan...</span>';
 
             try {
-                // TODO: Save to Supabase
-                // Example Supabase query:
-                // const { error } = await supabase
-                //   .from('hadiths')
-                //   .update({
-                //     source: source,
-                //     arabic_text: arabic,
-                //     translation: translation,
-                //     is_active: true,
-                //     updated_at: new Date().toISOString()
-                //   })
-                //   .eq('is_active', true);
+                const supabase = await waitForSupabase();
 
-                // For now, simulate success
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // 1) nonaktifkan semua hadits yang aktif
+                const { error: deactivateError } = await supabase
+                    .from('hadits')
+                    .update({ aktif: false })
+                    .eq('aktif', true);
 
+                if (deactivateError) throw deactivateError;
+
+                // 2) insert hadits baru sebagai aktif
+                const { error: insertError } = await supabase
+                    .from('hadits')
+                    .insert([{
+                        teks: arabic,
+                        terjemahan: translation,
+                        sumber: source,
+                        aktif: true,
+                        kategori: null
+                }]);
+            
+                if (insertError) throw insertError;
+                
                 showSuccess('Hadist berhasil disimpan dan ditampilkan di layar TV');
+                
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
-
+            
             } catch (error) {
                 console.error('Save error:', error);
-                showError('Gagal menyimpan hadist. Coba lagi.');
+                showError('Gagal menyimpan hadist: ' + error.message);
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
             }
@@ -897,6 +930,13 @@
                 await logout();
             }
         }
+
+        async function logout() {
+            const supabase = await waitForSupabase();
+            await supabase.auth.signOut();
+            window.location.href = '../login.html';
+        }
+
 
         // ============================================
         // START
