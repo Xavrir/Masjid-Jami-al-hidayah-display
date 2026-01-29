@@ -806,57 +806,54 @@
 
         async function loadDashboardStats() {
             // TODO: Replace with actual Supabase queries
-            async function loadDashboardStats() {
-                try {
-                    // ============================================
-                    // KAS MASJID
-                    // ============================================
-                    const { data: kasData, error: kasError } = await supabase
-                        .from('kas_masjid')
-                        .select('total, last_update')
-                        .single(); // cuma 1 row
+            try {
+                // ============================================
+                // KAS MASJID
+                // ============================================
+                const { data: kasData, error: kasError } = await supabase
+                    .from('kas_masjid')
+                    .select('total, last_update')
+                    .single(); // cuma 1 row
                 
-                    if (kasError) throw kasError;
+                if (kasError) throw kasError;
                 
-                    document.getElementById('kasBalance').textContent = 
-                        `Rp ${kasData.total.toLocaleString('id-ID')}`;
-                    document.getElementById('kasLastUpdate').textContent = 
-                        kasData.last_update ? new Date(kasData.last_update).toLocaleDateString('id-ID') : 'Belum ada data';
+                document.getElementById('kasBalance').textContent = 
+                    `Rp ${kasData.total.toLocaleString('id-ID')}`;
+                document.getElementById('kasLastUpdate').textContent = 
+                    kasData.last_update ? new Date(kasData.last_update).toLocaleDateString('id-ID') : 'Belum ada data';
                 
-                    // ============================================
-                    // PENGAJIAN AKTIF
-                    // ============================================
-                    const { data: pengajianData, error: pengajianError } = await supabase
-                        .from('pengajian')
-                        .select('*', { count: 'exact' })
-                        .eq('aktif', true);
+                // ============================================
+                // PENGAJIAN AKTIF
+                // ============================================
+                const { data: pengajianData, error: pengajianError } = await supabase
+                    .from('pengajian')
+                    .select('*', { count: 'exact' })
+                    .eq('aktif', true);
+            
+                if (pengajianError) throw pengajianError;
                 
-                    if (pengajianError) throw pengajianError;
+                document.getElementById('pengajianCount').textContent = pengajianData.length;
+            
+                // ============================================
+                // AYAT QURAN
+                // ============================================
+                const { data: ayatData, error: ayatError } = await supabase
+                    .from('ayat_quran')
+                    .select('*', { count: 'exact' });
+            
+                if (ayatError) throw ayatError;
+            
+                document.getElementById('ayatCount').textContent = ayatData.length;
+            
+                // ============================================
+                // PENGUMUMAN (jika nanti ada table pengumuman)
+                // ============================================ 
+                document.getElementById('announcementCount').textContent = '0';
                 
-                    document.getElementById('pengajianCount').textContent = pengajianData.length;
-                
-                    // ============================================
-                    // AYAT QURAN
-                    // ============================================
-                    const { data: ayatData, error: ayatError } = await supabase
-                        .from('ayat_quran')
-                        .select('*', { count: 'exact' });
-                
-                    if (ayatError) throw ayatError;
-                
-                    document.getElementById('ayatCount').textContent = ayatData.length;
-                
-                    // ============================================
-                    // PENGUMUMAN (jika nanti ada table pengumuman)
-                    // ============================================
-                    document.getElementById('announcementCount').textContent = '0';
-                
-                } catch (error) {
-                    console.error('Error loading dashboard stats:', error);
-                }
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
             }
-
-
+            
             // For now, show placeholders
             // document.getElementById('kasBalance').textContent = 'Rp 0';
             // document.getElementById('kasLastUpdate').textContent = 'Data tidak tersedia';
