@@ -24,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,12 +38,12 @@ import com.masjiddisplay.data.KasData
 import com.masjiddisplay.services.SoundNotificationService
 import com.masjiddisplay.services.SoundNotificationServiceHolder
 import com.masjiddisplay.ui.components.KasDetailOverlay
+import com.masjiddisplay.ui.components.PrayerAlertOverlay
+import com.masjiddisplay.ui.components.OverlayType
 import com.masjiddisplay.ui.screens.MainDashboard
-import com.masjiddisplay.ui.screens.PrayerInProgress
-import com.masjiddisplay.ui.state.AlertType
-import com.masjiddisplay.ui.state.rememberPrayerNotificationState
 import com.masjiddisplay.ui.theme.MasjidDisplayTheme
 import com.masjiddisplay.utils.PrayerTimeCalculator
+import com.masjiddisplay.utils.jakartaCalendar
 import kotlinx.coroutines.delay
 import java.util.*
 
@@ -96,21 +95,23 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: MutableState<Boolean>) {
-    val context = LocalContext.current
-    
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
-    var currentPrayer by remember { mutableStateOf<Prayer?>(null) }
-    var forcePrayerDebug by remember { mutableStateOf(false) }
     var kasOverlayVisible by remember { mutableStateOf(false) }
     var appClock by remember { mutableStateOf(Date()) }
     
-    // Data State from Supabase
+    var prayerAlertVisible by remember { mutableStateOf(false) }
+    var currentOverlayType by remember { mutableStateOf(OverlayType.ADHAN) }
+    var alertPrayer by remember { mutableStateOf<Prayer?>(null) }
+    
+    var lastAdhanAlertKey by remember { mutableStateOf("") }
+    var lastIqamahAlertKey by remember { mutableStateOf("") }
+    var lastFridayReminderKey by remember { mutableStateOf("") }
+    
+    var prayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
+    
     var kasData by remember { mutableStateOf(MockData.kasData) }
     var quranVerses by remember { mutableStateOf<List<String>>(emptyList()) }
     var hadiths by remember { mutableStateOf<List<String>>(emptyList()) }
     var pengajian by remember { mutableStateOf<List<String>>(emptyList()) }
-    
-    val prayerNotificationState = rememberPrayerNotificationState(soundService)
     
     val testPrayers = remember {
         listOf(
@@ -146,63 +147,104 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         }
     }
     
-    // Auto-hide prayer overlay when outside prayer window
-    LaunchedEffect(appClock, currentPrayer, currentScreen, forcePrayerDebug) {
-        if (currentPrayer == null || currentScreen != Screen.PrayerInProgress || forcePrayerDebug) {
-            return@LaunchedEffect
-        }
+    LaunchedEffect(Unit) {
+        val today = jakartaCalendar().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+        prayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(today)
+    }
+    
+    LaunchedEffect(appClock, prayers) {
+        if (prayers.isEmpty() || prayerAlertVisible) return@LaunchedEffect
         
-        currentPrayer?.let { prayer ->
-            if (!PrayerTimeCalculator.isWithinPrayerWindow(prayer, appClock)) {
-                forcePrayerDebug = false
-                currentScreen = Screen.Dashboard
-                currentPrayer = null
+        val cal = jakartaCalendar(appClock)
+        val currentTimeStr = "%02d:%02d".format(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE))
+        val currentDateStr = "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+        val isFriday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY
+        
+        for (prayer in prayers) {
+            val prayerName = prayer.name.lowercase()
+            if (prayerName in listOf("shuruq", "syuruq", "sunrise")) continue
+            
+            if (currentTimeStr == prayer.adhanTime) {
+                val alertKey = "$currentDateStr-${prayer.name}-adhan-$currentTimeStr"
+                if (lastAdhanAlertKey != alertKey) {
+                    lastAdhanAlertKey = alertKey
+                    alertPrayer = prayer
+                    currentOverlayType = OverlayType.ADHAN
+                    prayerAlertVisible = true
+                    soundService?.playAdhanAlert()
+                    
+                    delay(60_000)
+                    prayerAlertVisible = false
+                    break
+                }
+            }
+            
+            if (currentTimeStr == prayer.iqamahTime) {
+                val alertKey = "$currentDateStr-${prayer.name}-iqamah-$currentTimeStr"
+                if (lastIqamahAlertKey != alertKey) {
+                    lastIqamahAlertKey = alertKey
+                    alertPrayer = prayer
+                    currentOverlayType = OverlayType.IQAMAH
+                    prayerAlertVisible = true
+                    soundService?.playIqamahAlert()
+                    
+                    delay(60_000)
+                    prayerAlertVisible = false
+                    break
+                }
+            }
+            
+            if (isFriday && prayerName == "dzuhur") {
+                val dzuhurParts = prayer.adhanTime.split(":")
+                if (dzuhurParts.size == 2) {
+                    val dzuhurHour = dzuhurParts[0].toIntOrNull() ?: 12
+                    val dzuhurMinute = dzuhurParts[1].toIntOrNull() ?: 0
+                    var reminderMinute = dzuhurMinute - 1
+                    var reminderHour = dzuhurHour
+                    if (reminderMinute < 0) {
+                        reminderMinute += 60
+                        reminderHour -= 1
+                    }
+                    val fridayReminderTime = "%02d:%02d".format(reminderHour, reminderMinute)
+                    
+                    if (currentTimeStr == fridayReminderTime) {
+                        val alertKey = "$currentDateStr-friday-reminder-$fridayReminderTime"
+                        if (lastFridayReminderKey != alertKey) {
+                            lastFridayReminderKey = alertKey
+                            alertPrayer = prayer
+                            currentOverlayType = OverlayType.FRIDAY_REMINDER
+                            prayerAlertVisible = true
+                            soundService?.playAdhanAlert()
+                            
+                            delay(10_000)
+                            prayerAlertVisible = false
+                            break
+                        }
+                    }
+                }
             }
         }
     }
     
     Box(modifier = Modifier.fillMaxSize()) {
-        when (currentScreen) {
-            is Screen.Dashboard -> {
-                MainDashboard(
-                    masjidConfig = MockData.masjidConfig,
-                    kasData = kasData,
-                    announcements = MockData.announcements,
-                    quranVerses = quranVerses,
-                    hadiths = hadiths,
-                    pengajian = pengajian,
-                    onPrayerStart = { prayer ->
-                        val now = Date()
-                        if (PrayerTimeCalculator.isWithinPrayerWindow(prayer, now)) {
-                            forcePrayerDebug = false
-                            currentPrayer = prayer
-                            currentScreen = Screen.PrayerInProgress
-                        }
-                    },
-                    onKasDetailRequested = {
-                        kasOverlayVisible = true
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            
-            is Screen.PrayerInProgress -> {
-                currentPrayer?.let { prayer ->
-                    PrayerInProgress(
-                        prayer = prayer.copy(status = PrayerStatus.CURRENT),
-                        onComplete = {
-                            forcePrayerDebug = false
-                            currentScreen = Screen.Dashboard
-                            currentPrayer = null
-                        },
-                        masjidName = MockData.masjidConfig.name,
-                        masjidLocation = MockData.masjidConfig.location,
-                        forceDebug = forcePrayerDebug,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-        }
+        MainDashboard(
+            masjidConfig = MockData.masjidConfig,
+            kasData = kasData,
+            announcements = MockData.announcements,
+            quranVerses = quranVerses,
+            hadiths = hadiths,
+            pengajian = pengajian,
+            onPrayerStart = { },
+            onKasDetailRequested = {
+                kasOverlayVisible = true
+            },
+            modifier = Modifier.fillMaxSize()
+        )
         
         KasDetailOverlay(
             visible = kasOverlayVisible,
@@ -258,7 +300,11 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                             
                             Button(
                                 onClick = {
-                                    prayerNotificationState.triggerDebugAlert(AlertType.ADHAN, prayer)
+                                    alertPrayer = prayer
+                                    currentOverlayType = OverlayType.ADHAN
+                                    prayerAlertVisible = true
+                                    soundService?.playAdhanAlert()
+                                    showTestPanel.value = false
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF16A085))
                             ) {
@@ -269,7 +315,11 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                             
                             Button(
                                 onClick = {
-                                    prayerNotificationState.triggerDebugAlert(AlertType.IQAMAH, prayer)
+                                    alertPrayer = prayer
+                                    currentOverlayType = OverlayType.IQAMAH
+                                    prayerAlertVisible = true
+                                    soundService?.playIqamahAlert()
+                                    showTestPanel.value = false
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD4AF37))
                             ) {
@@ -278,12 +328,28 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                         }
                     }
                     
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Button(
+                        onClick = {
+                            alertPrayer = testPrayers[1]
+                            currentOverlayType = OverlayType.FRIDAY_REMINDER
+                            prayerAlertVisible = true
+                            soundService?.playAdhanAlert()
+                            showTestPanel.value = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("TEST REMINDER JUMAT", fontSize = 12.sp)
+                    }
+                    
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     Button(
                         onClick = {
                             soundService?.stopAlert()
-                            prayerNotificationState.clearAlert()
+                            prayerAlertVisible = false
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE74C3C))
                     ) {
@@ -301,10 +367,16 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                 }
             }
         }
+        
+        PrayerAlertOverlay(
+            visible = prayerAlertVisible,
+            overlayType = currentOverlayType,
+            prayer = alertPrayer,
+            onDismiss = {
+                prayerAlertVisible = false
+                soundService?.stopAlert()
+            },
+            modifier = Modifier.padding(bottom = 0.dp) // Reset any potential padding
+        )
     }
-}
-
-sealed class Screen {
-    data object Dashboard : Screen()
-    data object PrayerInProgress : Screen()
 }

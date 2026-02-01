@@ -27,7 +27,6 @@ import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -49,14 +48,14 @@ fun MainDashboard(
     var shuruqTime by remember { mutableStateOf("5:51 AM") }
     
     LaunchedEffect(Unit) {
-        val today = Calendar.getInstance().apply {
+        val today = jakartaCalendar().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.time
         
-        val tomorrow = Calendar.getInstance().apply {
+        val tomorrow = jakartaCalendar().apply {
             add(Calendar.DAY_OF_YEAR, 1)
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -82,7 +81,7 @@ fun MainDashboard(
             
             val allPassed = PrayerTimeCalculator.allPrayersPassed(prayers)
             val updatedTomorrowPrayers = if (allPassed && tomorrowPrayers.isNotEmpty()) {
-                val tomorrowRef = Calendar.getInstance().apply {
+                val tomorrowRef = jakartaCalendar().apply {
                     add(Calendar.DAY_OF_YEAR, 1)
                 }.time
                 PrayerTimeCalculator.updatePrayerStatuses(tomorrowPrayers, currentTime, tomorrowRef)
@@ -96,7 +95,7 @@ fun MainDashboard(
             )
             
             val current = PrayerTimeCalculator.getCurrentPrayer(prayers)
-            if (current != null) {
+            if (current != null && current.name.lowercase() != "imsak") {
                 onPrayerStart(current)
             }
         }
@@ -170,7 +169,7 @@ fun MainDashboard(
                         Text(text = "☀️", fontSize = 14.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "SUNRISE $shuruqTime",
+                            text = "SYURUQ $shuruqTime",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFFFFA500),
@@ -262,14 +261,13 @@ fun MainDashboard(
                 ) {
                     mainPrayers.forEach { prayer ->
                         val isCurrent = prayer.status == PrayerStatus.CURRENT
-                        val isNext = nextPrayer?.name == prayer.name
                         
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 painter = painterResource(id = getPrayerIconRes(prayer.name)),
                                 contentDescription = prayer.name,
                                 modifier = Modifier.size(32.dp),
-                                tint = if (isCurrent || isNext) Color(0xFF4ECDC4) else Color.White.copy(alpha = 0.8f)
+                                tint = if (isCurrent) Color(0xFF4ECDC4) else Color.White.copy(alpha = 0.8f)
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
@@ -277,8 +275,8 @@ fun MainDashboard(
                             Text(
                                 text = prayer.name.uppercase(),
                                 fontSize = 14.sp,
-                                fontWeight = if (isCurrent || isNext) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isCurrent || isNext) Color(0xFFFFA500) else Color.White,
+                                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isCurrent) Color(0xFFFFA500) else Color.White,
                                 letterSpacing = 1.sp
                             )
                             
@@ -305,6 +303,7 @@ fun MainDashboard(
 
 private fun getPrayerIconRes(prayerName: String): Int {
     return when (prayerName.lowercase()) {
+        "imsak" -> R.drawable.ic_imsak
         "subuh", "fajr" -> R.drawable.ic_subuh
         "dzuhur", "dhuhr", "zuhur" -> R.drawable.ic_dzuhur
         "ashar", "asr" -> R.drawable.ic_ashar
@@ -315,12 +314,12 @@ private fun getPrayerIconRes(prayerName: String): Int {
 }
 
 private fun formatTimeAmPm(date: Date): String {
-    val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
+    val sdf = jakartaDateFormat("h:mm a", Locale.getDefault())
     return sdf.format(date)
 }
 
 private fun formatDayDate(date: Date): String {
-    val sdf = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
+    val sdf = jakartaDateFormat("EEEE, MMMM d", Locale.getDefault())
     return sdf.format(date)
 }
 
@@ -329,8 +328,7 @@ private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String 
         val timeParts = prayer.adhanTime.split(":")
         if (timeParts.size != 2) return "—"
         
-        val prayerCal = Calendar.getInstance().apply {
-            time = currentTime
+        val prayerCal = jakartaCalendar(currentTime).apply {
             set(Calendar.HOUR_OF_DAY, timeParts[0].toInt())
             set(Calendar.MINUTE, timeParts[1].toInt())
             set(Calendar.SECOND, 0)

@@ -31,8 +31,7 @@ object PrayerTimeCalculator {
      * Calculate prayer times for given coordinates
      */
     fun calculatePrayerTimes(date: Date, latitude: Double, longitude: Double): List<Prayer> {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
+        val calendar = jakartaCalendar(date)
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
@@ -105,6 +104,16 @@ object PrayerTimeCalculator {
         val maghribStr = formatPrayerTime(maghribTime)
         val ishaStr = formatPrayerTime(ishaTime)
         
+        // Add Imsak as first prayer (10 minutes before Subuh)
+        val imsakStr = subtractMinutesFromTime(fajrStr, 10)
+        prayers.add(Prayer(
+            name = "Imsak",
+            adhanTime = imsakStr,
+            iqamahTime = imsakStr, // Imsak is a single moment, no iqamah
+            status = PrayerStatus.UPCOMING,
+            windowMinutes = 1 // Short window for Imsak alert
+        ))
+        
         prayers.add(Prayer(
             name = "Subuh",
             adhanTime = fajrStr,
@@ -149,11 +158,46 @@ object PrayerTimeCalculator {
     }
     
     /**
+     * Calculate Imsak time (10 minutes before Subuh per Kemenag RI)
+     */
+    fun calculateImsakTimeForJakarta(date: Date): String {
+        val prayers = calculatePrayerTimesForJakarta(date)
+        val subuh = prayers.find { it.name == "Subuh" }
+        return if (subuh != null) {
+            subtractMinutesFromTime(subuh.adhanTime, 10)
+        } else {
+            "--:--"
+        }
+    }
+
+    /**
+     * Subtract minutes from a time string
+     */
+    private fun subtractMinutesFromTime(time: String, minutes: Int): String {
+        val parts = time.split(":")
+        if (parts.size != 2) return time
+        val hour = parts[0].toIntOrNull() ?: return time
+        val minute = parts[1].toIntOrNull() ?: return time
+
+        var newMinute = minute - minutes
+        var newHour = hour
+
+        while (newMinute < 0) {
+            newMinute += 60
+            newHour -= 1
+        }
+        if (newHour < 0) {
+            newHour += 24
+        }
+
+        return "%02d:%02d".format(newHour, newMinute)
+    }
+
+    /**
      * Calculate Shuruq (sunrise) time
      */
     fun calculateShuruqTimeForJakarta(date: Date): String {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
+        val calendar = jakartaCalendar(date)
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
@@ -211,35 +255,55 @@ object PrayerTimeCalculator {
     
     /**
      * Update prayer statuses based on current time
+     * Current prayer is highlighted from its adhan time until the next prayer's adhan time
      */
     fun updatePrayerStatuses(prayers: List<Prayer>, currentTime: Date, prayerDate: Date = currentTime): List<Prayer> {
-        var foundCurrent = false
+        val current = jakartaCalendar(currentTime)
         
-        return prayers.map { prayer ->
+        // Find which prayer is currently active (from its time until next prayer's time)
+        var currentPrayerIndex = -1
+        
+        for (i in prayers.indices) {
+            val prayer = prayers[i]
             val adhanCalendar = parseTimeToCalendar(prayer.adhanTime, prayerDate)
-            val windowMinutes = prayer.windowMinutes ?: DEFAULT_PRAYER_WINDOW_MINUTES
-            val endCalendar = (adhanCalendar.clone() as Calendar).apply {
-                add(Calendar.MINUTE, windowMinutes)
+            
+            // Check if current time is >= this prayer's time
+            if (current.timeInMillis >= adhanCalendar.timeInMillis) {
+                // Check if there's a next prayer and we're before its time
+                val nextPrayer = prayers.getOrNull(i + 1)
+                if (nextPrayer != null) {
+                    val nextAdhanCalendar = parseTimeToCalendar(nextPrayer.adhanTime, prayerDate)
+                    if (current.timeInMillis < nextAdhanCalendar.timeInMillis) {
+                        currentPrayerIndex = i
+                        break
+                    }
+                } else {
+                    // This is the last prayer and we're after its time
+                    currentPrayerIndex = i
+                    break
+                }
+            }
+        }
+        
+        return prayers.mapIndexed { index, prayer ->
+            val adhanCalendar = parseTimeToCalendar(prayer.adhanTime, prayerDate)
+            
+            val status = when {
+                index == currentPrayerIndex -> PrayerStatus.CURRENT
+                current.timeInMillis < adhanCalendar.timeInMillis -> PrayerStatus.UPCOMING
+                else -> PrayerStatus.PASSED
             }
             
-            val current = Calendar.getInstance()
-            current.time = currentTime
-            
-            val (status, countdown) = when {
-                !foundCurrent && current.timeInMillis >= adhanCalendar.timeInMillis && 
-                    current.timeInMillis < endCalendar.timeInMillis -> {
-                    foundCurrent = true
-                    val remainingMs = endCalendar.timeInMillis - current.timeInMillis
+            // Calculate countdown to next prayer for current prayer
+            val countdown = if (status == PrayerStatus.CURRENT) {
+                val nextPrayer = prayers.getOrNull(index + 1)
+                if (nextPrayer != null) {
+                    val nextAdhanCalendar = parseTimeToCalendar(nextPrayer.adhanTime, prayerDate)
+                    val remainingMs = nextAdhanCalendar.timeInMillis - current.timeInMillis
                     val remainingMinutes = (remainingMs / 60000).toInt().coerceAtLeast(0)
-                    PrayerStatus.CURRENT to formatCountdown(remainingMinutes)
-                }
-                current.timeInMillis < adhanCalendar.timeInMillis -> {
-                    val remainingMs = adhanCalendar.timeInMillis - current.timeInMillis
-                    val remainingMinutes = (remainingMs / 60000).toInt().coerceAtLeast(0)
-                    PrayerStatus.UPCOMING to formatCountdown(remainingMinutes)
-                }
-                else -> PrayerStatus.PASSED to null
-            }
+                    formatCountdown(remainingMinutes)
+                } else null
+            } else null
             
             prayer.copy(status = status, countdown = countdown)
         }
@@ -298,8 +362,7 @@ object PrayerTimeCalculator {
             add(Calendar.MINUTE, windowMinutes)
         }
         
-        val current = Calendar.getInstance()
-        current.time = currentTime
+        val current = jakartaCalendar(currentTime)
         
         return current.timeInMillis >= adhanCalendar.timeInMillis && 
                current.timeInMillis < endCalendar.timeInMillis
@@ -310,8 +373,7 @@ object PrayerTimeCalculator {
      */
     fun getPrayerPhase(prayer: Prayer, currentTime: Date): String {
         val iqamahCalendar = parseTimeToCalendar(prayer.iqamahTime, currentTime)
-        val current = Calendar.getInstance()
-        current.time = currentTime
+        val current = jakartaCalendar(currentTime)
         
         return if (current.timeInMillis >= iqamahCalendar.timeInMillis) "iqamah" else "adzan"
     }

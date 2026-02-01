@@ -15,8 +15,8 @@ class SoundNotificationService(private val context: Context) {
     
     companion object {
         private const val TAG = "SoundNotificationService"
-        private const val ADHAN_DURATION_MS = 10_000L
-        private const val IQAMAH_DURATION_MS = 15_000L
+        private const val ADHAN_DURATION_MS = 60_000L
+        private const val IQAMAH_DURATION_MS = 60_000L
     }
     
     private var mediaPlayer: MediaPlayer? = null
@@ -61,14 +61,14 @@ class SoundNotificationService(private val context: Context) {
     }
     
     /**
-     * Play adhan alert sound for 10 seconds
+     * Play adhan alert sound for 60 seconds
      */
     fun playAdhanAlert() {
         playAlert(ADHAN_DURATION_MS, "Adhan")
     }
     
     /**
-     * Play iqamah alert sound for 15 seconds
+     * Play iqamah alert sound for 60 seconds
      */
     fun playIqamahAlert() {
         playAlert(IQAMAH_DURATION_MS, "Iqamah")

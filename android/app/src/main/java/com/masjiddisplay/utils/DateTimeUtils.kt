@@ -4,12 +4,29 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
+
+private val JAKARTA_TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Jakarta")
+
+fun jakartaCalendar(date: Date? = null): Calendar {
+    val calendar = Calendar.getInstance(JAKARTA_TIME_ZONE)
+    if (date != null) {
+        calendar.time = date
+    }
+    return calendar
+}
+
+fun jakartaDateFormat(pattern: String, locale: Locale = Locale.getDefault()): SimpleDateFormat {
+    return SimpleDateFormat(pattern, locale).apply {
+        timeZone = JAKARTA_TIME_ZONE
+    }
+}
 
 /**
  * Format Gregorian date for display in Indonesian
  */
 fun formatGregorianDate(date: Date): String {
-    val format = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID"))
+    val format = jakartaDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID"))
     return format.format(date)
 }
 
@@ -17,7 +34,7 @@ fun formatGregorianDate(date: Date): String {
  * Format time with seconds
  */
 fun formatTimeWithSeconds(date: Date): String {
-    val format = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    val format = jakartaDateFormat("HH:mm:ss", Locale.getDefault())
     return format.format(date)
 }
 
@@ -25,7 +42,7 @@ fun formatTimeWithSeconds(date: Date): String {
  * Format time without seconds
  */
 fun formatTime(date: Date): String {
-    val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val format = jakartaDateFormat("HH:mm", Locale.getDefault())
     return format.format(date)
 }
 
@@ -34,8 +51,7 @@ fun formatTime(date: Date): String {
  * For production, use a proper Hijri calendar library
  */
 fun getHijriDate(date: Date): String {
-    val calendar = Calendar.getInstance()
-    calendar.time = date
+    val calendar = jakartaCalendar(date)
     
     val gregorianYear = calendar.get(Calendar.YEAR)
     val gregorianMonth = calendar.get(Calendar.MONTH)
@@ -83,8 +99,7 @@ fun parseTimeToCalendar(time: String, reference: Date): Calendar {
     val hour = parts.getOrNull(0)?.toIntOrNull() ?: 0
     val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
     
-    val calendar = Calendar.getInstance()
-    calendar.time = reference
+    val calendar = jakartaCalendar(reference)
     calendar.set(Calendar.HOUR_OF_DAY, hour)
     calendar.set(Calendar.MINUTE, minute)
     calendar.set(Calendar.SECOND, 0)

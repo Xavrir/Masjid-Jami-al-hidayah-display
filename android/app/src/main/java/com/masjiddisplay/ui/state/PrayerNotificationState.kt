@@ -3,9 +3,8 @@ package com.masjiddisplay.ui.state
 import androidx.compose.runtime.*
 import com.masjiddisplay.data.Prayer
 import com.masjiddisplay.services.SoundNotificationService
-import com.masjiddisplay.utils.formatTime
+import com.masjiddisplay.utils.jakartaDateFormat
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -32,8 +31,8 @@ class PrayerNotificationState(
     private val soundService: SoundNotificationService?
 ) {
     companion object {
-        const val ADHAN_ALERT_DURATION_MS = 10_000L
-        const val IQAMAH_ALERT_DURATION_MS = 15_000L
+        const val ADHAN_ALERT_DURATION_MS = 60_000L
+        const val IQAMAH_ALERT_DURATION_MS = 60_000L
     }
     
     var currentAlert by mutableStateOf(PrayerAlert())
@@ -52,8 +51,8 @@ class PrayerNotificationState(
      * Check for prayer alerts based on current time
      */
     suspend fun checkForAlerts(prayers: List<Prayer>, currentTime: Date) {
-        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val timeFormat = jakartaDateFormat("HH:mm", Locale.getDefault())
+        val dateFormat = jakartaDateFormat("yyyy-MM-dd", Locale.getDefault())
         
         val currentTimeStr = timeFormat.format(currentTime)
         val currentDateStr = dateFormat.format(currentTime)
