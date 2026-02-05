@@ -1,996 +1,918 @@
-    <!DOCTYPE html>
-    <html lang="id">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Kelola Pengajian - Admin Masjid</title>
+<!DOCTYPE html>
+<html lang="id">
 
-        <!-- AdminLTE CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
-        
-        <!-- Bootstrap Icons -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Pengajian - Admin Masjid Jami' Al-Hidayah</title>
 
-        <!-- Custom Styles -->
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Global Variables -->
+    <link rel="stylesheet" href="../css/variables.css">
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: var(--font-family-base);
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ============================================ */
+        /* NAVBAR & SIDEBAR (Copied from dashboard) */
+        /* ============================================ */
+
+        .navbar {
+            background: var(--color-bg-secondary);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            padding: 12px 24px;
+            height: 70px;
+        }
+
+        .navbar-brand {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-primary) !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            margin-right: 48px;
+        }
+
+        .mosque-icon {
+            font-size: 24px;
+            background: var(--color-primary-light);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: var(--color-primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-left: auto;
+            background: var(--color-bg-tertiary);
+            padding: 6px 6px 6px 20px;
+            border-radius: 30px;
+        }
+
+        .user-info {
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        .user-email-display {
+            color: var(--color-text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .logout-label {
+            color: var(--color-text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .user-avatar-btn {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            color: var(--color-danger);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-avatar-btn:hover {
+            background: var(--color-danger);
+            color: white;
+            border-color: var(--color-danger);
+            transform: scale(1.05);
+        }
+
+        .main-sidebar {
+            background: var(--color-bg-secondary);
+            border-right: 1px solid var(--color-border);
+            height: calc(100vh - 70px);
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 260px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-menu {
+            padding: 24px 16px;
+        }
+
+        .sidebar-section {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            padding: 0 16px;
+            letter-spacing: 0.8px;
+            margin: 24px 0 12px;
+        }
+
+        .sidebar-section:first-child {
+            margin-top: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin-bottom: 4px;
+        }
+
+        .nav-link i {
+            font-size: 18px;
+            color: var(--color-text-tertiary);
+            transition: color 0.2s ease;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-link:hover {
+            background-color: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+        }
+
+        .nav-link:hover i {
+            color: var(--color-primary);
+        }
+
+        .nav-link.active {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary-dark);
+            font-weight: 600;
+        }
+
+        .nav-link.active i {
+            color: var(--color-primary);
+        }
+
+        .content-wrapper {
+            margin-left: 260px;
+            margin-top: 70px;
+            padding: 32px;
+            background: var(--color-bg-primary);
+            min-height: calc(100vh - 70px);
+        }
+
+        /* ============================================ */
+        /* PAGE SPECIFIC STYLES */
+        /* ============================================ */
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .page-icon-large {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .page-title h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .page-title p {
+            color: var(--color-text-secondary);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* INSTRUCTIONS */
+        .instruction-box {
+            background: var(--color-bg-tertiary);
+            border-left: 4px solid var(--color-primary);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid var(--color-border);
+        }
+
+        .instruction-box h3 {
+            color: var(--color-primary);
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instruction-box p {
+            color: var(--color-text-secondary);
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* MAIN GRID */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* FORM */
+        .card {
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--color-text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-light);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* BUTTONS */
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        /* PREVIEW */
+        .preview-container {
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            position: sticky;
+            top: 100px;
+        }
+
+        .preview-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-card {
+            background: #000;
+            padding: 50px 40px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-image: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+        }
+
+        .preview-label {
+            font-size: 14px;
+            color: #d8b4fe;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            font-weight: 700;
+        }
+
+        .preview-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            max-width: 90%;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-ustadz {
+            font-size: 20px;
+            color: #818cf8;
+            margin-bottom: 32px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .preview-datetime {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            font-size: 16px;
+            color: #e2e8f0;
+            margin-top: 16px;
+        }
+
+        .preview-datetime-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .preview-datetime-item i {
+            color: #38bdf8;
+            font-size: 18px;
+        }
+
+        /* ALERTS */
+        .alert {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            display: none;
+            border: 1px solid transparent;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #7f1d1d;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* LOADING STATE */
+        .page-loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-bg-primary);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .main-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
 
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                background-color: #f4f6f9;
+            .main-sidebar.open {
+                transform: translateX(0);
             }
-
-            /* ============================================ */
-            /* NAVBAR */
-            /* ============================================ */
-
-            .navbar-white {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-bottom: none;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-
-            .navbar-brand {
-                font-size: 18px;
-                font-weight: 700;
-                color: white !important;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .user-menu {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                margin-left: auto;
-                color: white;
-            }
-
-            .user-avatar-btn {
-                width: 40px;
-                height: 40px;
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                border-radius: 50%;
-                color: white;
-                font-size: 18px;
-                cursor: pointer;
-                transition: background 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .user-avatar-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
-            }
-
-            /* ============================================ */
-            /* SIDEBAR */
-            /* ============================================ */
-
-            .sidebar {
-                background: white;
-                border-right: 2px solid #e0e0e0;
-            }
-
-            .sidebar-menu {
-                padding: 20px 0;
-            }
-
-            .nav-link {
-                color: #333;
-                font-size: 15px;
-                font-weight: 500;
-                padding: 12px 20px;
-                transition: all 0.2s ease;
-                border-left: 4px solid transparent;
-                margin-bottom: 5px;
-            }
-
-            .nav-link i {
-                width: 25px;
-                margin-right: 10px;
-                text-align: center;
-            }
-
-            .nav-link:hover {
-                background: #f5f5f5;
-                border-left-color: #667eea;
-                color: #667eea;
-            }
-
-            .nav-link.active {
-                background: #f0f0f5;
-                border-left-color: #667eea;
-                color: #667eea;
-                font-weight: 700;
-            }
-
-            .nav-back {
-                color: #667eea !important;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #e0e0e0;
-            }
-
-            /* ============================================ */
-            /* MAIN CONTENT */
-            /* ============================================ */
 
             .content-wrapper {
-                background: #f4f6f9;
+                margin-left: 0;
             }
 
-            .page-header {
-                background: white;
-                padding: 25px;
-                margin-bottom: 20px;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            .main-grid {
+                grid-template-columns: 1fr;
             }
 
-            .page-header h1 {
-                font-size: 28px;
-                font-weight: 700;
-                color: #333;
-                margin: 0 0 5px 0;
+            .preview-container {
+                position: static;
+                margin-top: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 12px 16px;
             }
 
-            .page-header p {
-                color: #666;
-                font-size: 15px;
-                margin: 0;
-            }
-
-            /* ============================================ */
-            /* INSTRUCTIONS */
-            /* ============================================ */
-
-            .instruction-box {
-                background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-                border-left: 4px solid #667eea;
-                border-radius: 8px;
+            .content-wrapper {
                 padding: 20px;
-                margin-bottom: 25px;
-            }
-
-            .instruction-box h3 {
-                color: #667eea;
-                margin-bottom: 10px;
-                font-size: 16px;
-            }
-
-            .instruction-box p {
-                color: #666;
-                margin: 5px 0;
-                font-size: 14px;
-                line-height: 1.6;
-            }
-
-            /* ============================================ */
-            /* FORM CONTAINER */
-            /* ============================================ */
-
-            .form-container {
-                background: white;
-                border-radius: 12px;
-                padding: 25px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                margin-bottom: 25px;
-            }
-
-            .form-section-title {
-                font-size: 16px;
-                font-weight: 700;
-                color: #333;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #e0e0e0;
-            }
-
-            .form-group {
-                margin-bottom: 20px;
-            }
-
-            .form-group label {
-                display: block;
-                font-size: 14px;
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 8px;
-            }
-
-            .form-group input {
-                width: 100%;
-                padding: 12px 15px;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                font-size: 14px;
-                font-family: inherit;
-                transition: border-color 0.2s ease;
-            }
-
-            .form-group input:focus {
-                outline: none;
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
 
             .form-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }
-
-            /* ============================================ */
-            /* BUTTONS */
-            /* ============================================ */
-
-            .btn-group {
-                display: flex;
-                gap: 10px;
-                margin-top: 25px;
-            }
-
-            .btn-save {
-                flex: 1;
-                padding: 16px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 700;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-            }
-
-            .btn-save:hover:not(:disabled) {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-            }
-
-            .btn-save:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-
-            /* ============================================ */
-            /* PREVIEW CARD */
-            /* ============================================ */
-
-            .preview-container {
-                background: white;
-                border-radius: 12px;
-                padding: 0;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                overflow: hidden;
-                margin-bottom: 25px;
-            }
-
-            .preview-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 15px 25px;
-                font-size: 14px;
-                font-weight: 600;
-            }
-
-            .preview-card {
-                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                color: white;
-                padding: 50px 40px;
-                min-height: 400px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-            }
-
-            .preview-label {
-                font-size: 14px;
-                color: #9b59b6;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                margin-bottom: 20px;
-                font-weight: 600;
-            }
-
-            .preview-title {
-                font-size: 36px;
-                font-weight: 700;
-                color: white;
-                margin-bottom: 25px;
-                line-height: 1.3;
-            }
-
-            .preview-ustadz {
-                font-size: 22px;
-                color: #9b59b6;
-                margin-bottom: 30px;
-                font-weight: 600;
+                grid-template-columns: 1fr;
             }
 
             .preview-datetime {
-                display: flex;
-                justify-content: center;
-                gap: 30px;
-                font-size: 18px;
-                color: #ddd;
-                margin-top: 30px;
+                flex-direction: column;
+                gap: 12px;
             }
+        }
+    </style>
+</head>
 
-            .preview-datetime-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
+<body class="hold-transition">
+    <!-- Loading Screen -->
+    <div class="page-loading show" id="pageLoading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <p style="color: var(--color-text-secondary); margin-top: 16px;">Memuat data pengajian...</p>
+        </div>
+    </div>
 
-            .preview-datetime-item i {
-                color: #9b59b6;
-                font-size: 20px;
-            }
+    <div class="wrapper" id="pageContent" style="display: none;">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <button id="sidebarToggle" class="sidebar-toggle-btn">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand" href="../dashboard.html">
+                <span class="mosque-icon">🕌</span>
+                <span>Masjid Jami' Al-Hidayah</span>
+            </a>
 
-            .preview-empty {
-                color: #666;
-                font-size: 16px;
-                font-style: italic;
-            }
-
-            /* ============================================ */
-            /* STATUS BADGE */
-            /* ============================================ */
-
-            .status-badge {
-                display: inline-block;
-                padding: 8px 16px;
-                background: #e8f5e9;
-                color: #2e7d32;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                margin-bottom: 15px;
-            }
-
-            /* ============================================ */
-            /* LOADING & MESSAGES */
-            /* ============================================ */
-
-            .page-loading {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(255, 255, 255, 0.95);
-                z-index: 9999;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .page-loading.show {
-                display: flex;
-            }
-
-            .spinner {
-                width: 50px;
-                height: 50px;
-                border: 4px solid #e0e0e0;
-                border-top-color: #667eea;
-                border-radius: 50%;
-                animation: spin 0.8s linear infinite;
-            }
-
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-
-            .alert {
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                display: none;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .alert.show {
-                display: flex;
-            }
-
-            .alert-success {
-                background: #e8f5e9;
-                border: 2px solid #c8e6c9;
-                color: #2e7d32;
-            }
-
-            .alert-error {
-                background: #fee;
-                border: 2px solid #fcc;
-                color: #c33;
-            }
-
-            /* ============================================ */
-            /* RESPONSIVE */
-            /* ============================================ */
-
-            @media (max-width: 768px) {
-                .form-row {
-                    grid-template-columns: 1fr;
-                }
-
-                .preview-title {
-                    font-size: 24px;
-                }
-
-                .preview-ustadz {
-                    font-size: 18px;
-                }
-
-                .preview-datetime {
-                    flex-direction: column;
-                    gap: 15px;
-                }
-
-                .preview-card {
-                    min-height: 350px;
-                    padding: 30px 20px;
-                }
-
-                .btn-group {
-                    flex-direction: column;
-                }
-
-                .btn-save {
-                    width: 100%;
-                }
-            }
-
-            /* ============================================ */
-            /* DARK MODE */
-            /* ============================================ */
-
-            @media (prefers-color-scheme: dark) {
-                .form-container,
-                .preview-container {
-                    background: #2c2c54;
-                }
-
-                .form-group label {
-                    color: #f0f0f0;
-                }
-
-                .form-group input {
-                    background: #1a1a2e;
-                    color: #f0f0f0;
-                    border-color: #404060;
-                }
-
-                .form-group input:focus {
-                    border-color: #667eea;
-                }
-
-                .form-section-title {
-                    color: #f0f0f0;
-                    border-bottom-color: #404060;
-                }
-
-                .instruction-box {
-                    background: rgba(102, 126, 234, 0.1);
-                }
-            }
-        </style>
-    </head>
-    <body class="hold-transition layout-top-nav">
-        <!-- Loading Screen -->
-        <div class="page-loading show" id="pageLoading">
-            <div style="text-align: center;">
-                <div class="spinner"></div>
-                <p style="color: #333; margin-top: 20px;">Memuat halaman...</p>
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-email-display" id="userEmailDisplay">admin@masjid.com</div>
+                    <div class="logout-label">Administrator</div>
+                </div>
+                <button class="user-avatar-btn" onclick="handleLogout()" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
             </div>
-        </div>
+        </nav>
 
-        <div class="wrapper" id="pageContent" style="display: none;">
-            <!-- Navbar -->
-            <nav class="navbar navbar-expand navbar-white navbar-light">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="navbar-brand" href="../dashboard.html">
-                            <span style="font-size: 28px; margin-right: 10px;">🕌</span>
-                            <span>Kelola Pengajian</span>
-                        </a>
-                    </li>
-                </ul>
-                <div class="user-menu">
-                    <button class="user-avatar-btn" onclick="handleLogout()" title="Logout">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </button>
-                </div>
+        <!-- Sidebar -->
+        <aside class="main-sidebar">
+            <nav class="sidebar-menu">
+                <div class="sidebar-section">Menu Utama</div>
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="sidebar-section">Manajemen Data</div>
+
+                <a href="kas_masjid.html" class="nav-link">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Kas Masjid</span>
+                </a>
+
+                <a href="ayat_quran.html" class="nav-link">
+                    <i class="bi bi-book-half"></i>
+                    <span>Ayat Al-Quran</span>
+                </a>
+
+                <a href="hadist.html" class="nav-link">
+                    <i class="bi bi-chat-left-quote"></i>
+                    <span>Hadist</span>
+                </a>
+
+                <a href="pengajian.html" class="nav-link active">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>Pengajian</span>
+                </a>
             </nav>
+        </aside>
 
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <nav class="sidebar-menu">
-                    <a href="../dashboard.html" class="nav-link nav-back">
-                        <i class="bi bi-chevron-left"></i>
-                        <span>Kembali ke Dashboard</span>
-                    </a>
+        <!-- Main Content -->
+        <main class="content-wrapper">
+            <div class="page-header">
+                <div class="page-icon-large">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="page-title">
+                    <h1>Kelola Pengajian</h1>
+                    <p>Informasikan jadwal kajian dan kegiatan masjid kepada jamaah.</p>
+                </div>
+            </div>
 
-                    <div class="sidebar-section" style="font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; padding: 15px 20px 8px 20px; letter-spacing: 0.5px;">Manajemen Data</div>
+            <!-- Alerts -->
+            <div id="successAlert" class="alert alert-success">
+                <i class="bi bi-check-circle-fill" style="margin-right: 8px;"></i>
+                <span id="successMessage"></span>
+            </div>
+            <div id="errorAlert" class="alert alert-error">
+                <i class="bi bi-exclamation-triangle-fill" style="margin-right: 8px;"></i>
+                <span id="errorMessage"></span>
+            </div>
 
-                    <a href="kas_masjid.html" class="nav-link">
-                        <i class="bi bi-wallet2"></i>
-                        <span>Kas Masjid</span>
-                    </a>
+            <!-- Instructions -->
+            <div class="instruction-box">
+                <h3><i class="bi bi-lightbulb-fill"></i> Panduan Penggunaan</h3>
+                <p>• Isi lengkap informasi ustadz, topik, dan waktu pelaksanaan.</p>
+                <p>• Data yang disimpan akan langsung tampil di slide informasi TV.</p>
+                <p>• Gunakan judul topik yang singkat dan menarik.</p>
+            </div>
 
-                    <a href="ayat_quran.html" class="nav-link">
-                        <i class="bi bi-book-half"></i>
-                        <span>Ayat Al-Quran</span>
-                    </a>
+            <!-- Main Layout Grid -->
+            <div class="main-grid">
 
-                    <a href="hadist.html" class="nav-link">
-                        <i class="bi bi-chat-left-quote"></i>
-                        <span>Hadist</span>
-                    </a>
-
-                    <a href="pengajian.html" class="nav-link active">
-                        <i class="bi bi-calendar-event"></i>
-                        <span>Pengajian</span>
-                    </a>
-                </nav>
-            </aside>
-
-            <!-- Main Content -->
-            <main class="content-wrapper">
-                <div class="container-fluid" style="padding: 20px; max-width: 1400px;">
-                    <!-- Page Header -->
-                    <section class="page-header">
-                        <h1>Kelola Pengajian</h1>
-                        <p>Ubah informasi pengajian/kajian yang ditampilkan di layar TV masjid</p>
-                    </section>
-
-                    <!-- Alerts -->
-                    <div class="alert alert-success" id="successAlert">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span id="successMessage"></span>
-                    </div>
-
-                    <div class="alert alert-error" id="errorAlert">
-                        <i class="bi bi-exclamation-circle-fill"></i>
-                        <span id="errorMessage"></span>
-                    </div>
-
-                    <!-- Instructions -->
-                    <div class="instruction-box">
-                        <h3><i class="bi bi-lightbulb"></i> Panduan Penggunaan</h3>
-                        <p>• Masukkan nama ustadz yang akan mengisi kajian</p>
-                        <p>• Berikan judul/topik kajian yang menarik</p>
-                        <p>• Pilih tanggal dan waktu pengajian</p>
-                        <p>• Pratinjau akan menampilkan bagaimana informasi ini akan terlihat di layar TV</p>
-                        <p>• Klik "Simpan" untuk mengaktifkan informasi ini di layar TV masjid</p>
-                    </div>
-
-                    <!-- Main Grid -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
-                        <!-- Form Section -->
-                        <div>
-                            <div class="form-container">
-                                <div class="status-badge" id="statusBadge">
-                                    <i class="bi bi-check-circle"></i> Aktif Sekarang
-                                </div>
-
-                                <form id="pengajianForm">
-                                    <!-- Ustadz Info -->
-                                    <div class="form-section-title">Informasi Pengajian</div>
-
-                                    <div class="form-group">
-                                        <label for="ustadzName">
-                                            <i class="bi bi-person-fill"></i> Nama Ustadz
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            id="ustadzName" 
-                                            placeholder="Contoh: Ustadz Ahmad Rifqi"
-                                            required
-                                        >
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="lectureTitle">
-                                            <i class="bi bi-chat-left-text"></i> Topik Kajian
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            id="lectureTitle" 
-                                            placeholder="Contoh: Akhlak Mulia dalam Kehidupan Sehari-hari"
-                                            required
-                                        >
-                                    </div>
-
-                                    <!-- Date & Time -->
-                                    <div class="form-section-title" style="margin-top: 25px;">Jadwal Pengajian</div>
-
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="lectureDate">
-                                                <i class="bi bi-calendar-fill"></i> Tanggal
-                                            </label>
-                                            <input 
-                                                type="date" 
-                                                id="lectureDate"
-                                                required
-                                            >
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="lectureTime">
-                                                <i class="bi bi-clock-fill"></i> Waktu
-                                            </label>
-                                            <input 
-                                                type="time" 
-                                                id="lectureTime"
-                                                required
-                                            >
-                                        </div>
-                                    </div>
-
-                                    <!-- Save Button -->
-                                    <div class="btn-group">
-                                        <button type="submit" class="btn-save" id="saveBtn">
-                                            <i class="bi bi-check-lg"></i>
-                                            <span>Simpan & Aktifkan</span>
-                                        </button>
-                                    </div>
-                                </form>
+                <!-- Left Column: Form -->
+                <div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="status-badge" id="statusBadge">
+                                <i class="bi bi-check-circle-fill"></i> Sedang Ditampilkan
                             </div>
-                        </div>
 
-                        <!-- Preview Section -->
-                        <div>
-                            <div class="preview-container">
-                                <div class="preview-header">
-                                    <i class="bi bi-tv"></i> Pratinjau Layar TV
+                            <form id="pengajianForm">
+                                <div class="form-section-title">Detail Kegiatan</div>
+
+                                <div class="form-group">
+                                    <label for="ustadzName">Nama Penceramah / Ustadz</label>
+                                    <input type="text" id="ustadzName" class="form-control"
+                                        placeholder="Contoh: Ustadz Adi Hidayat" required>
                                 </div>
-                                <div class="preview-card">
-                                    <div class="preview-label" id="previewLabel">Pengajian Mendatang</div>
-                                    <div class="preview-title" id="previewTitle">Masukkan topik kajian</div>
-                                    <div class="preview-ustadz" id="previewUstadz">-</div>
-                                    <div class="preview-datetime" id="previewDatetime">
-                                        <div class="preview-datetime-item" id="previewDateDisplay">
-                                            <i class="bi bi-calendar-event"></i>
-                                            <span>-</span>
-                                        </div>
-                                        <div class="preview-datetime-item" id="previewTimeDisplay">
-                                            <i class="bi bi-clock"></i>
-                                            <span>-</span>
-                                        </div>
+
+                                <div class="form-group">
+                                    <label for="lectureTitle">Topik / Judul Kajian</label>
+                                    <input type="text" id="lectureTitle" class="form-control"
+                                        placeholder="Contoh: Fiqih Ibadah Sehari-hari" required>
+                                </div>
+
+                                <div class="form-section-title" style="margin-top: 24px;">Waktu Pelaksanaan</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="lectureDate">Tanggal</label>
+                                        <input type="date" id="lectureDate" class="form-control" required>
                                     </div>
+                                    <div class="form-group">
+                                        <label for="lectureTime">Jam Mulai</label>
+                                        <input type="time" id="lectureTime" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-save" id="saveBtn">
+                                    <i class="bi bi-cloud-upload-fill"></i>
+                                    <span>Simpan & Tampilkan</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Preview -->
+                <div>
+                    <div class="preview-container">
+                        <div class="preview-header">
+                            <i class="bi bi-tv-fill"></i> Tampilan di Layar TV
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-label">Kajian Rutin</div>
+                            <div id="previewTitle" class="preview-title">...</div>
+                            <div id="previewUstadz" class="preview-ustadz">...</div>
+
+                            <div class="preview-datetime">
+                                <div class="preview-datetime-item">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span id="previewDateDisplay">-</span>
+                                </div>
+                                <div class="preview-datetime-item">
+                                    <i class="bi bi-clock-fill"></i>
+                                    <span id="previewTimeDisplay">-</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
 
-        <!-- Supabase Module (Embedded) -->
-        <script type="module">
-            import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+            </div>
+        </main>
+    </div>
 
-            // Initialize Supabase
-            const SUPABASE_URL = 'https://wqupptqjbkuldglnpvor.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMDA5MzYsImV4cCI6MjA4MjU3NjkzNn0.-MJ1IYVHeQTHMOhXftTW8l_-bb0sA5yPco2T_sRq5M4';
+    <!-- Supabase JS -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            window.supabase = supabase;
-            window.supabaseReady = true;
-            console.log('Supabase initialized');
-        </script>
+        const SUPABASE_URL = 'https://wqupptqjbkuldglnpvor.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMDA5MzYsImV4cCI6MjA4MjU3NjkzNn0.-MJ1IYVHeQTHMOhXftTW8l_-bb0sA5yPco2T_sRq5M4';
 
-        <!-- Auth Guard -->
-        <script>
-            // Wait for Supabase initialization
-            async function waitForSupabase(timeout = 5000) {
-                const startTime = Date.now();
-                while (!window.supabaseReady) {
-                    if (Date.now() - startTime > timeout) {
-                        throw new Error('Supabase initialization timeout');
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-                return window.supabase;
-            }
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabase = supabase;
 
-            // Check authentication and get current user
-            async function waitForAuth(callback, timeout = 5000) {
+        // Global Logout function
+        window.handleLogout = async function () {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
                 try {
-                    const supabase = await waitForSupabase(timeout);
-                    
-                    // Check current session
-                    const { data: { session }, error } = await supabase.auth.getSession();
-                    
-                    if (error) {
-                        console.error('Auth error:', error);
-                        window.location.href = '../login.html';
-                        return;
-                    }
-                    
-                    if (!session) {
-                        console.log('No session found, redirecting to login');
-                        window.location.href = '../login.html';
-                        return;
-                    }
-                    
-                    console.log('Auth verified for user:', session.user.email);
-                    callback(session.user);
-                    
-                } catch (error) {
-                    console.error('Auth check failed:', error);
-                    window.location.href = '../login.html';
-                }
-            }
-        </script>
-
-        <!-- Page Script -->
-        <script>
-            /**
-             * Pengajian Management Page
-             * Manages active Islamic lecture info displayed on TV
-             */
-
-            const pageLoading = document.getElementById('pageLoading');
-            const pageContent = document.getElementById('pageContent');
-            const pengajianForm = document.getElementById('pengajianForm');
-            const saveBtn = document.getElementById('saveBtn');
-
-            const ustadzNameInput = document.getElementById('ustadzName');
-            const lectureTitleInput = document.getElementById('lectureTitle');
-            const lectureDateInput = document.getElementById('lectureDate');
-            const lectureTimeInput = document.getElementById('lectureTime');
-
-            const previewTitle = document.getElementById('previewTitle');
-            const previewUstadz = document.getElementById('previewUstadz');
-            const previewDateDisplay = document.getElementById('previewDateDisplay');
-            const previewTimeDisplay = document.getElementById('previewTimeDisplay');
-
-            const successAlert = document.getElementById('successAlert');
-            const errorAlert = document.getElementById('errorAlert');
-            const successMessage = document.getElementById('successMessage');
-            const errorMessage = document.getElementById('errorMessage');
-
-            // ============================================
-            // INITIALIZATION
-            // ============================================
-
-            async function initPage(user) {
-                try {
-                    // Show content
-                    pageContent.style.display = 'block';
-                    pageLoading.classList.remove('show');
-
-                    // Load current active pengajian
-                    await loadActivePengajian();
-
-                    // Setup live preview
-                    setupLivePreview();
-
-                } catch (error) {
-                    console.error('Init error:', error);
-                    pageLoading.classList.remove('show');
-                }
-            }
-
-            // ============================================
-            // LOAD DATA
-            // ============================================
-
-            /**
-             * Load the currently active pengajian from Supabase
-             */
-            async function loadActivePengajian() {
-                try {
-                    const supabase = await waitForSupabase();
-                
-                    const { data, error } = await supabase
-                        .from('pengajian')
-                        .select('*')
-                        .eq('aktif', true)
-                        .order('id', { ascending: false })
-                        .limit(1);
-                
+                    const { error } = await supabase.auth.signOut();
                     if (error) throw error;
-                
-                    const row = data?.[0];
-                    if (!row) {
-                        console.log('No active pengajian found');
-                        updatePreview();
-                        return;
+                    window.location.href = '../login.html';
+                } catch (error) {
+                    console.error('Logout failed:', error);
+                    alert('Gagal logout');
+                }
+            }
+        };
+
+        console.log('✅ Pengajian Supabase Initialized');
+    </script>
+
+    <!-- Page Logic -->
+    <script>
+        // DOM Elements
+        const pageLoading = document.getElementById('pageLoading');
+        const pageContent = document.getElementById('pageContent');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const pengajianForm = document.getElementById('pengajianForm');
+
+        const ustadzNameInput = document.getElementById('ustadzName');
+        const lectureTitleInput = document.getElementById('lectureTitle');
+        const lectureDateInput = document.getElementById('lectureDate');
+        const lectureTimeInput = document.getElementById('lectureTime');
+
+        const previewTitle = document.getElementById('previewTitle');
+        const previewUstadz = document.getElementById('previewUstadz');
+        const previewDateDisplay = document.getElementById('previewDateDisplay');
+        const previewTimeDisplay = document.getElementById('previewTimeDisplay');
+
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Initial Auth Check
+        async function waitForAuth() {
+            // Check manual bypass first
+            if (localStorage.getItem('manual_auth') === 'true') {
+                initPage({ email: 'admin@alhidayah.com' });
+                return;
+            }
+
+            const checkInterval = setInterval(async () => {
+                if (window.supabase && window.supabase.auth) {
+                    clearInterval(checkInterval);
+                    try {
+                        const { data: { session }, error } = await window.supabase.auth.getSession();
+                        if (error || !session) {
+                            window.location.href = '../login.html';
+                            return;
+                        }
+                        initPage(session.user);
+                    } catch (e) {
+                        window.location.href = '../login.html';
                     }
-                
-                    // isi form dari DB
-                    ustadzNameInput.value = row.ustadz ?? '';
-                    lectureTitleInput.value = row.tema ?? '';
-                    lectureDateInput.value = row.tanggal ?? '';
-                    lectureTimeInput.value = row.jam ?? '';
-                
-                    updatePreview();
-                    console.log('Loaded active pengajian:', row);
-                
-                } catch (error) {
-                    console.error('Load pengajian error:', error);
-                    showError('Gagal memuat pengajian aktif: ' + error.message);
                 }
+            }, 100);
+        }
+
+        async function initPage(user) {
+            console.log('Initializing Pengajian Page for:', user.email);
+            if (user.email) userEmailDisplay.textContent = user.email;
+
+            setupLivePreview();
+
+            try {
+                await loadActivePengajian();
+            } catch (err) {
+                console.error('Load error', err);
             }
 
+            pageContent.style.display = 'flex';
+            pageLoading.classList.remove('show');
 
-            // ============================================
-            // LIVE PREVIEW
-            // ============================================
+            pengajianForm.addEventListener('submit', handleSave);
+        }
 
-            /**
-             * Setup live preview as user types
-             */
-            function setupLivePreview() {
-                ustadzNameInput.addEventListener('input', updatePreview);
-                lectureTitleInput.addEventListener('input', updatePreview);
-                lectureDateInput.addEventListener('change', updatePreview);
-                lectureTimeInput.addEventListener('change', updatePreview);
-            }
-
-            /**
-             * Update preview section in real-time
-             */
-            function updatePreview() {
-                const ustadz = ustadzNameInput.value.trim();
-                const title = lectureTitleInput.value.trim();
-                const date = lectureDateInput.value;
-                const time = lectureTimeInput.value;
-
-                // Update preview
-                previewTitle.textContent = title || 'Masukkan topik kajian';
-                previewUstadz.textContent = ustadz ? `Ustadz ${ustadz}` : '-';
-
-                // Format date
-                if (date) {
-                    const dateObj = new Date(date + 'T00:00:00');
-                    const formattedDate = formatIndonesianDate(dateObj);
-                    previewDateDisplay.innerHTML = `<i class="bi bi-calendar-event"></i><span>${formattedDate}</span>`;
-                } else {
-                    previewDateDisplay.innerHTML = `<i class="bi bi-calendar-event"></i><span>-</span>`;
-                }
-
-                // Format time
-                if (time) {
-                    previewTimeDisplay.innerHTML = `<i class="bi bi-clock"></i><span>${time} WIB</span>`;
-                } else {
-                    previewTimeDisplay.innerHTML = `<i class="bi bi-clock"></i><span>-</span>`;
-                }
-            }
-
-            /**
-             * Format date to Indonesian format
-             */
-            function formatIndonesianDate(date) {
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                return date.toLocaleDateString('id-ID', options);
-            }
-
-            // ============================================
-            // SAVE PENGAJIAN
-            // ============================================
-
-            /**
-             * Handle form submission
-             */
-            pengajianForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                // Validate inputs
-                const ustadz = ustadzNameInput.value.trim();
-                const title = lectureTitleInput.value.trim();
-                const date = lectureDateInput.value;
-                const time = lectureTimeInput.value;
-
-                if (!ustadz || !title || !date || !time) {
-                    showError('Semua kolom harus diisi');
-                    return;
-                }
-
-                // Disable button
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div><span>Menyimpan...</span>';
-
-                try {
-                    const supabase = await waitForSupabase();
-                                 
-                    // 1) matiin semua yg aktif
-                    const { error: errOff } = await supabase
-                        .from('pengajian')
-                        .update({ aktif: false })
-                        .eq('aktif', true);
-                                 
-                    if (errOff) throw errOff;
-                                 
-                    // 2) insert yg baru jadi aktif
-                    const { error: errInsert } = await supabase
-                        .from('pengajian')
-                        .insert([{
-                            ustadz: ustadz,
-                            tema: title,
-                            tanggal: date,
-                            jam: time,
-                            aktif: true
-                        }]);
-                    
-                    if (errInsert) throw errInsert;
-                    
-                    showSuccess('Informasi pengajian berhasil disimpan dan ditampilkan di layar TV');
-                    
-                } catch (error) {
-                   console.error('Save error:', error);
-                   showError('Gagal menyimpan pengajian: ' + error.message);
-                } finally {
-                   saveBtn.disabled = false;
-                   saveBtn.innerHTML = '<i class="bi bi-check-lg"></i><span>Simpan & Aktifkan</span>';
-                }
-
+        function setupLivePreview() {
+            const inputs = [ustadzNameInput, lectureTitleInput, lectureDateInput, lectureTimeInput];
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
             });
+        }
 
-            // ============================================
-            // UI HELPERS
-            // ============================================
+        function updatePreview() {
+            previewUstadz.textContent = ustadzNameInput.value || '...';
+            previewTitle.textContent = lectureTitleInput.value || 'Title...';
 
-            function showSuccess(message) {
-                successMessage.textContent = message;
-                successAlert.classList.add('show');
-                errorAlert.classList.remove('show');
+            const dateVal = lectureDateInput.value;
+            previewDateDisplay.textContent = dateVal ? new Date(dateVal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 
-                setTimeout(() => {
-                    successAlert.classList.remove('show');
-                }, 5000);
-            }
+            previewTimeDisplay.textContent = lectureTimeInput.value ? `${lectureTimeInput.value} WIB` : '-';
+        }
 
-            function showError(message) {
-                errorMessage.textContent = message;
-                errorAlert.classList.add('show');
-                successAlert.classList.remove('show');
+        async function loadActivePengajian() {
+            try {
+                // Fetch from Supabase - get active pengajian
+                const { data, error } = await window.supabase
+                    .from('pengajian')
+                    .select('*')
+                    .eq('aktif', true)
+                    .limit(1)
+                    .single();
 
-                setTimeout(() => {
-                    errorAlert.classList.remove('show');
-                }, 5000);
-            }
+                if (error && error.code !== 'PGRST116') throw error;
 
-            async function handleLogout() {
-                const confirmed = confirm('Apakah Anda yakin ingin keluar?');
-                if (confirmed) {
-                    await logout();
+                if (data) {
+                    // Fill form with DB data - map DB columns to form fields
+                    ustadzNameInput.value = data.ustadz || '';
+                    lectureTitleInput.value = data.tema || '';
+                    lectureDateInput.value = data.tanggal || '';
+                    lectureTimeInput.value = data.jam || '';
                 }
+
+                updatePreview();
+            } catch (error) {
+                console.error('Load error:', error);
             }
+        }
 
-            // ============================================
-            // START
-            // ============================================
+        async function handleSave(e) {
+            e.preventDefault();
 
-            waitForAuth((user) => {
-                console.log('Auth verified, initializing page...');
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', () => initPage(user));
-                } else {
-                    initPage(user);
-                }
-            });
-        </script>
-    </body>
-    </html>
+            pageLoading.classList.add('show');
+
+            const newPengajian = {
+                ustadz: ustadzNameInput.value,
+                tema: lectureTitleInput.value,
+                tanggal: lectureDateInput.value,
+                jam: lectureTimeInput.value,
+                aktif: true
+            };
+
+            try {
+                // Insert new pengajian
+                const { error } = await window.supabase
+                    .from('pengajian')
+                    .insert([newPengajian]);
+
+                if (error) throw error;
+
+                pageLoading.classList.remove('show');
+                showSuccess('Pengajian berhasil diperbarui dan ditampilkan!');
+            } catch (error) {
+                console.error('Save error:', error);
+                pageLoading.classList.remove('show');
+                alert('Gagal menyimpan: ' + error.message);
+            }
+        }
+
+        function showSuccess(msg) {
+            successMessage.textContent = msg;
+            successAlert.style.display = 'block';
+            errorAlert.style.display = 'none';
+            setTimeout(() => successAlert.style.display = 'none', 3000);
+        }
+
+        // Start
+        waitForAuth();
+    </script>
+    <!-- Main JS -->
+    <script src="../js/main.js"></script>
+</body>
+
+</html>

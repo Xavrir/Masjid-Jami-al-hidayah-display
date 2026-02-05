@@ -24,60 +24,62 @@
     --spacing-xxl: 32px;
 
     /* ========== COLORS - LIGHT MODE ========== */
-    --color-bg-primary: #f4f6f9;        /* Page background */
+    --color-bg-primary: #f8fafc;        /* Page background (Slate-50) */
     --color-bg-secondary: #ffffff;      /* Cards, containers */
-    --color-bg-tertiary: #f5f5f5;       /* Hover backgrounds */
+    --color-bg-tertiary: #f1f5f9;       /* Hover backgrounds (Slate-100) */
     
-    --color-text-primary: #333333;      /* Main text */
-    --color-text-secondary: #666666;    /* Secondary text */
-    --color-text-tertiary: #999999;     /* Muted, captions */
+    --color-text-primary: #0f172a;      /* Main text (Slate-900) */
+    --color-text-secondary: #475569;    /* Secondary text (Slate-600) */
+    --color-text-tertiary: #94a3b8;     /* Muted, captions (Slate-400) */
     --color-text-inverse: #ffffff;      /* Text on dark backgrounds */
     
-    --color-border: #e0e0e0;            /* Borders, dividers */
-    --color-border-light: #f0f0f0;      /* Light borders */
+    --color-border: #e2e8f0;            /* Borders (Slate-200) */
+    --color-border-light: #f1f5f9;      /* Light borders (Slate-100) */
     
-    /* Brand Colors */
-    --color-primary: #667eea;           /* Primary actions */
-    --color-primary-dark: #764ba2;      /* Primary gradient end */
-    --color-primary-light: #f0f0f5;     /* Primary light variant */
+    /* Brand Colors (Emerald & Slate theme for Mosque) */
+    --color-primary: #10b981;           /* Emerald-500 */
+    --color-primary-dark: #059669;      /* Emerald-600 */
+    --color-primary-light: #d1fae5;     /* Emerald-100 */
     
-    --color-success: #27ae60;           /* Success, positive */
-    --color-danger: #e74c3c;            /* Danger, delete */
-    --color-warning: #f39c12;           /* Warning, attention */
-    --color-info: #3498db;              /* Info, secondary */
+    --color-accent: #3b82f6;            /* Blue-500 for secondary actions */
     
-    /* Card Colors */
-    --color-card-kas: #27ae60;          /* Kas/Finance */
-    --color-card-announcements: #3498db;/* Announcements */
-    --color-card-pengajian: #f39c12;    /* Islamic Studies */
-    --color-card-ayat: #9b59b6;         /* Quran */
+    --color-success: #10b981;           /* Emerald-500 */
+    --color-danger: #ef4444;            /* Red-500 */
+    --color-warning: #f59e0b;           /* Amber-500 */
+    --color-info: #3b82f6;              /* Blue-500 */
+    
+    /* Card Colors (Softer pastels) */
+    --color-card-kas: #10b981;          
+    --color-card-announcements: #3b82f6;
+    --color-card-pengajian: #f59e0b;    
+    --color-card-ayat: #8b5cf6;         
     
     /* ========== COLORS - DARK MODE ========== */
-    --color-dark-bg-primary: #0f1419;   /* Page background */
-    --color-dark-bg-secondary: #1a1f2e; /* Cards, containers */
-    --color-dark-bg-tertiary: #242d3e;  /* Hover backgrounds */
+    --color-dark-bg-primary: #0f172a;   /* Slate-900 */
+    --color-dark-bg-secondary: #1e293b; /* Slate-800 */
+    --color-dark-bg-tertiary: #334155;  /* Slate-700 */
     
-    --color-dark-text-primary: #ffffff;     /* Main text */
-    --color-dark-text-secondary: #b0b8c1;   /* Secondary text */
-    --color-dark-text-tertiary: #78828f;    /* Muted, captions */
+    --color-dark-text-primary: #f8fafc;     
+    --color-dark-text-secondary: #cbd5e1;   
+    --color-dark-text-tertiary: #94a3b8;    
     
-    --color-dark-border: #2f3a48;       /* Borders, dividers */
-    --color-dark-border-light: #3a4555; /* Light borders */
+    --color-dark-border: #334155;       
+    --color-dark-border-light: #1e293b; 
     
     /* ========== TYPOGRAPHY ========== */
-    --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --font-family-arabic: 'Scheherazade New', serif; /* For Arabic text */
-    --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-family-arabic: 'Scheherazade New', serif; 
+    --font-family-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
     
     /* Font Sizes */
-    --font-size-display: 28px;   /* Page titles */
-    --font-size-h2: 20px;        /* Section titles */
-    --font-size-h3: 16px;        /* Subsection titles */
-    --font-size-body: 15px;      /* Body text */
-    --font-size-body-small: 13px;/* Small text */
-    --font-size-label: 14px;     /* Form labels */
-    --font-size-caption: 12px;   /* Captions, status */
-    --font-size-number: 32px;    /* Large numbers/values */
+    --font-size-display: 32px;   
+    --font-size-h2: 24px;        
+    --font-size-h3: 18px;        
+    --font-size-body: 15px;      
+    --font-size-body-small: 13px;
+    --font-size-label: 14px;     
+    --font-size-caption: 12px;   
+    --font-size-number: 36px;    
     
     /* Font Weights */
     --font-weight-light: 300;
@@ -87,33 +89,33 @@
     --font-weight-bold: 700;
     
     /* Line Heights */
-    --line-height-tight: 1.2;    /* Titles, numbers */
-    --line-height-normal: 1.5;   /* Labels, captions */
-    --line-height-relaxed: 1.6;  /* Body text */
+    --line-height-tight: 1.25;    
+    --line-height-normal: 1.5;   
+    --line-height-relaxed: 1.75;  
     
-    /* ========== SHADOWS ========== */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
-    --shadow-xl: 0 10px 40px rgba(0, 0, 0, 0.1);
+    /* ========== SHADOWS (Softer, diffused) ========== */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
-    /* Dark mode shadows (more pronounced) */
-    --shadow-dark-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-dark-md: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-dark-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-dark-xl: 0 10px 40px rgba(0, 0, 0, 0.5);
+    /* Dark mode shadows */
+    --shadow-dark-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-dark-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    --shadow-dark-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+    --shadow-dark-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4);
     
     /* ========== BORDER RADIUS ========== */
     --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-full: 999px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
     
     /* ========== TRANSITIONS ========== */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.2s ease;
-    --transition-slow: 0.3s ease;
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     
     /* ========== Z-INDEX SCALE ========== */
     --z-dropdown: 100;
@@ -762,6 +764,59 @@ body {
     .btn {
         box-shadow: none;
         border: 1px solid #333;
+    }
+}
+
+
+/* ============================================ */
+/* MOBILE NAVIGATION ADDITIONS */
+/* ============================================ */
+
+/* Sidebar Toggle Button - Visible only on mobile */
+.sidebar-toggle-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 16px;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-primary);
+}
+
+/* Overlay for Mobile Sidebar */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    display: none;
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 992px) {
+    .sidebar-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 

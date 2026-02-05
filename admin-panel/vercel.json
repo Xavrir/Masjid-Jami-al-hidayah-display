@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "echo 'Build complete'",
+  "outputDirectory": ".",
+  "framework": null,
+  "public": true,
+  "rewrites": [
+    {
+      "source": "/((?!.*\\.[^/]*$).*)",
+      "destination": "/dashboard.html"
+    }
+  ]
+}
