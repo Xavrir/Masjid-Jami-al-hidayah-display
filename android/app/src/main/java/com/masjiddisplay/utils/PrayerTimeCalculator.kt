@@ -95,7 +95,7 @@ object PrayerTimeCalculator {
             return "%02d:%02d".format(hours, minutes)
         }
         
-        // Create prayer list with iqamah times (15 minutes after adhan, except Maghrib which is 5 minutes)
+         // Create prayer list with iqamah times (10 minutes after adhan, except Maghrib which is 5 minutes)
         val prayers = mutableListOf<Prayer>()
         
         val fajrStr = formatPrayerTime(fajrTime)
@@ -114,29 +114,29 @@ object PrayerTimeCalculator {
             windowMinutes = 1 // Short window for Imsak alert
         ))
         
-        prayers.add(Prayer(
-            name = "Subuh",
-            adhanTime = fajrStr,
-            iqamahTime = addMinutesToTime(fajrStr, 15),
-            status = PrayerStatus.UPCOMING,
-            windowMinutes = 15
-        ))
+         prayers.add(Prayer(
+             name = "Subuh",
+             adhanTime = fajrStr,
+             iqamahTime = addMinutesToTime(fajrStr, 10),
+             status = PrayerStatus.UPCOMING,
+             windowMinutes = 10
+         ))
         
-        prayers.add(Prayer(
-            name = "Dzuhur",
-            adhanTime = dhuhrStr,
-            iqamahTime = addMinutesToTime(dhuhrStr, 15),
-            status = PrayerStatus.UPCOMING,
-            windowMinutes = 15
-        ))
+         prayers.add(Prayer(
+             name = "Dzuhur",
+             adhanTime = dhuhrStr,
+             iqamahTime = addMinutesToTime(dhuhrStr, 10),
+             status = PrayerStatus.UPCOMING,
+             windowMinutes = 10
+         ))
         
-        prayers.add(Prayer(
-            name = "Ashar",
-            adhanTime = asrStr,
-            iqamahTime = addMinutesToTime(asrStr, 15),
-            status = PrayerStatus.UPCOMING,
-            windowMinutes = 15
-        ))
+         prayers.add(Prayer(
+             name = "Ashar",
+             adhanTime = asrStr,
+             iqamahTime = addMinutesToTime(asrStr, 10),
+             status = PrayerStatus.UPCOMING,
+             windowMinutes = 10
+         ))
         
         prayers.add(Prayer(
             name = "Maghrib",
@@ -146,13 +146,13 @@ object PrayerTimeCalculator {
             windowMinutes = 5
         ))
         
-        prayers.add(Prayer(
-            name = "Isya",
-            adhanTime = ishaStr,
-            iqamahTime = addMinutesToTime(ishaStr, 15),
-            status = PrayerStatus.UPCOMING,
-            windowMinutes = 15
-        ))
+         prayers.add(Prayer(
+             name = "Isya",
+             adhanTime = ishaStr,
+             iqamahTime = addMinutesToTime(ishaStr, 10),
+             status = PrayerStatus.UPCOMING,
+             windowMinutes = 10
+         ))
         
         return updatePrayerStatuses(prayers, Date(), date)
     }

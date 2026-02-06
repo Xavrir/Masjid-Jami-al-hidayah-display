@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +40,7 @@ fun PrayerAlertOverlay(
     modifier: Modifier = Modifier
 ) {
     var canDismiss by remember(visible) { mutableStateOf(false) }
+    var countdownValue by remember(visible) { mutableIntStateOf(10) }
 
     LaunchedEffect(visible) {
         if (visible) {
@@ -47,6 +49,17 @@ fun PrayerAlertOverlay(
             canDismiss = true
         } else {
             canDismiss = false
+        }
+    }
+
+    LaunchedEffect(visible, overlayType) {
+        if (visible && overlayType == OverlayType.IQAMAH) {
+            countdownValue = 10
+            for (i in 10 downTo 1) {
+                countdownValue = i
+                delay(1000)
+            }
+            onDismiss()
         }
     }
 
@@ -67,7 +80,7 @@ fun PrayerAlertOverlay(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.55f)
+                    .fillMaxWidth(0.65f)
                     .align(Alignment.Center) // Explicitly center the card
                     .graphicsLayer { translationY = 40f } // Nudge down to correct visual center
                     .shadow(
@@ -143,7 +156,7 @@ fun PrayerAlertOverlay(
 
                     Text(
                         text = title,
-                        fontSize = 26.sp,
+                        fontSize = 36.sp,
                         fontWeight = FontWeight.Medium,
                         color = accentColor.copy(alpha = 0.9f),
                         letterSpacing = 2.sp
@@ -153,11 +166,11 @@ fun PrayerAlertOverlay(
 
                     Text(
                         text = subtitle,
-                        fontSize = 42.sp,
+                        fontSize = 56.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White.copy(alpha = 0.95f),
                         textAlign = TextAlign.Center,
-                        lineHeight = 48.sp
+                        lineHeight = 64.sp
                     )
 
                     if (prayer != null && overlayType != OverlayType.FRIDAY_REMINDER) {
@@ -169,7 +182,7 @@ fun PrayerAlertOverlay(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "ADZAN",
-                                    fontSize = 12.sp,
+                                    fontSize = 18.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = AppColors.textSecondary.copy(alpha = 0.7f),
                                     letterSpacing = 1.sp
@@ -177,7 +190,7 @@ fun PrayerAlertOverlay(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = prayer.adhanTime,
-                                    fontSize = 32.sp,
+                                    fontSize = 44.sp,
                                     fontWeight = FontWeight.Light,
                                     color = AppColors.textPrimary
                                 )
@@ -186,7 +199,7 @@ fun PrayerAlertOverlay(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "IQAMAH",
-                                    fontSize = 12.sp,
+                                    fontSize = 18.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = AppColors.textSecondary.copy(alpha = 0.7f),
                                     letterSpacing = 1.sp
@@ -194,7 +207,7 @@ fun PrayerAlertOverlay(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = prayer.iqamahTime,
-                                    fontSize = 32.sp,
+                                    fontSize = 44.sp,
                                     fontWeight = FontWeight.Light,
                                     color = AppColors.textPrimary
                                 )
@@ -202,11 +215,26 @@ fun PrayerAlertOverlay(
                         }
                     }
 
+                    if (overlayType == OverlayType.IQAMAH) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "$countdownValue",
+                            fontSize = 80.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "detik menuju iqamah",
+                            fontSize = 18.sp,
+                            color = AppColors.textSecondary.copy(alpha = 0.7f)
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(36.dp))
 
                     Text(
                         text = "Ketuk untuk menutup",
-                        fontSize = 13.sp,
+                        fontSize = 20.sp,
                         color = AppColors.textMuted.copy(alpha = 0.6f)
                     )
                 }

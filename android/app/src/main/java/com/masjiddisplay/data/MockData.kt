@@ -70,10 +70,4 @@ object MockData {
         )
     )
 
-    val announcements = listOf(
-        "Mohon menonaktifkan atau membisukan ponsel sebelum salat dimulai.",
-        "Kajian rutin setiap Ahad ba'da Maghrib bersama Ustadz Ahmad.",
-        "Infaq pembangunan gedung baru telah mencapai 75% dari target.",
-        "Pendaftaran TPA dibuka untuk tahun ajaran baru, hubungi panitia di ruang sekretariat."
-    )
 }

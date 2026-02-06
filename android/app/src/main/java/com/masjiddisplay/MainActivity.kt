@@ -196,11 +196,17 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         }
     }
     
+    val staticReminders = listOf(
+        "Mohon nonaktifkan atau membisukan ponsel sebelum shalat",
+        "Mari rapatkan shaf dan luruskan barisan saat shalat berjamaah",
+        "Jagalah kebersihan masjid, tempat ibadah kita bersama"
+    )
+    
     val effectiveAnnouncements = remember(fridayReminderAnnouncement) {
         if (fridayReminderAnnouncement != null) {
-            listOf(fridayReminderAnnouncement!!) + MockData.announcements
+            listOf(fridayReminderAnnouncement!!) + staticReminders
         } else {
-            MockData.announcements
+            staticReminders
         }
     }
     
@@ -224,9 +230,6 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                     currentOverlayType = OverlayType.ADHAN
                     prayerAlertVisible = true
                     soundService?.playAdhanAlert()
-                    
-                    delay(60_000)
-                    prayerAlertVisible = false
                     break
                 }
             }
@@ -239,9 +242,6 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                     currentOverlayType = OverlayType.IQAMAH
                     prayerAlertVisible = true
                     soundService?.playIqamahAlert()
-                    
-                    delay(60_000)
-                    prayerAlertVisible = false
                     break
                 }
             }
@@ -267,14 +267,23 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                             currentOverlayType = OverlayType.FRIDAY_REMINDER
                             prayerAlertVisible = true
                             soundService?.playAdhanAlert()
-                            
-                            delay(10_000)
-                            prayerAlertVisible = false
                             break
                         }
                     }
                 }
             }
+        }
+    }
+
+    LaunchedEffect(prayerAlertVisible, currentOverlayType) {
+        if (prayerAlertVisible) {
+            val duration = when (currentOverlayType) {
+                OverlayType.ADHAN -> 60_000L
+                OverlayType.IQAMAH -> 60_000L
+                OverlayType.FRIDAY_REMINDER -> 10_000L
+            }
+            delay(duration)
+            prayerAlertVisible = false
         }
     }
     
@@ -295,7 +304,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         
         KasDetailOverlay(
             visible = kasOverlayVisible,
-            kasData = MockData.kasData,
+            kasData = kasData,
             onClose = { kasOverlayVisible = false }
         )
         

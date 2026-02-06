@@ -51,3 +51,15 @@ object RamadanColors {
     val accentPrimary = Color(0xFF11C76F)
     val accentPrimarySoft = Color(0x5211C76F)
 }
+
+/**
+ * Timeline colors - switches between normal (teal) and Ramadan (green)
+ */
+object TimelineColors {
+    val normal = Color(0xFF4ECDC4)           // Teal
+    val normalSoft = Color(0x804ECDC4)       // 50% alpha
+    val normalFaint = Color(0x4D4ECDC4)      // 30% alpha
+    val ramadhan = RamadanColors.accentPrimary  // Green
+    val ramadhanSoft = Color(0x8011C76F)     // 50% alpha
+    val ramadhanFaint = Color(0x4D11C76F)    // 30% alpha
+}

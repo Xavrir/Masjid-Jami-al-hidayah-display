@@ -10,12 +10,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -157,6 +159,28 @@ fun MainDashboard(
                 .background(Color.Black.copy(alpha = 0.5f))
         )
         
+        if (isRamadhanNow) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(140.dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = 24.dp, y = 24.dp)
+                    .alpha(0.06f)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(140.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-24).dp, y = 24.dp)
+                    .alpha(0.06f)
+                    .graphicsLayer { scaleX = -1f }
+            )
+        }
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -178,6 +202,13 @@ fun MainDashboard(
                     )
                     Text(
                         text = formatDayDate(currentTime).uppercase(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = getHijriDate(currentTime).uppercase(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.White.copy(alpha = 0.8f),
@@ -213,6 +244,10 @@ fun MainDashboard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
+                val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
+                val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
+                
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "UNTIL",
@@ -245,7 +280,7 @@ fun MainDashboard(
                     ) {
                         val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
                         drawLine(
-                            color = Color(0xFF4ECDC4),
+                            color = timelineColor,
                             start = Offset(0f, size.height / 2),
                             end = Offset(size.width, size.height / 2),
                             strokeWidth = 3f,
@@ -269,10 +304,10 @@ fun MainDashboard(
                                     .clip(CircleShape)
                                     .background(
                                         when {
-                                            isCurrent -> Color(0xFF4ECDC4)
-                                            isNext -> Color(0xFF4ECDC4)
-                                            isPassed -> Color(0xFF4ECDC4).copy(alpha = 0.5f)
-                                            else -> Color(0xFF4ECDC4).copy(alpha = 0.3f)
+                                            isCurrent -> timelineColor
+                                            isNext -> timelineColor
+                                            isPassed -> timelineSoftColor
+                                            else -> timelineFaintColor
                                         }
                                     )
                             )
@@ -294,7 +329,7 @@ fun MainDashboard(
                                 painter = painterResource(id = getPrayerIconRes(prayer.name)),
                                 contentDescription = prayer.name,
                                 modifier = Modifier.size(32.dp),
-                                tint = if (isCurrent) Color(0xFF4ECDC4) else Color.White.copy(alpha = 0.8f)
+                                tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
