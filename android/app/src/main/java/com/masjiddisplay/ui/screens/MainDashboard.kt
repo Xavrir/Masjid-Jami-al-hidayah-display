@@ -45,7 +45,9 @@ fun MainDashboard(
     var prayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     var tomorrowPrayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     var nextPrayer by remember { mutableStateOf<Prayer?>(null) }
-    var shuruqTime by remember { mutableStateOf("5:51 AM") }
+    var shuruqTime by remember { mutableStateOf("05:55") }
+    var imsakTime by remember { mutableStateOf("04:24") }
+    val isRamadhanNow = remember(currentTime) { isRamadan(currentTime) }
     
     LaunchedEffect(Unit) {
         val today = jakartaCalendar().apply {
@@ -66,6 +68,7 @@ fun MainDashboard(
         prayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(today)
         tomorrowPrayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(tomorrow)
         shuruqTime = PrayerTimeCalculator.calculateShuruqTimeForJakarta(today)
+        imsakTime = PrayerTimeCalculator.calculateImsakTimeForJakarta(today)
     }
     
     LaunchedEffect(Unit) {
@@ -108,12 +111,36 @@ fun MainDashboard(
         } ?: "—"
     }
     
-    val mainPrayers = prayers.filter { 
-        it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise") 
+    val mainPrayers = remember(prayers, isRamadhanNow, shuruqTime) {
+        if (isRamadhanNow) {
+            prayers.filter { 
+                it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise") 
+            }
+        } else {
+            val filtered = prayers.filter { 
+                it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise", "imsak") 
+            }.toMutableList()
+            val subuhIndex = filtered.indexOfFirst { it.name.lowercase() in listOf("subuh", "fajr") }
+            if (subuhIndex >= 0) {
+                val syuruqPrayer = Prayer(
+                    name = "Syuruq",
+                    adhanTime = shuruqTime,
+                    iqamahTime = shuruqTime,
+                    status = PrayerStatus.UPCOMING
+                )
+                filtered.add(subuhIndex + 1, syuruqPrayer)
+            }
+            filtered
+        }
     }
     
-    val announcementsWithKas = announcements + listOf(
-        "Kas Masjid - Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
+    val cornerLabel = if (isRamadhanNow) "SYURUQ" else "IMSAK"
+    val cornerTime = if (isRamadhanNow) shuruqTime else imsakTime
+    val cornerEmoji = if (isRamadhanNow) "☀️" else "🌙"
+    val cornerColor = if (isRamadhanNow) Color(0xFFFFA500) else Color(0xFF9C88FF)
+    
+    val kasItems = listOf(
+        "Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
     )
     
     Box(modifier = modifier.fillMaxSize()) {
@@ -166,13 +193,13 @@ fun MainDashboard(
                         color = Color.White
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "☀️", fontSize = 14.sp)
+                        Text(text = cornerEmoji, fontSize = 14.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "SYURUQ $shuruqTime",
+                            text = "$cornerLabel $cornerTime",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFFFA500),
+                            color = cornerColor,
                             letterSpacing = 0.5.sp
                         )
                     }
@@ -292,7 +319,8 @@ fun MainDashboard(
             }
             
             MultiSourceRunningText(
-                announcements = announcementsWithKas,
+                announcements = announcements,
+                kasItems = kasItems,
                 quranVerses = quranVerses,
                 hadiths = hadiths,
                 pengajian = pengajian
@@ -305,6 +333,7 @@ private fun getPrayerIconRes(prayerName: String): Int {
     return when (prayerName.lowercase()) {
         "imsak" -> R.drawable.ic_imsak
         "subuh", "fajr" -> R.drawable.ic_subuh
+        "syuruq", "shuruq", "sunrise" -> R.drawable.ic_syuruq
         "dzuhur", "dhuhr", "zuhur" -> R.drawable.ic_dzuhur
         "ashar", "asr" -> R.drawable.ic_ashar
         "maghrib" -> R.drawable.ic_maghrib

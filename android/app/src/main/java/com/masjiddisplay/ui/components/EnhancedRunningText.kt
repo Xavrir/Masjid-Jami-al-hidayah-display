@@ -29,13 +29,15 @@ fun EnhancedRunningText(
     content: String,
     modifier: Modifier = Modifier,
     backgroundColor: Color = AppColors.accentPrimary,
-    textColor: Color = AppColors.textInverse
+    textColor: Color = AppColors.textInverse,
+    onAnimationCycleComplete: (() -> Unit)? = null
 ) {
     val density = LocalDensity.current
-    var containerSize by remember { mutableStateOf(IntSize.Zero) }
-    var textWidth by remember { mutableStateOf(0) }
+    // Key by content to reset animation when text changes
+    var containerSize by remember(content) { mutableStateOf(IntSize.Zero) }
+    var textWidth by remember(content) { mutableStateOf(0) }
     
-    val totalScrollDistance = remember(textWidth, containerSize) {
+    val totalScrollDistance = remember(textWidth, containerSize, content) {
         if (textWidth > 0 && containerSize.width > 0) {
             (textWidth + containerSize.width).toFloat()
         } else {
@@ -43,11 +45,11 @@ fun EnhancedRunningText(
         }
     }
     
-    val durationMs = remember(textWidth) {
+    val durationMs = remember(content) {
         (content.length * 300).coerceIn(20000, 60000)
     }
     
-    val infiniteTransition = rememberInfiniteTransition(label = "marquee")
+    val infiniteTransition = rememberInfiniteTransition(label = "marquee_$content")
     val offsetX by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -55,8 +57,18 @@ fun EnhancedRunningText(
             animation = tween(durationMillis = durationMs, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "marquee_offset"
+        label = "marquee_offset_$content"
     )
+    
+    // Detect animation cycle completion
+    var lastOffsetX by remember(content) { mutableStateOf(0f) }
+    LaunchedEffect(offsetX, content) {
+        // Detect when animation resets (offsetX goes from high to low)
+        if (lastOffsetX > 0.95f && offsetX < 0.05f) {
+            onAnimationCycleComplete?.invoke()
+        }
+        lastOffsetX = offsetX
+    }
     
     val translationX = remember(offsetX, totalScrollDistance, containerSize) {
         if (containerSize.width > 0) {
@@ -108,14 +120,16 @@ fun EnhancedRunningText(
 @Composable
 fun MultiSourceRunningText(
     announcements: List<String>,
+    kasItems: List<String>,
     quranVerses: List<String>,
     hadiths: List<String>,
     pengajian: List<String>,
     modifier: Modifier = Modifier
 ) {
-    val allContent = remember(announcements, quranVerses, hadiths, pengajian) {
+    val allContent = remember(announcements, kasItems, quranVerses, hadiths, pengajian) {
         mutableListOf<String>().apply {
             addAll(announcements.map { "📢 Pengumuman: $it" })
+            addAll(kasItems.map { "💰 Kas Masjid: $it" })
             addAll(quranVerses.map { "📖 Ayat Quran: $it" })
             addAll(hadiths.map { "💭 Hadits: $it" })
             addAll(pengajian.map { "🎓 Pengajian: $it" })
@@ -127,19 +141,34 @@ fun MultiSourceRunningText(
         mutableStateOf(if (allContent.isNotEmpty()) allContent[0] else "Selamat datang di Masjid Jami' Al-Hidayah") 
     }
     
+    var pendingNextText by remember { mutableStateOf(false) }
+    
     LaunchedEffect(allContent) {
         if (allContent.isEmpty()) return@LaunchedEffect
-        
-        while (true) {
-            delay(8000) // Display each item for 8 seconds
+        currentIndex = 0
+        displayText = allContent[0]
+    }
+    
+    val advanceToNextText: () -> Unit = {
+        if (allContent.isNotEmpty()) {
             currentIndex = (currentIndex + 1) % allContent.size
             displayText = allContent[currentIndex]
+            pendingNextText = false
         }
+    }
+    
+    LaunchedEffect(displayText) {
+        pendingNextText = true
     }
     
     EnhancedRunningText(
         content = displayText,
-        modifier = modifier
+        modifier = modifier,
+        onAnimationCycleComplete = {
+            if (pendingNextText && allContent.size > 1) {
+                advanceToNextText()
+            }
+        }
     )
 }
 
@@ -157,19 +186,27 @@ fun RunningAnnouncementTicker(
     ) }
     
     LaunchedEffect(announcements) {
-        while (true) {
-            if (announcements.isNotEmpty()) {
-                displayAnnouncement = announcements[currentIndex % announcements.size]
-                currentIndex++
-                delay(6000) // 6 seconds per announcement
-            }
-            delay(500)
+        if (announcements.isNotEmpty()) {
+            currentIndex = 0
+            displayAnnouncement = announcements[0]
+        }
+    }
+    
+    val advanceToNext: () -> Unit = {
+        if (announcements.isNotEmpty()) {
+            currentIndex = (currentIndex + 1) % announcements.size
+            displayAnnouncement = announcements[currentIndex]
         }
     }
     
     EnhancedRunningText(
         content = displayAnnouncement,
-        modifier = modifier
+        modifier = modifier,
+        onAnimationCycleComplete = {
+            if (announcements.size > 1) {
+                advanceToNext()
+            }
+        }
     )
 }
 
@@ -187,13 +224,16 @@ fun QuranVerseRunningText(
     ) }
     
     LaunchedEffect(verses) {
-        while (true) {
-            if (verses.isNotEmpty()) {
-                displayVerse = verses[currentIndex % verses.size]
-                currentIndex++
-                delay(10000) // 10 seconds per verse
-            }
-            delay(500)
+        if (verses.isNotEmpty()) {
+            currentIndex = 0
+            displayVerse = verses[0]
+        }
+    }
+    
+    val advanceToNext: () -> Unit = {
+        if (verses.isNotEmpty()) {
+            currentIndex = (currentIndex + 1) % verses.size
+            displayVerse = verses[currentIndex]
         }
     }
     
@@ -201,7 +241,12 @@ fun QuranVerseRunningText(
         content = displayVerse,
         modifier = modifier,
         backgroundColor = AppColors.successColor,
-        textColor = Color.White
+        textColor = Color.White,
+        onAnimationCycleComplete = {
+            if (verses.size > 1) {
+                advanceToNext()
+            }
+        }
     )
 }
 
@@ -219,13 +264,16 @@ fun HadithRunningText(
     ) }
     
     LaunchedEffect(hadiths) {
-        while (true) {
-            if (hadiths.isNotEmpty()) {
-                displayHadith = hadiths[currentIndex % hadiths.size]
-                currentIndex++
-                delay(10000) // 10 seconds per hadith
-            }
-            delay(500)
+        if (hadiths.isNotEmpty()) {
+            currentIndex = 0
+            displayHadith = hadiths[0]
+        }
+    }
+    
+    val advanceToNext: () -> Unit = {
+        if (hadiths.isNotEmpty()) {
+            currentIndex = (currentIndex + 1) % hadiths.size
+            displayHadith = hadiths[currentIndex]
         }
     }
     
@@ -233,7 +281,12 @@ fun HadithRunningText(
         content = displayHadith,
         modifier = modifier,
         backgroundColor = AppColors.warningColor,
-        textColor = Color.White
+        textColor = Color.White,
+        onAnimationCycleComplete = {
+            if (hadiths.size > 1) {
+                advanceToNext()
+            }
+        }
     )
 }
 
@@ -251,13 +304,16 @@ fun PengajianRunningText(
     ) }
     
     LaunchedEffect(pengajianList) {
-        while (true) {
-            if (pengajianList.isNotEmpty()) {
-                displayPengajian = pengajianList[currentIndex % pengajianList.size]
-                currentIndex++
-                delay(8000) // 8 seconds per item
-            }
-            delay(500)
+        if (pengajianList.isNotEmpty()) {
+            currentIndex = 0
+            displayPengajian = pengajianList[0]
+        }
+    }
+    
+    val advanceToNext: () -> Unit = {
+        if (pengajianList.isNotEmpty()) {
+            currentIndex = (currentIndex + 1) % pengajianList.size
+            displayPengajian = pengajianList[currentIndex]
         }
     }
     
@@ -265,6 +321,11 @@ fun PengajianRunningText(
         content = displayPengajian,
         modifier = modifier,
         backgroundColor = AppColors.infoColor,
-        textColor = Color.White
+        textColor = Color.White,
+        onAnimationCycleComplete = {
+            if (pengajianList.size > 1) {
+                advanceToNext()
+            }
+        }
     )
 }

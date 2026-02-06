@@ -7,7 +7,7 @@ package com.masjiddisplay.data
 object SupabaseConfig {
     const val SUPABASE_URL = "https://wqupptqjbkuldglnpvor.supabase.co"
     // Using anon key for public data access
-    const val SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTkwMDAwMDAwMH0.PLACEHOLDER"
+    const val SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMDA5MzYsImV4cCI6MjA4MjU3NjkzNn0.-MJ1IYVHeQTHMOhXftTW8l_-bb0sA5yPco2T_sRq5M4"
     
     // Table names for Islamic content and mosque management
     const val TABLE_KAS_MASJID = "kas_masjid"

@@ -4,6 +4,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 /**
  * Repository for managing all data from Supabase
@@ -11,8 +19,36 @@ import kotlinx.coroutines.*
  */
 object SupabaseRepository {
     
+    /**
+     * Create OkHttpClient that trusts all certificates (for debug/emulator only)
+     * This bypasses SSL certificate validation issues on emulators with outdated CA stores
+     */
+    private fun createUnsafeOkHttpClient(): OkHttpClient {
+        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        })
+        
+        val sslContext = SSLContext.getInstance("SSL")
+        sslContext.init(null, trustAllCerts, SecureRandom())
+        
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+        
+        return OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+            .hostnameVerifier { _, _ -> true }
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+    
     private val retrofit = Retrofit.Builder()
         .baseUrl(SupabaseConfig.SUPABASE_URL + "/")
+        .client(createUnsafeOkHttpClient())
         .addConverterFactory(GsonConverterFactory.create(Gson()))
         .build()
     
@@ -122,7 +158,8 @@ object SupabaseRepository {
      */
     suspend fun getQuranVersesForDisplay(): List<String> {
         return getQuranVerses().map { verse ->
-            "${verse.surah} (${verse.ayah}): ${verse.translation}"
+            val text = verse.translation ?: verse.transliteration ?: verse.arabic
+            "${verse.surah} (${verse.ayah}): $text"
         }
     }
     
@@ -131,7 +168,8 @@ object SupabaseRepository {
      */
     suspend fun getHadithsForDisplay(): List<String> {
         return getHadiths().map { hadith ->
-            "${hadith.narrator} - ${hadith.translation}"
+            val text = hadith.translation ?: hadith.arabic
+            "${hadith.source}: $text"
         }
     }
     
@@ -139,9 +177,11 @@ object SupabaseRepository {
      * Get formatted Pengajian as display strings
      */
     suspend fun getPengajianForDisplay(): List<String> {
-        return getPengajian().map { pengajian ->
-            "${pengajian.judul} (${pengajian.hari} - ${pengajian.jam}) - ${pengajian.pembicara}"
-        }
+        return getPengajian()
+            .filter { it.judul != null && it.pembicara != null }
+            .map { pengajian ->
+                "${pengajian.judul} (${pengajian.hari ?: "-"} - ${pengajian.jam ?: "-"}) - ${pengajian.pembicara}"
+            }
     }
     
     /**
@@ -175,23 +215,23 @@ private fun Long.formatCurrency(): String {
  */
 private fun QuranVerseRemote.toLocal(): QuranVerse {
     return QuranVerse(
-        id = this.id,
+        id = this.id.toString(),
         surah = this.surah,
-        surahNumber = this.surah_number,
+        surahNumber = this.surahNumber,
         ayah = this.ayah,
         arabic = this.arabic,
-        translation = this.translation,
+        translation = this.transliteration,
         transliteration = this.transliteration
     )
 }
 
 private fun HadithRemote.toLocal(): Hadith {
     return Hadith(
-        id = this.id,
-        narrator = this.narrator,
-        arabic = this.arabic,
-        translation = this.translation,
-        source = this.source,
-        category = this.category
+        id = this.id.toString(),
+        narrator = null,
+        arabic = this.teks,
+        translation = this.terjemahan,
+        source = this.sumber,
+        category = this.kategori
     )
 }

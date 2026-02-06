@@ -33,34 +33,33 @@ interface SupabaseApiService {
 }
 
 /**
- * Remote data models for API responses
+ * Remote data models matching Supabase database schema
  */
 data class QuranVerseRemote(
     val id: String,
     val surah: String,
-    val surah_number: Int,
+    val surahNumber: Int,
     val ayah: Int,
     val arabic: String,
-    val translation: String,
     val transliteration: String? = null
 )
 
 data class HadithRemote(
     val id: String,
-    val narrator: String,
-    val arabic: String,
-    val translation: String,
-    val source: String,
-    val category: String
+    val teks: String,
+    val sumber: String,
+    val kategori: String? = null,
+    val aktif: Boolean = true,
+    val terjemahan: String? = null
 )
 
 data class PengajianRemote(
     val id: String,
-    val judul: String,
-    val pembicara: String,
-    val jam: String,
-    val hari: String,
-    val lokasi: String,
+    val judul: String? = null,
+    val pembicara: String? = null,
+    val jam: String? = null,
+    val hari: String? = null,
+    val lokasi: String? = null,
     val deskripsi: String? = null
 )
 

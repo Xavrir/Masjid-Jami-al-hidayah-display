@@ -1,0 +1,144 @@
+--------- beginning of main
+02-03 23:03:36.683  2046  2046 I cast_shell: [0203/230336.682584:INFO:service_base.h(78)] Size of the map for type AuthTokenResponse is 0
+02-03 23:03:36.878  2046  2046 I cast_shell: [0203/230336.878270:INFO:service_base.h(246)] Container sizes for type CloudSetting are (session_info_map: 0), (topic_info_map: 21), (pending_events: 0).
+02-03 23:03:37.400  3179  3233 D EGL_emulation: app_time_stats: avg=6.77ms min=5.36ms max=9.41ms count=61
+02-03 23:03:37.806  2046  2046 I cast_shell: [0203/230337.805860:INFO:metrics_stat_logger.cc(38)] Metrics stat for the past 60 secs : total=26
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.AndroidTv.Autostart.To.Discovery.LatencyMs=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Auth.Error.CertMissing=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.CRL.DownloadScheduled=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.CRL.Restored=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.DCS.DownloadSuccess=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.Query.Cast.Count=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.Request.In=10
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.ResponderStarted=2
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.ResponderStopped=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.Response.Error.Probing=2
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.Response.Error.Starting=2
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.Response.Out=6
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.SocketCreated=4
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Discovery.Mdns.SocketDestroyed=2
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Network.LocalIpFragment=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Network.Up=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.Platform.OutputResolution=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cast.System.Timezone.ChangeSuccessful=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cloud.Transport.Https.Register.Out=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Cloud.Transport.Https.Register.Out.Error=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Dial.SsdpDeviceDesc.Linux=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Dial.SsdpDeviceDesc.Linux.200=1
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Gcm.Register.Out=2
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Gcm.Register.Success=2
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Setup.eureka_info.Local=11
+02-03 23:03:37.806  2046  2046 I cast_shell: [metrics_stat_logger] Setup.eureka_info.Local.200=11
+02-03 23:03:38.001  2046  2581 I cast_shell: [0203/230338.001629:INFO:mdns_app_filter.cc(3550)] Mdns cast queries recently sent: queries=4
+02-03 23:03:38.139  2046  2581 I cast_shell: [0203/230338.138973:INFO:mdns_app_filter.cc(3358)] MdnsAppFilter: responses sent in 60 seconds: 7
+02-03 23:03:38.417  3179  3233 D EGL_emulation: app_time_stats: avg=6.66ms min=5.35ms max=12.89ms count=61
+02-03 23:03:39.138  2705  2751 I Finsky:background: [40] Stats for Executor: bgExecutor lyq@47e212d[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 149]
+02-03 23:03:39.156  2705  2751 I Finsky:background: [40] Stats for Executor: LightweightExecutor lyq@d9e0662[Running, pool size = 3, active threads = 0, queued tasks = 0, completed tasks = 86]
+02-03 23:03:39.233  2705  2751 I Finsky:background: [40] Stats for Executor: BlockingExecutor lyq@406c3f3[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 24]
+02-03 23:03:39.418  3179  3233 D EGL_emulation: app_time_stats: avg=6.74ms min=5.20ms max=14.63ms count=60
+02-03 23:03:39.735  2046  2046 W cast_shell: [0203/230339.735451:WARNING:ccs_manager_impl.cc(1728)] Device does not have a weave device id
+02-03 23:03:39.736  2046  2046 I cast_shell: [0203/230339.736760:INFO:ccs_transport_https.cc(1468)] No cloud settings for register request
+02-03 23:03:39.737  2046  2046 W cast_shell: [0203/230339.737264:WARNING:client_auth_signer.cc(180)] No private key, hence empty signature.
+02-03 23:03:39.737  2046  2046 I cast_shell: [0203/230339.737322:INFO:ccs_manager_impl.cc(1663)] Registering device with CCS: message_id = 9003d56e-b6bc-43e6-ba9b-162bec4e735d
+02-03 23:03:39.737  2046  2046 I cast_shell: [0203/230339.737386:INFO:application_identification_settings.cc(1079)] CreateJwt completed; running all done signing callbacks.
+02-03 23:03:39.737  2046  2046 I cast_shell: [0203/230339.737400:INFO:application_identification_settings.cc(1084)] Missing signature, return empty JWT
+02-03 23:03:39.737  2046  2046 E cast_shell: [0203/230339.737418:ERROR:ccs_transport_https.cc(1424)] CreateAndSignJwtAsync() returned invalid JWT. Not attaching to headers.
+02-03 23:03:39.737  2046  2046 E cast_shell: [0203/230339.737483:ERROR:cast_auth_headers.cc(167)] Unable to update signature header
+02-03 23:03:39.737  2046  2046 I cast_shell: [0203/230339.737591:INFO:metrics_recorder.cc(193)] cast event: Cloud.Transport.Https.Register.Out
+02-03 23:03:40.093  2046  2046 E cast_shell: [0203/230340.093460:ERROR:ccs_transport_https.cc(2164)] Received response code 403 for message_id = 9003d56e-b6bc-43e6-ba9b-162bec4e735d - 
+02-03 23:03:40.093  2046  2046 I cast_shell: [0203/230340.093520:INFO:metrics_recorder.cc(193)] cast event: Cloud.Transport.Https.Register.Out.Error
+02-03 23:03:40.093  2046  2046 I cast_shell: [0203/230340.093539:INFO:ccs_manager_impl.cc(2838)] Scheduling next register for device in time: 114.049 s
+02-03 23:03:40.407  2852  2888 I Finsky:quick_launch: [41] Stats for Executor: bgExecutor lyq@15c37b[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 24]
+02-03 23:03:40.433  3179  3233 D EGL_emulation: app_time_stats: avg=6.99ms min=5.22ms max=22.66ms count=61
+02-03 23:03:40.444  2852  2888 I Finsky:quick_launch: [41] Stats for Executor: LightweightExecutor lyq@6f5e598[Running, pool size = 3, active threads = 0, queued tasks = 0, completed tasks = 10]
+02-03 23:03:40.632  2852  2888 I Finsky:quick_launch: [41] Stats for Executor: BlockingExecutor lyq@e3741f1[Running, pool size = 1, active threads = 0, queued tasks = 0, completed tasks = 1]
+02-03 23:03:40.804  2046  2609 I cast_ClientAuthCredsProvisioning: Loading factory credentials for 1P device.
+--------- beginning of system
+02-03 23:03:40.806  2046  2609 E ActivityThread: Failed to find provider info for com.google.android.tvsetup.app.machine.services.castsetup.castsetupinfo.CastInfoProvider
+02-03 23:03:40.806  2046  2609 E cast_ClientAuthCredsFactoryProvisioned: Cannot get device credentials
+02-03 23:03:40.806  2046  2609 I cast_ClientAuthCredsProvisioning: Retry loading factory credentials
+02-03 23:03:41.436  3179  3233 D EGL_emulation: app_time_stats: avg=7.26ms min=5.13ms max=28.94ms count=60
+02-03 23:03:41.899  2705  3017 I PlayCommon: [100] Preparing logs for uploading
+02-03 23:03:41.905   522  1824 D OomAdjuster: Not killing cached processes
+02-03 23:03:41.905   522  1824 W ProcessStats: Tracking association SourceState{795a5d3 com.android.vending:background/10085 ImpBg #2207} whose proc state 6 is better than process ProcessState{16a00c5 com.google.process.gservices/10084 pkg=com.google.android.gsf} proc state 13 (2 skipped)
+02-03 23:03:41.912  2705  3017 D CompatibilityChangeReporter: Compat change id reported: 247079863; UID 10085; state: ENABLED
+02-03 23:03:41.913  2705  3017 I PlayCommon: [100] Connecting to server for timestamp: https://play.googleapis.com/play/log/timestamp
+02-03 23:03:41.919  2705  3017 D TrafficStats: tagSocket(5) with statsTag=0xffffffff, statsUid=-1
+02-03 23:03:42.024  2705  3017 W PlayCommon: [100] No account for auth token provided
+02-03 23:03:42.025  2705  3017 I PlayCommon: [100] Connecting to server: https://play.googleapis.com/play/log?format=raw&proto_v2=true
+02-03 23:03:42.064  2705  3017 I PlayCommon: [100] Successfully uploaded logs.
+02-03 23:03:42.450  3179  3233 D EGL_emulation: app_time_stats: avg=7.11ms min=5.27ms max=20.25ms count=61
+02-03 23:03:43.453  3179  3233 D EGL_emulation: app_time_stats: avg=6.70ms min=5.22ms max=16.13ms count=60
+02-03 23:03:44.467  3179  3233 D EGL_emulation: app_time_stats: avg=7.17ms min=5.21ms max=17.45ms count=61
+02-03 23:03:45.486  3179  3233 D EGL_emulation: app_time_stats: avg=7.46ms min=5.23ms max=18.61ms count=61
+02-03 23:03:46.169  1147  1147 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS pkg=com.google.android.gms }
+02-03 23:03:46.501  3179  3233 D EGL_emulation: app_time_stats: avg=7.33ms min=5.28ms max=15.08ms count=61
+02-03 23:03:47.054  1937  1955 I IPCThreadState: oneway function results for code 2 on binder at 0xba0c2dd0 will be dropped but finished with status UNKNOWN_TRANSACTION
+02-03 23:03:47.054   522  3139 D OomAdjuster: Not killing cached processes
+02-03 23:03:47.071  1937  2175 E AbstractLogEventBuilder: The provided ProductIdOrigin 3 is not one of the process-level expected values: 1 or 2
+02-03 23:03:47.501  3179  3233 D EGL_emulation: app_time_stats: avg=6.84ms min=5.16ms max=20.22ms count=60
+02-03 23:03:48.517  3179  3233 D EGL_emulation: app_time_stats: avg=6.75ms min=5.20ms max=12.81ms count=61
+02-03 23:03:49.023   522   601 D ActivityManager: freezing 1120 com.google.android.permissioncontroller
+02-03 23:03:49.296  2705  2828 I IPCThreadState: oneway function results for code 2 on binder at 0xbae47390 will be dropped but finished with status UNKNOWN_TRANSACTION
+02-03 23:03:49.536  3179  3233 D EGL_emulation: app_time_stats: avg=6.74ms min=5.32ms max=18.34ms count=61
+02-03 23:03:50.550  3179  3233 D EGL_emulation: app_time_stats: avg=7.07ms min=5.40ms max=19.69ms count=61
+02-03 23:03:51.224  3317  3317 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+02-03 23:03:51.225  3317  3317 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+02-03 23:03:51.234   380   424 W ServiceManagerCppClient: Permission failure: android.permission.CAPTURE_BLACKOUT_CONTENT from uid=2000 pid=3317
+02-03 23:03:51.234   380   424 D PermissionCache: checking android.permission.CAPTURE_BLACKOUT_CONTENT for uid=2000 => denied (584 us)
+02-03 23:03:51.317   153   153 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+02-03 23:03:51.317  3317  3318 I Gralloc4: mapper 4.x is not supported
+02-03 23:03:51.552  3179  3233 D EGL_emulation: app_time_stats: avg=7.32ms min=5.24ms max=16.93ms count=59
+02-03 23:03:52.567  3179  3233 D EGL_emulation: app_time_stats: avg=8.26ms min=5.45ms max=22.74ms count=61
+02-03 23:03:53.092   522   549 D OomAdjuster: Not killing cached processes
+02-03 23:03:53.092   522   549 W ProcessStats: Tracking association SourceState{e97fe5c com.google.android.gms/10084 BFgs #2224} whose proc state 4 is better than process ProcessState{d5f8565 android.process.acore/10054 pkg=com.android.providers.contacts (sub)} proc state 13 (9 skipped)
+02-03 23:03:53.585  3179  3233 D EGL_emulation: app_time_stats: avg=7.29ms min=5.12ms max=25.32ms count=61
+02-03 23:03:54.601  3179  3233 D EGL_emulation: app_time_stats: avg=6.83ms min=5.22ms max=21.76ms count=61
+02-03 23:03:55.618  3179  3233 D EGL_emulation: app_time_stats: avg=7.21ms min=5.25ms max=22.82ms count=61
+02-03 23:03:55.764   522   594 D ActivityManager: sync unfroze 2348 com.google.android.youtube.tv for 6
+02-03 23:03:55.789  1937  1937 I Finsky  : [2] SCH: job service start with id 9267.
+02-03 23:03:55.803  1937  3321 I Finsky  : [150] SCH: Satisfied jobs for 9267 are: 10-101
+02-03 23:03:55.807  1937  3320 I Finsky  : [149] SCH: Job 10-101 starting
+02-03 23:03:55.807  1937  1937 I Finsky  : [2] WM::SCH: Logging work start for 10-101
+02-03 23:03:55.812  1937  1937 I Finsky  : [2] AIM: AppInfoManager-Perf > getLocalApps > called: USE_CACHE
+02-03 23:03:55.814   522  3279 D ConnectivityService: requestNetwork for uid/pid:10095/2348 activeRequest: null callbackRequest: 100 [NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10095 RequestorUid: 10095 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647
+02-03 23:03:55.816  1937  1937 I Finsky  : [2] AIM: getLocalApps returned 136 cached apps
+02-03 23:03:55.827   522   649 D EthernetNetworkFactory: eth0: onNetworkNeeded for request: NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10095 RequestorUid: 10095 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+02-03 23:03:55.827   522   649 D EthernetNetworkFactory: IpClient already started
+02-03 23:03:55.829  1937  2173 I Finsky  : [55] SCH: jobFinished: 10-101. TimeElapsed: 22ms.
+02-03 23:03:55.829  1937  2173 I Finsky  : [55] WM::SCH: Logging work end for 10-101
+02-03 23:03:55.832   522   650 D ConnectivityService: NetReassign [101 : null → 100] [c 1] [a 5] [i 8]
+02-03 23:03:55.832   522   642 D UntrustedWifiNetworkFactory: got request NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10095 RequestorUid: 10095 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+02-03 23:03:55.833   522   642 D OemPaidWifiNetworkFactory: got request NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10095 RequestorUid: 10095 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+02-03 23:03:55.834   522   642 D MultiInternetWifiNetworkFactory: got request NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10095 RequestorUid: 10095 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+02-03 23:03:55.836   522   649 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10095 RequestorUid: 10095 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+02-03 23:03:55.841  1937  2156 I Finsky  : [48] AU2: current managed auto update config: AUTO_UPDATE_POLICY_UNSPECIFIED
+02-03 23:03:55.841  1937  2156 I Finsky  : [48] AU2: current managed auto update config: AUTO_UPDATE_POLICY_UNSPECIFIED
+02-03 23:03:55.848  1937  2175 I Finsky  : [57] SCH: Scheduling phonesky job Id: 1-1337, CT: 1770134560956, Constraints: [{ L: 33444729, D: 76644729, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+02-03 23:03:55.848  1937  2175 I Finsky  : [57] SCH: Scheduling phonesky job Id: 10-4, CT: 1770134559990, Constraints: [{ L: 1200000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+02-03 23:03:55.848  1937  2175 I Finsky  : [57] SCH: Scheduling phonesky job Id: 10-11, CT: 1770134559990, Constraints: [{ L: 600000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+02-03 23:03:55.848  1937  2175 I Finsky  : [57] SCH: Scheduling phonesky job Id: 10-26, CT: 1770134559990, Constraints: [{ L: 600000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+02-03 23:03:55.848  1937  2175 I Finsky  : [57] SCH: Scheduling phonesky job Id: 10-93, CT: 1770134559993, Constraints: [{ L: 300000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+02-03 23:03:55.848  1937  2175 I Finsky  : [57] SCH: Scheduling phonesky job Id: 10-123, CT: 1770134559993, Constraints: [{ L: 600000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+02-03 23:03:55.850  1937  2173 I Finsky  : [55] SCH: Scheduling 1 system job(s)
+02-03 23:03:55.851  1937  2173 I Finsky  : [55] SCH: Scheduling system job Id: 9274, L: 224143, D: 76569835, C: false, I: false, N: 1
+02-03 23:03:55.854  1937  3320 I Finsky  : [149] SCH: job service finished with id 9267.
+02-03 23:03:55.902  2348  2472 W starboard: Empty persistent device token received from InnerTube.
+02-03 23:03:55.923  1355  3328 D TrafficStats: tagSocket(5) with statsTag=0xffffffff, statsUid=-1
+02-03 23:03:56.634  3179  3233 D EGL_emulation: app_time_stats: avg=7.03ms min=5.33ms max=16.44ms count=61
+02-03 23:03:57.634  3179  3233 D EGL_emulation: app_time_stats: avg=6.61ms min=5.17ms max=12.84ms count=60
+02-03 23:03:58.650  3179  3233 D EGL_emulation: app_time_stats: avg=7.01ms min=5.14ms max=14.37ms count=61
+02-03 23:03:59.515   522  3279 D OomAdjuster: Not killing cached processes
+02-03 23:03:59.650  3179  3233 D EGL_emulation: app_time_stats: avg=6.81ms min=5.26ms max=14.68ms count=60
+02-03 23:04:00.668  3179  3233 D EGL_emulation: app_time_stats: avg=6.94ms min=5.24ms max=15.26ms count=61
+02-03 23:04:01.249  1937  1964 I IPCThreadState: oneway function results for code 2 on binder at 0xba0c6010 will be dropped but finished with status UNKNOWN_TRANSACTION
+02-03 23:04:01.686  3179  3233 D EGL_emulation: app_time_stats: avg=7.46ms min=5.40ms max=22.49ms count=61
+02-03 23:04:02.701  3179  3233 D EGL_emulation: app_time_stats: avg=7.56ms min=5.19ms max=21.91ms count=61
+02-03 23:04:03.735  3179  3233 D EGL_emulation: app_time_stats: avg=7.46ms min=5.10ms max=23.17ms count=61
+02-03 23:04:04.751  3179  3233 D EGL_emulation: app_time_stats: avg=7.10ms min=5.33ms max=17.97ms count=62
+02-03 23:04:05.751  3179  3233 D EGL_emulation: app_time_stats: avg=6.50ms min=5.14ms max=13.85ms count=60
+02-03 23:04:05.887   522   601 D ActivityManager: freezing 2348 com.google.android.youtube.tv
+02-03 23:04:06.766  3179  3233 D EGL_emulation: app_time_stats: avg=6.69ms min=5.27ms max=14.47ms count=61
+02-03 23:04:07.797  3179  3233 D EGL_emulation: app_time_stats: avg=6.70ms min=5.19ms max=18.98ms count=61
+02-03 23:04:08.800  3179  3233 D EGL_emulation: app_time_stats: avg=6.49ms min=5.09ms max=21.38ms count=61
+02-03 23:04:09.802  3179  3233 D EGL_emulation: app_time_stats: avg=6.51ms min=5.10ms max=13.52ms count=60

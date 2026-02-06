@@ -112,6 +112,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     var quranVerses by remember { mutableStateOf<List<String>>(emptyList()) }
     var hadiths by remember { mutableStateOf<List<String>>(emptyList()) }
     var pengajian by remember { mutableStateOf<List<String>>(emptyList()) }
+    var fridayReminderAnnouncement by remember { mutableStateOf<String?>(null) }
     
     val testPrayers = remember {
         listOf(
@@ -128,13 +129,21 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             kasData = SupabaseRepository.getKasData()
             
             val fetchedQuran = SupabaseRepository.getQuranVerses()
-            quranVerses = fetchedQuran.map { "QS ${it.surah} (${it.surahNumber}):${it.ayah} - ${it.translation}" }
+            quranVerses = fetchedQuran.map { 
+                val text = it.translation ?: it.transliteration ?: it.arabic
+                "QS ${it.surah} (${it.surahNumber}):${it.ayah} - $text"
+            }
             
             val fetchedHadiths = SupabaseRepository.getHadiths()
-            hadiths = fetchedHadiths.map { "${it.source}: ${it.translation}" }
+            hadiths = fetchedHadiths.map { 
+                val text = it.translation ?: it.arabic
+                "${it.source}: $text"
+            }
             
             val fetchedPengajian = SupabaseRepository.getPengajian()
-            pengajian = fetchedPengajian.map { "${it.judul} oleh ${it.pembicara} (${it.hari}, ${it.jam})" }
+            pengajian = fetchedPengajian
+                .filter { it.judul != null && it.pembicara != null }
+                .map { "${it.judul} oleh ${it.pembicara} (${it.hari ?: "-"}, ${it.jam ?: "-"})" }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -155,6 +164,44 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             set(Calendar.MILLISECOND, 0)
         }.time
         prayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(today)
+    }
+    
+    LaunchedEffect(appClock, prayers) {
+        val cal = jakartaCalendar(appClock)
+        val isFriday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY
+        
+        if (isFriday && prayers.isNotEmpty()) {
+            val dzuhur = prayers.find { it.name.lowercase() == "dzuhur" }
+            if (dzuhur != null) {
+                val dzuhurParts = dzuhur.adhanTime.split(":")
+                if (dzuhurParts.size == 2) {
+                    val dzuhurHour = dzuhurParts[0].toIntOrNull() ?: 12
+                    val dzuhurMinute = dzuhurParts[1].toIntOrNull() ?: 0
+                    
+                    val currentHour = cal.get(Calendar.HOUR_OF_DAY)
+                    val currentMinute = cal.get(Calendar.MINUTE)
+                    val currentTotalMinutes = currentHour * 60 + currentMinute
+                    val dzuhurTotalMinutes = dzuhurHour * 60 + dzuhurMinute
+                    val minutesUntilJumat = dzuhurTotalMinutes - currentTotalMinutes
+                    
+                    fridayReminderAnnouncement = if (minutesUntilJumat in 1..10) {
+                        "🕌 Shalat Jumat dalam $minutesUntilJumat menit! Persiapkan diri untuk menunaikan ibadah Jumat."
+                    } else {
+                        null
+                    }
+                }
+            }
+        } else {
+            fridayReminderAnnouncement = null
+        }
+    }
+    
+    val effectiveAnnouncements = remember(fridayReminderAnnouncement) {
+        if (fridayReminderAnnouncement != null) {
+            listOf(fridayReminderAnnouncement!!) + MockData.announcements
+        } else {
+            MockData.announcements
+        }
     }
     
     LaunchedEffect(appClock, prayers) {
@@ -204,7 +251,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                 if (dzuhurParts.size == 2) {
                     val dzuhurHour = dzuhurParts[0].toIntOrNull() ?: 12
                     val dzuhurMinute = dzuhurParts[1].toIntOrNull() ?: 0
-                    var reminderMinute = dzuhurMinute - 1
+                    var reminderMinute = dzuhurMinute - 10
                     var reminderHour = dzuhurHour
                     if (reminderMinute < 0) {
                         reminderMinute += 60
@@ -235,7 +282,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         MainDashboard(
             masjidConfig = MockData.masjidConfig,
             kasData = kasData,
-            announcements = MockData.announcements,
+            announcements = effectiveAnnouncements,
             quranVerses = quranVerses,
             hadiths = hadiths,
             pengajian = pengajian,
