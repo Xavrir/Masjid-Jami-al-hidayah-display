@@ -194,12 +194,27 @@ fun MainDashboard(
                 verticalAlignment = Alignment.Top
             ) {
                 Column {
-                    Text(
-                        text = masjidConfig.name,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_masjid_logo),
+                            contentDescription = "Masjid Logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = masjidConfig.name,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = formatDayDate(currentTime).uppercase(),
                         fontSize = 14.sp,

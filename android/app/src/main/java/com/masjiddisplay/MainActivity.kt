@@ -105,6 +105,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     var lastAdhanAlertKey by remember { mutableStateOf("") }
     var lastIqamahAlertKey by remember { mutableStateOf("") }
     var lastFridayReminderKey by remember { mutableStateOf("") }
+    var lastPreAdhanAlertKey by remember { mutableStateOf("") }
     
     var prayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     
@@ -116,11 +117,11 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     
     val testPrayers = remember {
         listOf(
-            Prayer("Subuh", "04:30", "04:45", PrayerStatus.UPCOMING),
-            Prayer("Dzuhur", "12:00", "12:15", PrayerStatus.UPCOMING),
-            Prayer("Ashar", "15:30", "15:45", PrayerStatus.UPCOMING),
+            Prayer("Subuh", "04:30", "04:40", PrayerStatus.UPCOMING),
+            Prayer("Dzuhur", "12:00", "12:10", PrayerStatus.UPCOMING),
+            Prayer("Ashar", "15:30", "15:40", PrayerStatus.UPCOMING),
             Prayer("Maghrib", "18:15", "18:20", PrayerStatus.UPCOMING),
-            Prayer("Isya", "19:30", "19:45", PrayerStatus.UPCOMING)
+            Prayer("Isya", "19:30", "19:40", PrayerStatus.UPCOMING)
         )
     }
 
@@ -218,11 +219,33 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         val currentDateStr = "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
         val isFriday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY
         
-        for (prayer in prayers) {
-            val prayerName = prayer.name.lowercase()
-            if (prayerName in listOf("shuruq", "syuruq", "sunrise")) continue
-            
-            if (currentTimeStr == prayer.adhanTime) {
+         for (prayer in prayers) {
+             val prayerName = prayer.name.lowercase()
+             if (prayerName in listOf("shuruq", "syuruq", "sunrise", "imsak")) continue
+             
+             // Check for 3-minute pre-adhan alert
+             val preAdhanParts = prayer.adhanTime.split(":")
+             if (preAdhanParts.size == 2) {
+                 val pHour = preAdhanParts[0].toIntOrNull() ?: 0
+                 val pMinute = preAdhanParts[1].toIntOrNull() ?: 0
+                 var preMinute = pMinute - 3
+                 var preHour = pHour
+                 if (preMinute < 0) { preMinute += 60; preHour -= 1 }
+                 if (preHour < 0) preHour += 24
+                 val preAdhanTime = "%02d:%02d".format(preHour, preMinute)
+                 if (currentTimeStr == preAdhanTime) {
+                     val alertKey = "$currentDateStr-${prayer.name}-preadhan-$preAdhanTime"
+                     if (lastPreAdhanAlertKey != alertKey) {
+                         lastPreAdhanAlertKey = alertKey
+                         alertPrayer = prayer
+                         currentOverlayType = OverlayType.PRE_ADHAN
+                         prayerAlertVisible = true
+                         break
+                     }
+                 }
+             }
+             
+             if (currentTimeStr == prayer.adhanTime) {
                 val alertKey = "$currentDateStr-${prayer.name}-adhan-$currentTimeStr"
                 if (lastAdhanAlertKey != alertKey) {
                     lastAdhanAlertKey = alertKey
@@ -275,17 +298,18 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         }
     }
 
-    LaunchedEffect(prayerAlertVisible, currentOverlayType) {
-        if (prayerAlertVisible) {
-            val duration = when (currentOverlayType) {
-                OverlayType.ADHAN -> 60_000L
-                OverlayType.IQAMAH -> 60_000L
-                OverlayType.FRIDAY_REMINDER -> 10_000L
-            }
-            delay(duration)
-            prayerAlertVisible = false
-        }
-    }
+     LaunchedEffect(prayerAlertVisible, currentOverlayType) {
+         if (prayerAlertVisible) {
+             val duration = when (currentOverlayType) {
+                 OverlayType.ADHAN -> 60_000L
+                 OverlayType.IQAMAH -> 60_000L
+                 OverlayType.FRIDAY_REMINDER -> 10_000L
+                 OverlayType.PRE_ADHAN -> 15_000L
+             }
+             delay(duration)
+             prayerAlertVisible = false
+         }
+     }
     
     Box(modifier = Modifier.fillMaxSize()) {
         MainDashboard(

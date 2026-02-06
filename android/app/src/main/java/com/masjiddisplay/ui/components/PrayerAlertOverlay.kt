@@ -28,7 +28,8 @@ import java.util.*
 enum class OverlayType {
     ADHAN,
     IQAMAH,
-    FRIDAY_REMINDER
+    FRIDAY_REMINDER,
+    PRE_ADHAN
 }
 
 @Composable
@@ -152,6 +153,11 @@ fun PrayerAlertOverlay(
                             "1 MENIT MENUJU SHALAT JUMAT",
                             Color(0xFF4CAF50)
                         )
+                        OverlayType.PRE_ADHAN -> Triple(
+                            "PERSIAPAN ADZAN",
+                            "3 MENIT MENUJU ADZAN ${prayer?.name?.uppercase() ?: ""}",
+                            Color(0xFF2196F3)
+                        )
                     }
 
                     Text(
@@ -173,7 +179,7 @@ fun PrayerAlertOverlay(
                         lineHeight = 64.sp
                     )
 
-                    if (prayer != null && overlayType != OverlayType.FRIDAY_REMINDER) {
+                    if (prayer != null && overlayType != OverlayType.FRIDAY_REMINDER && overlayType != OverlayType.PRE_ADHAN) {
                         Spacer(modifier = Modifier.height(32.dp))
 
                         Row(
