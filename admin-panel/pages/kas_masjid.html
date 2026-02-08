@@ -46,6 +46,14 @@
             box-shadow: var(--shadow-sm);
             padding: 12px 24px;
             height: 70px;
+            /* Fix: Ensure navbar is always above sidebar */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 1050;
+            /* Higher than sidebar (z-index: 100) */
         }
 
         .navbar-brand {
@@ -831,14 +839,37 @@
         const SUPABASE_URL = 'https://wqupptqjbkuldglnpvor.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMDA5MzYsImV4cCI6MjA4MjU3NjkzNn0.-MJ1IYVHeQTHMOhXftTW8l_-bb0sA5yPco2T_sRq5M4';
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        window.supabase = supabase;
+        // DEBUG: Log initialization
+        console.log('🔄 Initializing Supabase client...');
+        console.log('📍 URL:', SUPABASE_URL);
+
+        try {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.supabase = supabase;
+
+            // DEBUG: Verify client is created
+            console.log('✅ Supabase client created:', typeof window.supabase);
+            console.log('✅ supabase.from exists:', typeof window.supabase.from);
+
+            // Dispatch custom event to notify that Supabase is ready
+            window.dispatchEvent(new CustomEvent('supabaseReady'));
+            console.log('✅ supabaseReady event dispatched');
+
+        } catch (error) {
+            console.error('❌ Supabase initialization failed:', error);
+        }
 
         // Global Logout function
         window.handleLogout = async function () {
             if (confirm('Apakah Anda yakin ingin keluar?')) {
                 try {
-                    const { error } = await supabase.auth.signOut();
+                    // Check if supabase exists
+                    if (!window.supabase) {
+                        console.error('Supabase not initialized');
+                        window.location.href = '../login.html';
+                        return;
+                    }
+                    const { error } = await window.supabase.auth.signOut();
                     if (error) throw error;
                     window.location.href = '../login.html';
                 } catch (error) {
@@ -948,10 +979,10 @@
                 if (error) throw error;
 
                 // Map database columns to internal structure
-                // Supabase columns: id, kategori, nominal, keterangan, tanggal (NO type column)
+                // Supabase columns: id, jenis, nominal, keterangan, tanggal, kategori
                 transactions = (data || []).map(item => ({
                     id: item.id,
-                    type: 'masuk', // Default - table doesn't have type, assume all are income for now
+                    type: item.jenis || 'masuk', // Use 'jenis' column for type (masuk/keluar)
                     amount: item.nominal || 0,
                     category: item.kategori || '-',
                     description: item.keterangan || '-',
@@ -1039,13 +1070,17 @@
             }
 
             // Get values - Use EXACT column names from Supabase
-            // Actual columns: id, kategori, nominal, keterangan, tanggal (NO type column!)
+            // Actual columns: id, jenis, nominal, keterangan, tanggal, kategori
             const newTx = {
-                kategori: category.value, // This stores the transaction category
+                jenis: transactionType.value, // 'masuk' or 'keluar'
+                kategori: category.value, // Category of transaction
                 nominal: Number(amount.value),
                 keterangan: description.value || '-',
                 tanggal: transactionDate.value
             };
+
+            // DEBUG: Log the data being inserted
+            console.log('📤 Inserting transaction:', newTx);
 
             // Heuristic to handle 'tanggal' vs 'date' if insert fails? 
             // For now, we trust the English keys as per original code structure, 
@@ -1130,8 +1165,30 @@
             }
         }
 
-        // Start
-        waitForAuth();
+        // Start - Wait for Supabase to be ready first!
+        // This fixes the race condition between module script (async) and regular script (sync)
+        function startApp() {
+            console.log('🚀 Starting app, checking Supabase...');
+            console.log('   window.supabase:', typeof window.supabase);
+
+            if (window.supabase && typeof window.supabase.from === 'function') {
+                console.log('✅ Supabase is ready, calling waitForAuth()');
+                waitForAuth();
+            } else {
+                console.log('⏳ Waiting for supabaseReady event...');
+                window.addEventListener('supabaseReady', () => {
+                    console.log('✅ supabaseReady event received, calling waitForAuth()');
+                    waitForAuth();
+                }, { once: true });
+            }
+        }
+
+        // Ensure DOM is loaded before starting
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startApp);
+        } else {
+            startApp();
+        }
 
     </script>
     <!-- Main JS -->

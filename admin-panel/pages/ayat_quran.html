@@ -49,6 +49,14 @@
             box-shadow: var(--shadow-sm);
             padding: 12px 24px;
             height: 70px;
+            /* Fix: Ensure navbar is always above sidebar */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 1050;
+            /* Higher than sidebar (z-index: 100) */
         }
 
         .navbar-brand {
