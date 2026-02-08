@@ -87,32 +87,67 @@ object SupabaseRepository {
      */
     suspend fun getKasData(): KasData = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getKasData(
+            val transactions = apiService.getKasTransactions(
                 apiKey = SupabaseConfig.SUPABASE_KEY,
                 auth = authHeader
             )
             
-            if (response.isNotEmpty()) {
-                val data = response[0]
+            if (transactions.isNotEmpty()) {
+                // Calculate totals locally
+                var balance: Long = 0
+                var incomeMonth: Long = 0
+                var expenseMonth: Long = 0
+                
+                // Get current month string YYYY-MM
+                val currentMonth = java.time.LocalDate.now().toString().substring(0, 7)
+                
+                transactions.forEach { tx ->
+                    if (tx.jenis == "masuk") {
+                        balance += tx.nominal
+                        if (tx.tanggal.startsWith(currentMonth)) {
+                            incomeMonth += tx.nominal
+                        }
+                    } else { // keluar
+                        balance -= tx.nominal
+                        if (tx.tanggal.startsWith(currentMonth)) {
+                            expenseMonth += tx.nominal
+                        }
+                    }
+                }
+                
+                // Determine trend (simple logic: if income > expense this month -> UP, else DOWN)
+                val trend = if (incomeMonth >= expenseMonth) TrendDirection.UP else TrendDirection.DOWN
+                
+                // Map recent transactions (take top 5)
+                val recent = transactions.take(5).map { it.toLocal() }
+                
                 KasData(
-                    balance = (data["balance"] as? Number)?.toLong() ?: 0L,
-                    incomeMonth = (data["income_month"] as? Number)?.toLong() ?: 0L,
-                    expenseMonth = (data["expense_month"] as? Number)?.toLong() ?: 0L,
-                    trendDirection = TrendDirection.valueOf(
-                        (data["trend_direction"] as? String)?.uppercase() ?: "FLAT"
-                    ),
-                    recentTransactions = emptyList(),
-                    trendData = emptyList()
+                    balance = balance,
+                    incomeMonth = incomeMonth,
+                    expenseMonth = expenseMonth,
+                    trendDirection = trend,
+                    recentTransactions = recent,
+                    trendData = emptyList() // We could calculate this too if needed, but empty is safe for now
                 ).also {
-                    println("✅ Successfully fetched Kas data from Supabase")
+                    println("✅ Successfully calculated Kas data from ${transactions.size} transactions")
                 }
             } else {
-                println("⚠️ No Kas data found in Supabase, using mock data")
-                getMockKasData()
+                println("⚠️ No transactions found in Supabase, returning zero data")
+                KasData(
+                    balance = 0,
+                    incomeMonth = 0,
+                    expenseMonth = 0,
+                    trendDirection = TrendDirection.FLAT,
+                    recentTransactions = emptyList(),
+                    trendData = emptyList()
+                )
             }
         } catch (e: Exception) {
-            println("⚠️ Error fetching Kas data: ${e.message}")
+            println("⚠️ Error fetching Kas transactions: ${e.message}")
             e.printStackTrace()
+            // In case of error, we can either return mock data or empty data. 
+            // Returning mock data might be confusing if the user expects real data.
+            // But to avoid app crash/empty screen, let's fall back to mock for now as per original design.
             getMockKasData()
         }
     }
@@ -185,7 +220,6 @@ private fun QuranVerseRemote.toLocal(): QuranVerse {
     )
 }
 
-private fun HadithRemote.toLocal(): Hadith {
     return Hadith(
         id = this.id,
         narrator = this.narrator,
@@ -193,5 +227,21 @@ private fun HadithRemote.toLocal(): Hadith {
         translation = this.translation,
         source = this.source,
         category = this.category
+    )
+}
+
+private fun KasTransactionRemote.toLocal(): KasTransaction {
+    // Map remote type string to enum
+    val txType = if (this.jenis.equals("masuk", ignoreCase = true)) 
+        TransactionType.INCOME 
+    else 
+        TransactionType.EXPENSE
+
+    return KasTransaction(
+        id = this.id.toString(),
+        date = this.tanggal,
+        description = this.keterangan ?: this.kategori,
+        amount = this.nominal,
+        type = txType
     )
 }

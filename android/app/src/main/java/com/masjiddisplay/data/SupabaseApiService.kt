@@ -7,11 +7,11 @@ import retrofit2.http.*
  */
 interface SupabaseApiService {
     
-    @GET("rest/v1/kas_masjid")
-    suspend fun getKasData(
+    @GET("rest/v1/kas_transaksi?select=*&order=tanggal.desc")
+    suspend fun getKasTransactions(
         @Header("apikey") apiKey: String,
         @Header("Authorization") auth: String
-    ): List<Map<String, Any>>
+    ): List<KasTransactionRemote>
     
     @GET("rest/v1/ayat_quran")
     suspend fun getQuranVerses(
@@ -65,9 +65,19 @@ data class PengajianRemote(
 )
 
 data class KasTransactionRemote(
-    val id: String,
-    val date: String,
-    val description: String,
-    val amount: Long,
-    val type: String
+    val id: Long, // Supabase ID is usually Int/Long, but let's check. Admin panel uses it as ID. 
+    // Wait, the admin panel uses `id` which is auto increment int usually.
+    // Let's use Long to be safe or String if unsure. 
+    // In MockData it was String "1".
+    // In admin panel JS: `transactions = (data || []).map(item => ({ id: item.id ...`
+    // Let's check `KasTransaction` model in Models.kt -> `val id: String`.
+    // So we can map it later.
+    // Models in `SupabaseApiService` should match JSON response.
+    // `kas_transaksi` columns: id, jenis, nominal, keterangan, tanggal, kategori
+    val id: Long, 
+    val tanggal: String,
+    val keterangan: String?,
+    val nominal: Long,
+    val jenis: String,
+    val kategori: String
 )
