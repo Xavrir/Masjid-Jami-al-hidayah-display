@@ -10,12 +10,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,7 +29,6 @@ import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -46,17 +47,19 @@ fun MainDashboard(
     var prayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     var tomorrowPrayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     var nextPrayer by remember { mutableStateOf<Prayer?>(null) }
-    var shuruqTime by remember { mutableStateOf("5:51 AM") }
+    var shuruqTime by remember { mutableStateOf("05:55") }
+    var imsakTime by remember { mutableStateOf("04:24") }
+    val isRamadhanNow = remember(currentTime) { isRamadan(currentTime) }
     
     LaunchedEffect(Unit) {
-        val today = Calendar.getInstance().apply {
+        val today = jakartaCalendar().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.time
         
-        val tomorrow = Calendar.getInstance().apply {
+        val tomorrow = jakartaCalendar().apply {
             add(Calendar.DAY_OF_YEAR, 1)
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -67,6 +70,7 @@ fun MainDashboard(
         prayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(today)
         tomorrowPrayers = PrayerTimeCalculator.calculatePrayerTimesForJakarta(tomorrow)
         shuruqTime = PrayerTimeCalculator.calculateShuruqTimeForJakarta(today)
+        imsakTime = PrayerTimeCalculator.calculateImsakTimeForJakarta(today)
     }
     
     LaunchedEffect(Unit) {
@@ -82,7 +86,7 @@ fun MainDashboard(
             
             val allPassed = PrayerTimeCalculator.allPrayersPassed(prayers)
             val updatedTomorrowPrayers = if (allPassed && tomorrowPrayers.isNotEmpty()) {
-                val tomorrowRef = Calendar.getInstance().apply {
+                val tomorrowRef = jakartaCalendar().apply {
                     add(Calendar.DAY_OF_YEAR, 1)
                 }.time
                 PrayerTimeCalculator.updatePrayerStatuses(tomorrowPrayers, currentTime, tomorrowRef)
@@ -96,7 +100,7 @@ fun MainDashboard(
             )
             
             val current = PrayerTimeCalculator.getCurrentPrayer(prayers)
-            if (current != null) {
+            if (current != null && current.name.lowercase() != "imsak") {
                 onPrayerStart(current)
             }
         }
@@ -109,12 +113,36 @@ fun MainDashboard(
         } ?: "—"
     }
     
-    val mainPrayers = prayers.filter { 
-        it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise") 
+    val mainPrayers = remember(prayers, isRamadhanNow, shuruqTime) {
+        if (isRamadhanNow) {
+            prayers.filter { 
+                it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise") 
+            }
+        } else {
+            val filtered = prayers.filter { 
+                it.name.lowercase() !in listOf("shuruq", "syuruq", "sunrise", "imsak") 
+            }.toMutableList()
+            val subuhIndex = filtered.indexOfFirst { it.name.lowercase() in listOf("subuh", "fajr") }
+            if (subuhIndex >= 0) {
+                val syuruqPrayer = Prayer(
+                    name = "Syuruq",
+                    adhanTime = shuruqTime,
+                    iqamahTime = shuruqTime,
+                    status = PrayerStatus.UPCOMING
+                )
+                filtered.add(subuhIndex + 1, syuruqPrayer)
+            }
+            filtered
+        }
     }
     
-    val announcementsWithKas = announcements + listOf(
-        "Kas Masjid - Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
+    val cornerLabel = if (isRamadhanNow) "SYURUQ" else "IMSAK"
+    val cornerTime = if (isRamadhanNow) shuruqTime else imsakTime
+    val cornerEmoji = if (isRamadhanNow) "☀️" else "🌙"
+    val cornerColor = if (isRamadhanNow) Color(0xFFFFA500) else Color(0xFF9C88FF)
+    
+    val kasItems = listOf(
+        "Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
     )
     
     Box(modifier = modifier.fillMaxSize()) {
@@ -131,6 +159,28 @@ fun MainDashboard(
                 .background(Color.Black.copy(alpha = 0.5f))
         )
         
+        if (isRamadhanNow) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(140.dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = 24.dp, y = 24.dp)
+                    .alpha(0.06f)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(140.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-24).dp, y = 24.dp)
+                    .alpha(0.06f)
+                    .graphicsLayer { scaleX = -1f }
+            )
+        }
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -144,14 +194,36 @@ fun MainDashboard(
                 verticalAlignment = Alignment.Top
             ) {
                 Column {
-                    Text(
-                        text = masjidConfig.name,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_masjid_logo),
+                            contentDescription = "Logo Masjid",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = masjidConfig.name,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = formatDayDate(currentTime).uppercase(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = getHijriDate(currentTime).uppercase(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.White.copy(alpha = 0.8f),
@@ -167,13 +239,13 @@ fun MainDashboard(
                         color = Color.White
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "☀️", fontSize = 14.sp)
+                        Text(text = cornerEmoji, fontSize = 14.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "SUNRISE $shuruqTime",
+                            text = "$cornerLabel $cornerTime",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFFFA500),
+                            color = cornerColor,
                             letterSpacing = 0.5.sp
                         )
                     }
@@ -187,9 +259,13 @@ fun MainDashboard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
+                val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
+                val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
+                
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "UNTIL",
+                        text = "MENUJU",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.White.copy(alpha = 0.7f),
@@ -219,7 +295,7 @@ fun MainDashboard(
                     ) {
                         val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
                         drawLine(
-                            color = Color(0xFF4ECDC4),
+                            color = timelineColor,
                             start = Offset(0f, size.height / 2),
                             end = Offset(size.width, size.height / 2),
                             strokeWidth = 3f,
@@ -243,10 +319,10 @@ fun MainDashboard(
                                     .clip(CircleShape)
                                     .background(
                                         when {
-                                            isCurrent -> Color(0xFF4ECDC4)
-                                            isNext -> Color(0xFF4ECDC4)
-                                            isPassed -> Color(0xFF4ECDC4).copy(alpha = 0.5f)
-                                            else -> Color(0xFF4ECDC4).copy(alpha = 0.3f)
+                                            isCurrent -> timelineColor
+                                            isNext -> timelineColor
+                                            isPassed -> timelineSoftColor
+                                            else -> timelineFaintColor
                                         }
                                     )
                             )
@@ -262,14 +338,13 @@ fun MainDashboard(
                 ) {
                     mainPrayers.forEach { prayer ->
                         val isCurrent = prayer.status == PrayerStatus.CURRENT
-                        val isNext = nextPrayer?.name == prayer.name
                         
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 painter = painterResource(id = getPrayerIconRes(prayer.name)),
                                 contentDescription = prayer.name,
                                 modifier = Modifier.size(32.dp),
-                                tint = if (isCurrent || isNext) Color(0xFF4ECDC4) else Color.White.copy(alpha = 0.8f)
+                                tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
@@ -277,8 +352,8 @@ fun MainDashboard(
                             Text(
                                 text = prayer.name.uppercase(),
                                 fontSize = 14.sp,
-                                fontWeight = if (isCurrent || isNext) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isCurrent || isNext) Color(0xFFFFA500) else Color.White,
+                                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isCurrent) Color(0xFFFFA500) else Color.White,
                                 letterSpacing = 1.sp
                             )
                             
@@ -294,7 +369,8 @@ fun MainDashboard(
             }
             
             MultiSourceRunningText(
-                announcements = announcementsWithKas,
+                announcements = announcements,
+                kasItems = kasItems,
                 quranVerses = quranVerses,
                 hadiths = hadiths,
                 pengajian = pengajian
@@ -305,8 +381,10 @@ fun MainDashboard(
 
 private fun getPrayerIconRes(prayerName: String): Int {
     return when (prayerName.lowercase()) {
+        "imsak" -> R.drawable.ic_imsak
         "subuh", "fajr" -> R.drawable.ic_subuh
-        "dzuhur", "dhuhr", "zuhur" -> R.drawable.ic_dzuhur
+        "syuruq", "shuruq", "sunrise" -> R.drawable.ic_syuruq
+        "dzuhur", "dhuhr", "zuhur", "jumat" -> R.drawable.ic_dzuhur
         "ashar", "asr" -> R.drawable.ic_ashar
         "maghrib" -> R.drawable.ic_maghrib
         "isya", "isha" -> R.drawable.ic_isya
@@ -315,12 +393,12 @@ private fun getPrayerIconRes(prayerName: String): Int {
 }
 
 private fun formatTimeAmPm(date: Date): String {
-    val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
+    val sdf = jakartaDateFormat("HH:mm", Locale("id", "ID"))
     return sdf.format(date)
 }
 
 private fun formatDayDate(date: Date): String {
-    val sdf = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
+    val sdf = jakartaDateFormat("EEEE, d MMMM", Locale("id", "ID"))
     return sdf.format(date)
 }
 
@@ -329,8 +407,7 @@ private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String 
         val timeParts = prayer.adhanTime.split(":")
         if (timeParts.size != 2) return "—"
         
-        val prayerCal = Calendar.getInstance().apply {
-            time = currentTime
+        val prayerCal = jakartaCalendar(currentTime).apply {
             set(Calendar.HOUR_OF_DAY, timeParts[0].toInt())
             set(Calendar.MINUTE, timeParts[1].toInt())
             set(Calendar.SECOND, 0)
@@ -345,9 +422,9 @@ private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String 
         val minutes = (diffMs % (1000 * 60 * 60)) / (1000 * 60)
         
         return when {
-            hours > 0 -> "${hours}h ${minutes}m"
+            hours > 0 -> "${hours}j ${minutes}m"
             minutes > 0 -> "${minutes}m"
-            else -> "Now"
+            else -> "Sekarang"
         }
     } catch (e: Exception) {
         return "—"

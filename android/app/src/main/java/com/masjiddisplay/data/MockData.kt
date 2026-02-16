@@ -8,8 +8,8 @@ object MockData {
         name = "Masjid Jami' Al-Hidayah",
         location = "Jl. Tanah Merdeka II No.8, Rambutan, Ciracas, Jakarta Timur 13830",
         tagline = "Memakmurkan Masjid, Mencerahkan Umat",
-        latitude = -6.3140892,
-        longitude = 106.8776666,
+        latitude = -6.3092124,
+        longitude = 106.8816386,
         calculationMethod = "Kemenag RI"
     )
 
@@ -70,10 +70,4 @@ object MockData {
         )
     )
 
-    val announcements = listOf(
-        "Mohon menonaktifkan atau membisukan ponsel sebelum salat dimulai.",
-        "Kajian rutin setiap Ahad ba'da Maghrib bersama Ustadz Ahmad.",
-        "Infaq pembangunan gedung baru telah mencapai 75% dari target.",
-        "Pendaftaran TPA dibuka untuk tahun ajaran baru, hubungi panitia di ruang sekretariat."
-    )
 }

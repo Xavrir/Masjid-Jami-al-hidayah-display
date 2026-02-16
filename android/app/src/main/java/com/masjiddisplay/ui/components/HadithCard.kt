@@ -67,7 +67,7 @@ fun HadithCard(
                     color = AppColors.accentPrimary
                 )
                 Text(
-                    text = hadith.category.uppercase(),
+                    text = (hadith.category ?: "Umum").uppercase(),
                     style = AppTypography.caption.copy(fontSize = 10.sp),
                     color = AppColors.textMuted
                 )

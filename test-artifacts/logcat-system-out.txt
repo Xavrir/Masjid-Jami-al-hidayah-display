@@ -1,0 +1,5 @@
+--------- beginning of main
+02-03 23:04:51.872  3356  3392 I System.out: ⚠️ Error fetching Kas data: HTTP 401 
+02-03 23:04:51.957  3356  3392 I System.out: ⚠️ Error fetching Quran verses: HTTP 401 
+02-03 23:04:52.014  3356  3392 I System.out: ⚠️ Error fetching Hadiths: HTTP 401 
+02-03 23:04:52.067  3356  3392 I System.out: ⚠️ Error fetching Pengajian: HTTP 401 

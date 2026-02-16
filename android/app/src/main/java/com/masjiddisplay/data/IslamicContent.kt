@@ -9,7 +9,7 @@ data class QuranVerse(
     val surahNumber: Int,
     val ayah: Int,
     val arabic: String,
-    val translation: String,
+    val translation: String? = null,
     val transliteration: String? = null
 )
 
@@ -18,11 +18,11 @@ data class QuranVerse(
  */
 data class Hadith(
     val id: String,
-    val narrator: String,
+    val narrator: String? = null,
     val arabic: String,
-    val translation: String,
+    val translation: String? = null,
     val source: String,
-    val category: String
+    val category: String? = null
 )
 
 /**

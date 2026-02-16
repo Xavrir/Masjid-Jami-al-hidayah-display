@@ -13,6 +13,14 @@ interface SupabaseApiService {
         @Header("Authorization") auth: String
     ): List<KasTransactionRemote>
     
+    @GET("rest/v1/kas_transaksi")
+    suspend fun getKasTransactions(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") auth: String,
+        @Query("select") select: String = "*",
+        @Query("order") order: String = "tanggal.desc"
+    ): List<KasTransaksiRemote>
+    
     @GET("rest/v1/ayat_quran")
     suspend fun getQuranVerses(
         @Header("apikey") apiKey: String,
@@ -33,37 +41,37 @@ interface SupabaseApiService {
 }
 
 /**
- * Remote data models for API responses
+ * Remote data models matching Supabase database schema
  */
 data class QuranVerseRemote(
     val id: String,
     val surah: String,
-    val surah_number: Int,
+    val surahNumber: Int,
     val ayah: Int,
     val arabic: String,
-    val translation: String,
     val transliteration: String? = null
 )
 
 data class HadithRemote(
     val id: String,
-    val narrator: String,
-    val arabic: String,
-    val translation: String,
-    val source: String,
-    val category: String
+    val teks: String,
+    val sumber: String,
+    val kategori: String? = null,
+    val aktif: Boolean = true,
+    val terjemahan: String? = null
 )
 
 data class PengajianRemote(
     val id: String,
-    val judul: String,
-    val pembicara: String,
-    val jam: String,
-    val hari: String,
-    val lokasi: String,
+    val judul: String? = null,
+    val pembicara: String? = null,
+    val jam: String? = null,
+    val hari: String? = null,
+    val lokasi: String? = null,
     val deskripsi: String? = null
 )
 
+<<<<<<< HEAD
 data class KasTransactionRemote(
     val id: Long, // Supabase ID is usually Int/Long, but let's check. Admin panel uses it as ID. 
     // Wait, the admin panel uses `id` which is auto increment int usually.
@@ -80,4 +88,13 @@ data class KasTransactionRemote(
     val nominal: Long,
     val jenis: String,
     val kategori: String
+=======
+data class KasTransaksiRemote(
+    val id: Int,
+    val tanggal: String,
+    val keterangan: String? = null,
+    val nominal: Long,
+    val jenis: String,
+    val kategori: String? = null
+>>>>>>> 28f3afdf1a41b50cfbfc7feb5ae653a6d8c689b2
 )

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="140dp"
+    android:height="140dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    
+    <!-- Top hook/chain -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,5 L52,5 L52,12 L48,12 Z" />
+    
+    <!-- Top cap/crown -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,12 L60,12 L58,18 L42,18 Z" />
+    
+    <!-- Main lantern body (octagonal shape) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42,18 L58,18 L62,28 L62,70 L58,80 L42,80 L38,70 L38,28 Z" />
+    
+    <!-- Decorative horizontal bands -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.2"
+        android:pathData="M38,35 L62,35 L62,38 L38,38 Z" />
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.2"
+        android:pathData="M38,55 L62,55 L62,58 L38,58 Z" />
+    
+    <!-- Center vertical accent -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.15"
+        android:pathData="M48,18 L52,18 L52,80 L48,80 Z" />
+    
+    <!-- Bottom finial/tassel holder -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45,80 L55,80 L53,88 L47,88 Z" />
+    
+    <!-- Bottom point -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47,88 L53,88 L50,95 Z" />
+    
+</vector>

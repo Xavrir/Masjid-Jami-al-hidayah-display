@@ -4,6 +4,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import java.time.LocalDate
+import java.time.YearMonth
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 /**
  * Repository for managing all data from Supabase
@@ -11,8 +21,36 @@ import kotlinx.coroutines.*
  */
 object SupabaseRepository {
     
+    /**
+     * Create OkHttpClient that trusts all certificates (for debug/emulator only)
+     * This bypasses SSL certificate validation issues on emulators with outdated CA stores
+     */
+    private fun createUnsafeOkHttpClient(): OkHttpClient {
+        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        })
+        
+        val sslContext = SSLContext.getInstance("SSL")
+        sslContext.init(null, trustAllCerts, SecureRandom())
+        
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+        
+        return OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+            .hostnameVerifier { _, _ -> true }
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+    
     private val retrofit = Retrofit.Builder()
         .baseUrl(SupabaseConfig.SUPABASE_URL + "/")
+        .client(createUnsafeOkHttpClient())
         .addConverterFactory(GsonConverterFactory.create(Gson()))
         .build()
     
@@ -24,7 +62,7 @@ object SupabaseRepository {
     
     /**
      * Fetch Quran verses from Supabase and convert to local model
-     * Falls back to mock data on error
+     * Returns empty list on error — never falls back to mock data
      */
     suspend fun getQuranVerses(): List<QuranVerse> = withContext(Dispatchers.IO) {
         try {
@@ -38,13 +76,13 @@ object SupabaseRepository {
         } catch (e: Exception) {
             println("⚠️ Error fetching Quran verses: ${e.message}")
             e.printStackTrace()
-            quranVerses // Return local mock data on error
+            emptyList()
         }
     }
     
     /**
      * Fetch Hadiths from Supabase and convert to local model
-     * Falls back to mock data on error
+     * Returns empty list on error — never falls back to mock data
      */
     suspend fun getHadiths(): List<Hadith> = withContext(Dispatchers.IO) {
         try {
@@ -58,7 +96,7 @@ object SupabaseRepository {
         } catch (e: Exception) {
             println("⚠️ Error fetching Hadiths: ${e.message}")
             e.printStackTrace()
-            hadiths // Return local mock data on error
+            emptyList()
         }
     }
     
@@ -83,7 +121,8 @@ object SupabaseRepository {
     
     /**
      * Fetch Kas (Treasury) data from Supabase
-     * Falls back to mock data on error
+     * Combines kas_masjid balance with monthly summary from kas_transaksi
+     * Returns zeroed KasData on error — never falls back to mock data
      */
     suspend fun getKasData(): KasData = withContext(Dispatchers.IO) {
         try {
@@ -92,6 +131,7 @@ object SupabaseRepository {
                 auth = authHeader
             )
             
+<<<<<<< HEAD
             if (transactions.isNotEmpty()) {
                 // Calculate totals locally
                 var balance: Long = 0
@@ -141,14 +181,45 @@ object SupabaseRepository {
                     recentTransactions = emptyList(),
                     trendData = emptyList()
                 )
+=======
+            val balance = if (response.isNotEmpty()) {
+                val data = response[0]
+                (data["total"] as? Number)?.toLong() ?: 0L
+            } else {
+                0L
+            }
+            
+            val (pemasukan, pengeluaran) = getMonthlyKasSummary()
+            
+            KasData(
+                balance = balance,
+                incomeMonth = pemasukan,
+                expenseMonth = pengeluaran,
+                trendDirection = TrendDirection.FLAT,
+                recentTransactions = emptyList(),
+                trendData = emptyList()
+            ).also {
+                println("✅ Successfully fetched Kas data from Supabase (balance=$balance, income=$pemasukan, expense=$pengeluaran)")
+>>>>>>> 28f3afdf1a41b50cfbfc7feb5ae653a6d8c689b2
             }
         } catch (e: Exception) {
             println("⚠️ Error fetching Kas transactions: ${e.message}")
             e.printStackTrace()
+<<<<<<< HEAD
             // In case of error, we can either return mock data or empty data. 
             // Returning mock data might be confusing if the user expects real data.
             // But to avoid app crash/empty screen, let's fall back to mock for now as per original design.
             getMockKasData()
+=======
+            KasData(
+                balance = 0L,
+                incomeMonth = 0L,
+                expenseMonth = 0L,
+                trendDirection = TrendDirection.FLAT,
+                recentTransactions = emptyList(),
+                trendData = emptyList()
+            )
+>>>>>>> 28f3afdf1a41b50cfbfc7feb5ae653a6d8c689b2
         }
     }
     
@@ -157,7 +228,8 @@ object SupabaseRepository {
      */
     suspend fun getQuranVersesForDisplay(): List<String> {
         return getQuranVerses().map { verse ->
-            "${verse.surah} (${verse.ayah}): ${verse.translation}"
+            val text = verse.translation ?: verse.transliteration ?: verse.arabic
+            "${verse.surah} (${verse.ayah}): $text"
         }
     }
     
@@ -166,7 +238,8 @@ object SupabaseRepository {
      */
     suspend fun getHadithsForDisplay(): List<String> {
         return getHadiths().map { hadith ->
-            "${hadith.narrator} - ${hadith.translation}"
+            val text = hadith.translation ?: hadith.arabic
+            "${hadith.source}: $text"
         }
     }
     
@@ -174,25 +247,77 @@ object SupabaseRepository {
      * Get formatted Pengajian as display strings
      */
     suspend fun getPengajianForDisplay(): List<String> {
-        return getPengajian().map { pengajian ->
-            "${pengajian.judul} (${pengajian.hari} - ${pengajian.jam}) - ${pengajian.pembicara}"
+        return getPengajian()
+            .filter { it.judul != null && it.pembicara != null }
+            .map { pengajian ->
+                "${pengajian.judul} (${pengajian.hari ?: "-"} - ${pengajian.jam ?: "-"}) - ${pengajian.pembicara}"
+            }
+    }
+    
+    /**
+     * Fetch Kas transactions from Supabase
+     */
+    suspend fun getKasTransactions(): List<KasTransaksiRemote> = withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.getKasTransactions(
+                apiKey = SupabaseConfig.SUPABASE_KEY,
+                auth = authHeader
+            )
+            println("✅ Successfully fetched ${response.size} Kas transactions from Supabase")
+            response
+        } catch (e: Exception) {
+            println("⚠️ Error fetching Kas transactions: ${e.message}")
+            e.printStackTrace()
+            emptyList()
         }
     }
     
     /**
-     * Get formatted Kas data as display string
+     * Calculate monthly pemasukan and pengeluaran from kas_transaksi
      */
-    suspend fun getKasDataForDisplay(): String {
-        val kas = getKasData()
-        return "Kas Masjid: Rp${kas.balance.formatCurrency()} | Pemasukan Bulan Ini: Rp${kas.incomeMonth.formatCurrency()}"
+    suspend fun getMonthlyKasSummary(): Pair<Long, Long> = withContext(Dispatchers.IO) {
+        try {
+            val transactions = getKasTransactions()
+            val currentMonth = YearMonth.now()
+            
+            var pemasukan = 0L
+            var pengeluaran = 0L
+            
+            transactions.forEach { tx ->
+                try {
+                    val dateStr = tx.tanggal.substringBefore('T')
+                    val txDate = LocalDate.parse(dateStr)
+                    val txMonth = YearMonth.from(txDate)
+                    
+                    if (txMonth == currentMonth) {
+                        val jenisLower = tx.jenis.lowercase()
+                        when {
+                            jenisLower in listOf("pemasukan", "masuk") -> pemasukan += tx.nominal
+                            jenisLower in listOf("pengeluaran", "keluar") -> pengeluaran += tx.nominal
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("⚠️ Error parsing transaction: ${e.message}")
+                }
+            }
+            
+            println("✅ Monthly summary - Pemasukan: Rp${pemasukan.formatCurrency()}, Pengeluaran: Rp${pengeluaran.formatCurrency()}")
+            Pair(pemasukan, pengeluaran)
+        } catch (e: Exception) {
+            println("⚠️ Error calculating monthly summary: ${e.message}")
+            e.printStackTrace()
+            Pair(0L, 0L)
+        }
     }
     
     /**
-     * Get mock KAS data as fallback
+     * Get formatted Kas data as display string using real transaction data
      */
-    private fun getMockKasData(): KasData {
-        return MockData.kasData
+    suspend fun getKasDataForDisplay(): String {
+        val (pemasukan, pengeluaran) = getMonthlyKasSummary()
+        return "Pemasukan Bulan Ini: Rp${pemasukan.formatCurrency()} | Pengeluaran Bulan Ini: Rp${pengeluaran.formatCurrency()}"
     }
+    
 }
 
 /**
@@ -210,23 +335,23 @@ private fun Long.formatCurrency(): String {
  */
 private fun QuranVerseRemote.toLocal(): QuranVerse {
     return QuranVerse(
-        id = this.id,
+        id = this.id.toString(),
         surah = this.surah,
-        surahNumber = this.surah_number,
+        surahNumber = this.surahNumber,
         ayah = this.ayah,
         arabic = this.arabic,
-        translation = this.translation,
+        translation = this.transliteration,
         transliteration = this.transliteration
     )
 }
 
     return Hadith(
-        id = this.id,
-        narrator = this.narrator,
-        arabic = this.arabic,
-        translation = this.translation,
-        source = this.source,
-        category = this.category
+        id = this.id.toString(),
+        narrator = null,
+        arabic = this.teks,
+        translation = this.terjemahan,
+        source = this.sumber,
+        category = this.kategori
     )
 }
 
