@@ -62,7 +62,7 @@ object SupabaseRepository {
     
     /**
      * Fetch Quran verses from Supabase and convert to local model
-     * Falls back to mock data on error
+     * Returns empty list on error — never falls back to mock data
      */
     suspend fun getQuranVerses(): List<QuranVerse> = withContext(Dispatchers.IO) {
         try {
@@ -76,13 +76,13 @@ object SupabaseRepository {
         } catch (e: Exception) {
             println("⚠️ Error fetching Quran verses: ${e.message}")
             e.printStackTrace()
-            quranVerses // Return local mock data on error
+            emptyList()
         }
     }
     
     /**
      * Fetch Hadiths from Supabase and convert to local model
-     * Falls back to mock data on error
+     * Returns empty list on error — never falls back to mock data
      */
     suspend fun getHadiths(): List<Hadith> = withContext(Dispatchers.IO) {
         try {
@@ -96,7 +96,7 @@ object SupabaseRepository {
         } catch (e: Exception) {
             println("⚠️ Error fetching Hadiths: ${e.message}")
             e.printStackTrace()
-            hadiths // Return local mock data on error
+            emptyList()
         }
     }
     
@@ -121,7 +121,8 @@ object SupabaseRepository {
     
     /**
      * Fetch Kas (Treasury) data from Supabase
-     * Falls back to mock data on error
+     * Combines kas_masjid balance with monthly summary from kas_transaksi
+     * Returns zeroed KasData on error — never falls back to mock data
      */
     suspend fun getKasData(): KasData = withContext(Dispatchers.IO) {
         try {
@@ -130,28 +131,36 @@ object SupabaseRepository {
                 auth = authHeader
             )
             
-            if (response.isNotEmpty()) {
+            val balance = if (response.isNotEmpty()) {
                 val data = response[0]
-                KasData(
-                    balance = (data["balance"] as? Number)?.toLong() ?: 0L,
-                    incomeMonth = (data["income_month"] as? Number)?.toLong() ?: 0L,
-                    expenseMonth = (data["expense_month"] as? Number)?.toLong() ?: 0L,
-                    trendDirection = TrendDirection.valueOf(
-                        (data["trend_direction"] as? String)?.uppercase() ?: "FLAT"
-                    ),
-                    recentTransactions = emptyList(),
-                    trendData = emptyList()
-                ).also {
-                    println("✅ Successfully fetched Kas data from Supabase")
-                }
+                (data["total"] as? Number)?.toLong() ?: 0L
             } else {
-                println("⚠️ No Kas data found in Supabase, using mock data")
-                getMockKasData()
+                0L
+            }
+            
+            val (pemasukan, pengeluaran) = getMonthlyKasSummary()
+            
+            KasData(
+                balance = balance,
+                incomeMonth = pemasukan,
+                expenseMonth = pengeluaran,
+                trendDirection = TrendDirection.FLAT,
+                recentTransactions = emptyList(),
+                trendData = emptyList()
+            ).also {
+                println("✅ Successfully fetched Kas data from Supabase (balance=$balance, income=$pemasukan, expense=$pengeluaran)")
             }
         } catch (e: Exception) {
             println("⚠️ Error fetching Kas data: ${e.message}")
             e.printStackTrace()
-            getMockKasData()
+            KasData(
+                balance = 0L,
+                incomeMonth = 0L,
+                expenseMonth = 0L,
+                trendDirection = TrendDirection.FLAT,
+                recentTransactions = emptyList(),
+                trendData = emptyList()
+            )
         }
     }
     
@@ -224,8 +233,8 @@ object SupabaseRepository {
                     if (txMonth == currentMonth) {
                         val jenisLower = tx.jenis.lowercase()
                         when {
-                            jenisLower in listOf("pemasukan", "masuk") -> pemasukan += tx.jumlah
-                            jenisLower in listOf("pengeluaran", "keluar") -> pengeluaran += tx.jumlah
+                            jenisLower in listOf("pemasukan", "masuk") -> pemasukan += tx.nominal
+                            jenisLower in listOf("pengeluaran", "keluar") -> pengeluaran += tx.nominal
                         }
                     }
                 } catch (e: Exception) {
@@ -250,12 +259,6 @@ object SupabaseRepository {
         return "Pemasukan Bulan Ini: Rp${pemasukan.formatCurrency()} | Pengeluaran Bulan Ini: Rp${pengeluaran.formatCurrency()}"
     }
     
-    /**
-     * Get mock KAS data as fallback
-     */
-    private fun getMockKasData(): KasData {
-        return MockData.kasData
-    }
 }
 
 /**

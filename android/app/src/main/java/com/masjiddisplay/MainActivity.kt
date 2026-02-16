@@ -30,11 +30,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.masjiddisplay.data.MockData
+import com.masjiddisplay.data.MasjidConfig
 import com.masjiddisplay.data.Prayer
 import com.masjiddisplay.data.PrayerStatus
 import com.masjiddisplay.data.SupabaseRepository
 import com.masjiddisplay.data.KasData
+import com.masjiddisplay.data.TrendDirection
 import com.masjiddisplay.services.SoundNotificationService
 import com.masjiddisplay.services.SoundNotificationServiceHolder
 import com.masjiddisplay.ui.components.KasDetailOverlay
@@ -95,6 +96,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: MutableState<Boolean>) {
+    val masjidConfig = remember {
+        MasjidConfig(
+            name = "Masjid Jami' Al-Hidayah",
+            location = "Jl. Tanah Merdeka II No.8, Rambutan, Ciracas, Jakarta Timur 13830",
+            tagline = "Memakmurkan Masjid, Mencerahkan Umat",
+            latitude = -6.3092124,
+            longitude = 106.8816386,
+            calculationMethod = "Kemenag RI"
+        )
+    }
     var kasOverlayVisible by remember { mutableStateOf(false) }
     var appClock by remember { mutableStateOf(Date()) }
     
@@ -109,7 +120,14 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     
     var prayers by remember { mutableStateOf<List<Prayer>>(emptyList()) }
     
-    var kasData by remember { mutableStateOf(MockData.kasData) }
+    var kasData by remember { mutableStateOf(KasData(
+        balance = 0L,
+        incomeMonth = 0L,
+        expenseMonth = 0L,
+        trendDirection = TrendDirection.FLAT,
+        recentTransactions = emptyList(),
+        trendData = emptyList()
+    )) }
     var quranVerses by remember { mutableStateOf<List<String>>(emptyList()) }
     var hadiths by remember { mutableStateOf<List<String>>(emptyList()) }
     var pengajian by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -127,11 +145,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
 
     LaunchedEffect(Unit) {
         try {
-            val (pemasukan, pengeluaran) = SupabaseRepository.getMonthlyKasSummary()
-            kasData = kasData.copy(
-                incomeMonth = pemasukan,
-                expenseMonth = pengeluaran
-            )
+            kasData = SupabaseRepository.getKasData()
             
             val fetchedQuran = SupabaseRepository.getQuranVerses()
             quranVerses = fetchedQuran.map { 
@@ -317,7 +331,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     
     Box(modifier = Modifier.fillMaxSize()) {
         MainDashboard(
-            masjidConfig = MockData.masjidConfig,
+            masjidConfig = masjidConfig,
             kasData = kasData,
             announcements = effectiveAnnouncements,
             quranVerses = quranVerses,

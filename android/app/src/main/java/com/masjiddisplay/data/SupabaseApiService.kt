@@ -74,7 +74,8 @@ data class PengajianRemote(
 data class KasTransaksiRemote(
     val id: Int,
     val tanggal: String,
-    val keterangan: String,
-    val jumlah: Long,
-    val jenis: String
+    val keterangan: String? = null,
+    val nominal: Long,
+    val jenis: String,
+    val kategori: String? = null
 )
