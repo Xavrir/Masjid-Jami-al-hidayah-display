@@ -127,7 +127,11 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
 
     LaunchedEffect(Unit) {
         try {
-            kasData = SupabaseRepository.getKasData()
+            val (pemasukan, pengeluaran) = SupabaseRepository.getMonthlyKasSummary()
+            kasData = kasData.copy(
+                incomeMonth = pemasukan,
+                expenseMonth = pengeluaran
+            )
             
             val fetchedQuran = SupabaseRepository.getQuranVerses()
             quranVerses = fetchedQuran.map { 

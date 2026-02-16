@@ -8,6 +8,8 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.time.LocalDate
+import java.time.YearMonth
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -185,11 +187,67 @@ object SupabaseRepository {
     }
     
     /**
-     * Get formatted Kas data as display string
+     * Fetch Kas transactions from Supabase
+     */
+    suspend fun getKasTransactions(): List<KasTransaksiRemote> = withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.getKasTransactions(
+                apiKey = SupabaseConfig.SUPABASE_KEY,
+                auth = authHeader
+            )
+            println("✅ Successfully fetched ${response.size} Kas transactions from Supabase")
+            response
+        } catch (e: Exception) {
+            println("⚠️ Error fetching Kas transactions: ${e.message}")
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+    
+    /**
+     * Calculate monthly pemasukan and pengeluaran from kas_transaksi
+     */
+    suspend fun getMonthlyKasSummary(): Pair<Long, Long> = withContext(Dispatchers.IO) {
+        try {
+            val transactions = getKasTransactions()
+            val currentMonth = YearMonth.now()
+            
+            var pemasukan = 0L
+            var pengeluaran = 0L
+            
+            transactions.forEach { tx ->
+                try {
+                    val dateStr = tx.tanggal.substringBefore('T')
+                    val txDate = LocalDate.parse(dateStr)
+                    val txMonth = YearMonth.from(txDate)
+                    
+                    if (txMonth == currentMonth) {
+                        val jenisLower = tx.jenis.lowercase()
+                        when {
+                            jenisLower in listOf("pemasukan", "masuk") -> pemasukan += tx.jumlah
+                            jenisLower in listOf("pengeluaran", "keluar") -> pengeluaran += tx.jumlah
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("⚠️ Error parsing transaction: ${e.message}")
+                }
+            }
+            
+            println("✅ Monthly summary - Pemasukan: Rp${pemasukan.formatCurrency()}, Pengeluaran: Rp${pengeluaran.formatCurrency()}")
+            Pair(pemasukan, pengeluaran)
+        } catch (e: Exception) {
+            println("⚠️ Error calculating monthly summary: ${e.message}")
+            e.printStackTrace()
+            Pair(0L, 0L)
+        }
+    }
+    
+    /**
+     * Get formatted Kas data as display string using real transaction data
      */
     suspend fun getKasDataForDisplay(): String {
-        val kas = getKasData()
-        return "Kas Masjid: Rp${kas.balance.formatCurrency()} | Pemasukan Bulan Ini: Rp${kas.incomeMonth.formatCurrency()}"
+        val (pemasukan, pengeluaran) = getMonthlyKasSummary()
+        return "Pemasukan Bulan Ini: Rp${pemasukan.formatCurrency()} | Pengeluaran Bulan Ini: Rp${pengeluaran.formatCurrency()}"
     }
     
     /**

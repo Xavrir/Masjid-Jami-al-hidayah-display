@@ -13,6 +13,14 @@ interface SupabaseApiService {
         @Header("Authorization") auth: String
     ): List<Map<String, Any>>
     
+    @GET("rest/v1/kas_transaksi")
+    suspend fun getKasTransactions(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") auth: String,
+        @Query("select") select: String = "*",
+        @Query("order") order: String = "tanggal.desc"
+    ): List<KasTransaksiRemote>
+    
     @GET("rest/v1/ayat_quran")
     suspend fun getQuranVerses(
         @Header("apikey") apiKey: String,
@@ -63,10 +71,10 @@ data class PengajianRemote(
     val deskripsi: String? = null
 )
 
-data class KasTransactionRemote(
-    val id: String,
-    val date: String,
-    val description: String,
-    val amount: Long,
-    val type: String
+data class KasTransaksiRemote(
+    val id: Int,
+    val tanggal: String,
+    val keterangan: String,
+    val jumlah: Long,
+    val jenis: String
 )
