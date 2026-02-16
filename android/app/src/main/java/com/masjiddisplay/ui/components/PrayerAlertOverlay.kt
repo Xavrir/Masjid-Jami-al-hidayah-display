@@ -140,7 +140,7 @@ fun PrayerAlertOverlay(
                         ),
                         shape = RoundedCornerShape(40.dp)
                     )
-                    .padding(horizontal = 48.dp, vertical = 56.dp)
+                    .padding(horizontal = 48.dp, vertical = 36.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -163,7 +163,6 @@ fun PrayerAlertOverlay(
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight()
                 ) {
                     val (title, subtitle, accentColor) = when (overlayType) {
                         OverlayType.ADHAN -> Triple(
@@ -200,11 +199,11 @@ fun PrayerAlertOverlay(
 
                     Text(
                         text = subtitle,
-                        fontSize = 56.sp,
+                        fontSize = 44.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White.copy(alpha = 0.95f),
                         textAlign = TextAlign.Center,
-                        lineHeight = 64.sp
+                        lineHeight = 52.sp
                     )
 
                     if (prayer != null && overlayType != OverlayType.FRIDAY_REMINDER && overlayType != OverlayType.PRE_ADHAN) {
@@ -260,7 +259,7 @@ fun PrayerAlertOverlay(
 
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(180.dp)
+                            modifier = Modifier.size(120.dp)
                         ) {
                             Canvas(modifier = Modifier.fillMaxSize()) {
                                 val strokeWidth = 10.dp.toPx()
@@ -282,7 +281,7 @@ fun PrayerAlertOverlay(
 
                             Text(
                                 text = "$countdownValue",
-                                fontSize = 88.sp,
+                                fontSize = 56.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = ringColor
                             )
