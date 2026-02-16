@@ -200,7 +200,7 @@ fun MainDashboard(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_masjid_logo),
-                            contentDescription = "Masjid Logo",
+                            contentDescription = "Logo Masjid",
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape),
@@ -265,7 +265,7 @@ fun MainDashboard(
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "UNTIL",
+                        text = "MENUJU",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.White.copy(alpha = 0.7f),
@@ -384,7 +384,7 @@ private fun getPrayerIconRes(prayerName: String): Int {
         "imsak" -> R.drawable.ic_imsak
         "subuh", "fajr" -> R.drawable.ic_subuh
         "syuruq", "shuruq", "sunrise" -> R.drawable.ic_syuruq
-        "dzuhur", "dhuhr", "zuhur" -> R.drawable.ic_dzuhur
+        "dzuhur", "dhuhr", "zuhur", "jumat" -> R.drawable.ic_dzuhur
         "ashar", "asr" -> R.drawable.ic_ashar
         "maghrib" -> R.drawable.ic_maghrib
         "isya", "isha" -> R.drawable.ic_isya
@@ -393,12 +393,12 @@ private fun getPrayerIconRes(prayerName: String): Int {
 }
 
 private fun formatTimeAmPm(date: Date): String {
-    val sdf = jakartaDateFormat("h:mm a", Locale.getDefault())
+    val sdf = jakartaDateFormat("HH:mm", Locale("id", "ID"))
     return sdf.format(date)
 }
 
 private fun formatDayDate(date: Date): String {
-    val sdf = jakartaDateFormat("EEEE, MMMM d", Locale.getDefault())
+    val sdf = jakartaDateFormat("EEEE, d MMMM", Locale("id", "ID"))
     return sdf.format(date)
 }
 
@@ -422,9 +422,9 @@ private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String 
         val minutes = (diffMs % (1000 * 60 * 60)) / (1000 * 60)
         
         return when {
-            hours > 0 -> "${hours}h ${minutes}m"
+            hours > 0 -> "${hours}j ${minutes}m"
             minutes > 0 -> "${minutes}m"
-            else -> "Now"
+            else -> "Sekarang"
         }
     } catch (e: Exception) {
         return "—"

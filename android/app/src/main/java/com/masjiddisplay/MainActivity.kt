@@ -172,7 +172,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         val isFriday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY
         
         if (isFriday && prayers.isNotEmpty()) {
-            val dzuhur = prayers.find { it.name.lowercase() == "dzuhur" }
+            val dzuhur = prayers.find { it.name.lowercase() in listOf("dzuhur", "jumat") }
             if (dzuhur != null) {
                 val dzuhurParts = dzuhur.adhanTime.split(":")
                 if (dzuhurParts.size == 2) {
@@ -269,7 +269,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                 }
             }
             
-            if (isFriday && prayerName == "dzuhur") {
+            if (isFriday && prayerName in listOf("dzuhur", "jumat")) {
                 val dzuhurParts = prayer.adhanTime.split(":")
                 if (dzuhurParts.size == 2) {
                     val dzuhurHour = dzuhurParts[0].toIntOrNull() ?: 12

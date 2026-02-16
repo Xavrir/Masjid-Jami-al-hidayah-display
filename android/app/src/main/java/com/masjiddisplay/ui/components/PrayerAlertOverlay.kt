@@ -1,5 +1,7 @@
 package com.masjiddisplay.ui.components
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +16,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +44,10 @@ fun PrayerAlertOverlay(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val totalCountdown = 10
     var canDismiss by remember(visible) { mutableStateOf(false) }
-    var countdownValue by remember(visible) { mutableIntStateOf(10) }
+    var countdownValue by remember(visible) { mutableIntStateOf(totalCountdown) }
+    var countdownProgress by remember(visible) { mutableFloatStateOf(1f) }
 
     LaunchedEffect(visible) {
         if (visible) {
@@ -55,14 +61,36 @@ fun PrayerAlertOverlay(
 
     LaunchedEffect(visible, overlayType) {
         if (visible && overlayType == OverlayType.IQAMAH) {
-            countdownValue = 10
-            for (i in 10 downTo 1) {
+            countdownValue = totalCountdown
+            countdownProgress = 1f
+            for (i in totalCountdown downTo 1) {
                 countdownValue = i
-                delay(1000)
+
+                val startProgress = i.toFloat() / totalCountdown
+                val endProgress = (i - 1).toFloat() / totalCountdown
+                val steps = 20
+                val stepDelay = 1000L / steps
+                for (s in 0 until steps) {
+                    countdownProgress = startProgress + (endProgress - startProgress) * s / steps
+                    delay(stepDelay)
+                }
             }
+            countdownValue = 0
+            countdownProgress = 0f
+            delay(500)
             onDismiss()
         }
     }
+
+    val pulseAlpha by rememberInfiniteTransition(label = "pulse").animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
 
     if (visible) {
         Box(
@@ -222,17 +250,52 @@ fun PrayerAlertOverlay(
                     }
 
                     if (overlayType == OverlayType.IQAMAH) {
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        val ringColor = when {
+                            countdownValue <= 3 -> Color(0xFFE74C3C)
+                            countdownValue <= 5 -> Color(0xFFF39C12)
+                            else -> AppColors.accentSecondary
+                        }
+
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(180.dp)
+                        ) {
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                val strokeWidth = 10.dp.toPx()
+                                drawCircle(
+                                    color = Color.White.copy(alpha = 0.1f),
+                                    style = Stroke(width = strokeWidth)
+                                )
+                                drawArc(
+                                    color = ringColor.copy(alpha = pulseAlpha),
+                                    startAngle = -90f,
+                                    sweepAngle = 360f * countdownProgress,
+                                    useCenter = false,
+                                    style = Stroke(
+                                        width = strokeWidth,
+                                        cap = StrokeCap.Round
+                                    )
+                                )
+                            }
+
+                            Text(
+                                text = "$countdownValue",
+                                fontSize = 88.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = ringColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
                         Text(
-                            text = "$countdownValue",
-                            fontSize = 80.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "detik menuju iqamah",
-                            fontSize = 18.sp,
-                            color = AppColors.textSecondary.copy(alpha = 0.7f)
+                            text = "BERSIAP UNTUK SHALAT",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.8f),
+                            letterSpacing = 2.sp
                         )
                     }
 

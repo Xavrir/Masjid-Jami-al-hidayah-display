@@ -176,8 +176,11 @@ object PrayerTimeCalculator {
             windowMinutes = 10
         ))
         
+        val isFriday = calendar.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY
+        val dzuhurName = if (isFriday) "Jumat" else "Dzuhur"
+        
         prayers.add(Prayer(
-            name = "Dzuhur",
+            name = dzuhurName,
             adhanTime = dhuhrStr,
             iqamahTime = addMinutesToTime(dhuhrStr, 10),
             status = PrayerStatus.UPCOMING,
