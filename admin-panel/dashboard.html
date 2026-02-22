@@ -340,10 +340,10 @@
             color: var(--color-card-kas);
         }
 
-        /* Announcements variant */
-        .summary-card.announcements .card-icon {
+        /* Hadist variant */
+        .summary-card.hadist .card-icon {
             background: rgba(59, 130, 246, 0.1);
-            color: var(--color-card-announcements);
+            color: #3b82f6;
         }
 
         /* Pengajian variant */
@@ -762,20 +762,20 @@
                     </div>
                 </div>
 
-                <!-- Announcements -->
-                <div class="summary-card announcements">
+                <!-- Hadist -->
+                <div class="summary-card hadist">
                     <div class="card-header-flex">
                         <div class="card-icon">
-                            <i class="bi bi-megaphone"></i>
+                            <i class="bi bi-chat-left-quote"></i>
                         </div>
                     </div>
                     <div>
-                        <div class="card-title">Pengumuman Aktif</div>
-                        <div class="card-value" id="announcementCount">0</div>
+                        <div class="card-title">Koleksi Hadist</div>
+                        <div class="card-value" id="hadistCount">0</div>
                     </div>
                     <div class="card-footer-text">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Total pengumuman</span>
+                        <i class="bi bi-star"></i>
+                        <span>Ditampilkan di layar</span>
                     </div>
                 </div>
 
@@ -960,12 +960,14 @@
                     document.getElementById('kasLastUpdate').textContent = 'Update: ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 }
 
-                // Placeholder for other counts - would need other tables
-                // document.getElementById('announcementCount').textContent = '3';
-                // document.getElementById('pengajianCount').textContent = '5';
-                // document.getElementById('ayatCount').textContent = '12';
+                const { data: hadits, error: haditsError } = await supabase
+                    .from('hadits')
+                    .select('id');
+                if (!haditsError) {
+                    document.getElementById('hadistCount').textContent = (hadits || []).length;
+                }
 
-                // 2. Load banner count and slideshow
+                // Load banner count and slideshow
                 loadBannerSlideshow();
 
             } catch (error) {
