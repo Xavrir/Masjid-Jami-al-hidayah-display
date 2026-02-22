@@ -930,17 +930,21 @@
 
         async function loadDashboardStats() {
             try {
-                // 1. Load Kas Balance (table has: id, kategori, nominal, keterangan, tanggal - NO type)
                 const { data: transactions, error: kasError } = await supabase
                     .from('kas_transaksi')
-                    .select('nominal');
+                    .select('nominal, jenis');
 
                 if (kasError) throw kasError;
 
                 if (transactions) {
-                    // Sum all nominal values (no type column to differentiate masuk/keluar)
                     const balance = transactions.reduce((acc, curr) => {
-                        return acc + (curr.nominal || 0);
+                        const jenis = (curr.jenis || '').toLowerCase();
+                        const amount = curr.nominal || 0;
+                        if (jenis === 'masuk' || jenis === 'pemasukan') {
+                            return acc + amount;
+                        } else {
+                            return acc - amount;
+                        }
                     }, 0);
 
                     const formattedBalance = new Intl.NumberFormat('id-ID', {

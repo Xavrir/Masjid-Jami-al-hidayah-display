@@ -123,18 +123,6 @@ fun BannerSlideshow(
             }
         }
 
-        // Banner title overlay (optional)
-        val currentBanner = banners.getOrNull(currentIndex)
-        if (currentBanner?.title != null && currentBanner.title.isNotBlank()) {
-            Text(
-                text = currentBanner.title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, bottom = 28.dp)
-            )
-        }
+
     }
 }

@@ -1,5 +1,6 @@
 package com.masjiddisplay.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -143,6 +145,25 @@ fun MainDashboard(
     val cornerEmoji = if (isRamadhanNow) "☀️" else "🌙"
     val cornerColor = if (isRamadhanNow) Color(0xFFFFA500) else Color(0xFF9C88FF)
     
+    // Banner timing: show 15 min after iqamah for 10 min
+    val shouldShowBanners = remember(currentTime, prayers, banners) {
+        if (banners.isEmpty() || prayers.isEmpty()) return@remember false
+        val now = jakartaCalendar(currentTime)
+        prayers.any { prayer ->
+            val name = prayer.name.lowercase()
+            if (name in listOf("imsak", "shuruq", "syuruq", "sunrise")) return@any false
+            val iqamahCal = parseTimeToCalendar(prayer.iqamahTime, currentTime)
+            val startCal = (iqamahCal.clone() as Calendar).apply { add(Calendar.MINUTE, 15) }
+            val endCal = (iqamahCal.clone() as Calendar).apply { add(Calendar.MINUTE, 25) }
+            now.timeInMillis >= startCal.timeInMillis && now.timeInMillis < endCal.timeInMillis
+        }
+    }
+
+    val bannerIntervalMs = remember(banners) {
+        if (banners.isEmpty()) 8000L
+        else (10L * 60 * 1000) / banners.size.coerceAtLeast(1)
+    }
+    
     val kasItems = listOf(
         "Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
     )
@@ -162,24 +183,43 @@ fun MainDashboard(
         )
         
         if (isRamadhanNow) {
+            val infiniteTransition = rememberInfiniteTransition(label = "ketupat_sway")
+            val swayDp by infiniteTransition.animateFloat(
+                initialValue = -12f,
+                targetValue = 12f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(5000, easing = EaseInOutSine),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "sway_offset"
+            )
+            val density = LocalDensity.current
+            val swayPx = with(density) { swayDp.dp.toPx() }
+
             Image(
-                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                painter = painterResource(id = R.drawable.ic_ramadhan_ketupat),
                 contentDescription = null,
                 modifier = Modifier
                     .size(140.dp)
                     .align(Alignment.TopStart)
                     .offset(x = 24.dp, y = 24.dp)
-                    .alpha(0.06f)
+                    .alpha(0.08f)
+                    .graphicsLayer {
+                        translationX = swayPx
+                    }
             )
             Image(
-                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                painter = painterResource(id = R.drawable.ic_ramadhan_ketupat),
                 contentDescription = null,
                 modifier = Modifier
                     .size(140.dp)
                     .align(Alignment.TopEnd)
                     .offset(x = (-24).dp, y = 24.dp)
-                    .alpha(0.06f)
-                    .graphicsLayer { scaleX = -1f }
+                    .alpha(0.08f)
+                    .graphicsLayer {
+                        scaleX = -1f
+                        translationX = -swayPx // Inverted for symmetry
+                    }
             )
         }
         
@@ -254,24 +294,29 @@ fun MainDashboard(
                 }
             }
             
-            // Banner Slideshow (between header and prayer section)
-            if (banners.isNotEmpty()) {
-                BannerSlideshow(
-                    banners = banners,
-                    intervalMs = 8000L,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                )
-            }
-            
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                contentAlignment = Alignment.Center
             ) {
+                if (shouldShowBanners) {
+                    BannerSlideshow(
+                        banners = banners,
+                        intervalMs = bannerIntervalMs,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                    )
+                }
+
+                if (!shouldShowBanners) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                 val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
                 val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
                 val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
@@ -378,6 +423,8 @@ fun MainDashboard(
                             )
                         }
                     }
+                }
+                }
                 }
             }
             
