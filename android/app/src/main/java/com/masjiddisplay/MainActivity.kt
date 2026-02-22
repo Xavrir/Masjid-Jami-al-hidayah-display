@@ -34,6 +34,7 @@ import com.masjiddisplay.data.MasjidConfig
 import com.masjiddisplay.data.Prayer
 import com.masjiddisplay.data.PrayerStatus
 import com.masjiddisplay.data.SupabaseRepository
+import com.masjiddisplay.data.BannerRemote
 import com.masjiddisplay.data.KasData
 import com.masjiddisplay.data.TrendDirection
 import com.masjiddisplay.services.SoundNotificationService
@@ -131,6 +132,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     var quranVerses by remember { mutableStateOf<List<String>>(emptyList()) }
     var hadiths by remember { mutableStateOf<List<String>>(emptyList()) }
     var pengajian by remember { mutableStateOf<List<String>>(emptyList()) }
+    var banners by remember { mutableStateOf<List<BannerRemote>>(emptyList()) }
     var fridayReminderAnnouncement by remember { mutableStateOf<String?>(null) }
     
     val testPrayers = remember {
@@ -163,6 +165,8 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             pengajian = fetchedPengajian
                 .filter { it.judul != null && it.pembicara != null }
                 .map { "${it.judul} oleh ${it.pembicara} (${it.hari ?: "-"}, ${it.jam ?: "-"})" }
+            
+            banners = SupabaseRepository.getBanners()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -337,6 +341,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             quranVerses = quranVerses,
             hadiths = hadiths,
             pengajian = pengajian,
+            banners = banners,
             onPrayerStart = { },
             onKasDetailRequested = {
                 kasOverlayVisible = true

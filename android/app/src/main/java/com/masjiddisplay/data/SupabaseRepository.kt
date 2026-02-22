@@ -102,7 +102,7 @@ object SupabaseRepository {
     
     /**
      * Fetch Pengajian (Islamic teachings) from Supabase
-     * Falls back to mock data on error
+     * Returns empty list on error
      */
     suspend fun getPengajian(): List<PengajianRemote> = withContext(Dispatchers.IO) {
         try {
@@ -121,8 +121,8 @@ object SupabaseRepository {
     
     /**
      * Fetch Kas (Treasury) data from Supabase
-     * Combines kas_masjid balance with monthly summary from kas_transaksi
-     * Returns zeroed KasData on error — never falls back to mock data
+     * Calculates balance, monthly income/expense from kas_transaksi
+     * Returns zeroed KasData on error
      */
     suspend fun getKasData(): KasData = withContext(Dispatchers.IO) {
         try {
@@ -131,23 +131,21 @@ object SupabaseRepository {
                 auth = authHeader
             )
             
-<<<<<<< HEAD
             if (transactions.isNotEmpty()) {
-                // Calculate totals locally
                 var balance: Long = 0
                 var incomeMonth: Long = 0
                 var expenseMonth: Long = 0
                 
-                // Get current month string YYYY-MM
-                val currentMonth = java.time.LocalDate.now().toString().substring(0, 7)
+                val currentMonth = LocalDate.now().toString().substring(0, 7)
                 
                 transactions.forEach { tx ->
-                    if (tx.jenis == "masuk") {
+                    val jenisLower = tx.jenis.lowercase()
+                    if (jenisLower in listOf("pemasukan", "masuk")) {
                         balance += tx.nominal
                         if (tx.tanggal.startsWith(currentMonth)) {
                             incomeMonth += tx.nominal
                         }
-                    } else { // keluar
+                    } else {
                         balance -= tx.nominal
                         if (tx.tanggal.startsWith(currentMonth)) {
                             expenseMonth += tx.nominal
@@ -155,11 +153,17 @@ object SupabaseRepository {
                     }
                 }
                 
-                // Determine trend (simple logic: if income > expense this month -> UP, else DOWN)
                 val trend = if (incomeMonth >= expenseMonth) TrendDirection.UP else TrendDirection.DOWN
                 
-                // Map recent transactions (take top 5)
-                val recent = transactions.take(5).map { it.toLocal() }
+                val recent = transactions.take(5).map { tx ->
+                    KasTransaction(
+                        id = tx.id.toString(),
+                        date = tx.tanggal,
+                        description = tx.keterangan ?: tx.kategori ?: "-",
+                        amount = tx.nominal,
+                        type = if (tx.jenis.lowercase() in listOf("pemasukan", "masuk")) TransactionType.INCOME else TransactionType.EXPENSE
+                    )
+                }
                 
                 KasData(
                     balance = balance,
@@ -167,7 +171,7 @@ object SupabaseRepository {
                     expenseMonth = expenseMonth,
                     trendDirection = trend,
                     recentTransactions = recent,
-                    trendData = emptyList() // We could calculate this too if needed, but empty is safe for now
+                    trendData = emptyList()
                 ).also {
                     println("✅ Successfully calculated Kas data from ${transactions.size} transactions")
                 }
@@ -181,36 +185,10 @@ object SupabaseRepository {
                     recentTransactions = emptyList(),
                     trendData = emptyList()
                 )
-=======
-            val balance = if (response.isNotEmpty()) {
-                val data = response[0]
-                (data["total"] as? Number)?.toLong() ?: 0L
-            } else {
-                0L
-            }
-            
-            val (pemasukan, pengeluaran) = getMonthlyKasSummary()
-            
-            KasData(
-                balance = balance,
-                incomeMonth = pemasukan,
-                expenseMonth = pengeluaran,
-                trendDirection = TrendDirection.FLAT,
-                recentTransactions = emptyList(),
-                trendData = emptyList()
-            ).also {
-                println("✅ Successfully fetched Kas data from Supabase (balance=$balance, income=$pemasukan, expense=$pengeluaran)")
->>>>>>> 28f3afdf1a41b50cfbfc7feb5ae653a6d8c689b2
             }
         } catch (e: Exception) {
             println("⚠️ Error fetching Kas transactions: ${e.message}")
             e.printStackTrace()
-<<<<<<< HEAD
-            // In case of error, we can either return mock data or empty data. 
-            // Returning mock data might be confusing if the user expects real data.
-            // But to avoid app crash/empty screen, let's fall back to mock for now as per original design.
-            getMockKasData()
-=======
             KasData(
                 balance = 0L,
                 incomeMonth = 0L,
@@ -219,7 +197,25 @@ object SupabaseRepository {
                 recentTransactions = emptyList(),
                 trendData = emptyList()
             )
->>>>>>> 28f3afdf1a41b50cfbfc7feb5ae653a6d8c689b2
+        }
+    }
+    
+    /**
+     * Fetch active banners from Supabase ordered by display_order
+     * Returns empty list on error
+     */
+    suspend fun getBanners(): List<BannerRemote> = withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.getBanners(
+                apiKey = SupabaseConfig.SUPABASE_KEY,
+                auth = authHeader
+            )
+            println("✅ Successfully fetched ${response.size} banners from Supabase")
+            response
+        } catch (e: Exception) {
+            println("⚠️ Error fetching banners: ${e.message}")
+            e.printStackTrace()
+            emptyList()
         }
     }
     
@@ -255,67 +251,11 @@ object SupabaseRepository {
     }
     
     /**
-     * Fetch Kas transactions from Supabase
-     */
-    suspend fun getKasTransactions(): List<KasTransaksiRemote> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.getKasTransactions(
-                apiKey = SupabaseConfig.SUPABASE_KEY,
-                auth = authHeader
-            )
-            println("✅ Successfully fetched ${response.size} Kas transactions from Supabase")
-            response
-        } catch (e: Exception) {
-            println("⚠️ Error fetching Kas transactions: ${e.message}")
-            e.printStackTrace()
-            emptyList()
-        }
-    }
-    
-    /**
-     * Calculate monthly pemasukan and pengeluaran from kas_transaksi
-     */
-    suspend fun getMonthlyKasSummary(): Pair<Long, Long> = withContext(Dispatchers.IO) {
-        try {
-            val transactions = getKasTransactions()
-            val currentMonth = YearMonth.now()
-            
-            var pemasukan = 0L
-            var pengeluaran = 0L
-            
-            transactions.forEach { tx ->
-                try {
-                    val dateStr = tx.tanggal.substringBefore('T')
-                    val txDate = LocalDate.parse(dateStr)
-                    val txMonth = YearMonth.from(txDate)
-                    
-                    if (txMonth == currentMonth) {
-                        val jenisLower = tx.jenis.lowercase()
-                        when {
-                            jenisLower in listOf("pemasukan", "masuk") -> pemasukan += tx.nominal
-                            jenisLower in listOf("pengeluaran", "keluar") -> pengeluaran += tx.nominal
-                        }
-                    }
-                } catch (e: Exception) {
-                    println("⚠️ Error parsing transaction: ${e.message}")
-                }
-            }
-            
-            println("✅ Monthly summary - Pemasukan: Rp${pemasukan.formatCurrency()}, Pengeluaran: Rp${pengeluaran.formatCurrency()}")
-            Pair(pemasukan, pengeluaran)
-        } catch (e: Exception) {
-            println("⚠️ Error calculating monthly summary: ${e.message}")
-            e.printStackTrace()
-            Pair(0L, 0L)
-        }
-    }
-    
-    /**
-     * Get formatted Kas data as display string using real transaction data
+     * Get formatted Kas data as display string
      */
     suspend fun getKasDataForDisplay(): String {
-        val (pemasukan, pengeluaran) = getMonthlyKasSummary()
-        return "Pemasukan Bulan Ini: Rp${pemasukan.formatCurrency()} | Pengeluaran Bulan Ini: Rp${pengeluaran.formatCurrency()}"
+        val kasData = getKasData()
+        return "Pemasukan Bulan Ini: Rp${kasData.incomeMonth.formatCurrency()} | Pengeluaran Bulan Ini: Rp${kasData.expenseMonth.formatCurrency()}"
     }
     
 }
@@ -345,6 +285,7 @@ private fun QuranVerseRemote.toLocal(): QuranVerse {
     )
 }
 
+private fun HadithRemote.toLocal(): Hadith {
     return Hadith(
         id = this.id.toString(),
         narrator = null,
@@ -352,21 +293,5 @@ private fun QuranVerseRemote.toLocal(): QuranVerse {
         translation = this.terjemahan,
         source = this.sumber,
         category = this.kategori
-    )
-}
-
-private fun KasTransactionRemote.toLocal(): KasTransaction {
-    // Map remote type string to enum
-    val txType = if (this.jenis.equals("masuk", ignoreCase = true)) 
-        TransactionType.INCOME 
-    else 
-        TransactionType.EXPENSE
-
-    return KasTransaction(
-        id = this.id.toString(),
-        date = this.tanggal,
-        description = this.keterangan ?: this.kategori,
-        amount = this.nominal,
-        type = txType
     )
 }

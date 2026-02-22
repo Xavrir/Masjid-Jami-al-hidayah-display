@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.R
 import com.masjiddisplay.data.*
+import com.masjiddisplay.data.BannerRemote
 import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
@@ -39,6 +40,7 @@ fun MainDashboard(
     quranVerses: List<String> = emptyList(),
     hadiths: List<String> = emptyList(),
     pengajian: List<String> = emptyList(),
+    banners: List<BannerRemote> = emptyList(),
     onPrayerStart: (Prayer) -> Unit = {},
     onKasDetailRequested: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -250,6 +252,17 @@ fun MainDashboard(
                         )
                     }
                 }
+            }
+            
+            // Banner Slideshow (between header and prayer section)
+            if (banners.isNotEmpty()) {
+                BannerSlideshow(
+                    banners = banners,
+                    intervalMs = 8000L,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                )
             }
             
             Column(

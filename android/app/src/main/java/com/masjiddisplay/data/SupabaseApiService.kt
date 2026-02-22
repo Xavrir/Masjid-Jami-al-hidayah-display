@@ -7,12 +7,6 @@ import retrofit2.http.*
  */
 interface SupabaseApiService {
     
-    @GET("rest/v1/kas_transaksi?select=*&order=tanggal.desc")
-    suspend fun getKasTransactions(
-        @Header("apikey") apiKey: String,
-        @Header("Authorization") auth: String
-    ): List<KasTransactionRemote>
-    
     @GET("rest/v1/kas_transaksi")
     suspend fun getKasTransactions(
         @Header("apikey") apiKey: String,
@@ -38,6 +32,15 @@ interface SupabaseApiService {
         @Header("apikey") apiKey: String,
         @Header("Authorization") auth: String
     ): List<PengajianRemote>
+
+    @GET("rest/v1/banners")
+    suspend fun getBanners(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") auth: String,
+        @Query("select") select: String = "*",
+        @Query("aktif") aktif: String = "eq.true",
+        @Query("order") order: String = "display_order.asc"
+    ): List<BannerRemote>
 }
 
 /**
@@ -71,24 +74,6 @@ data class PengajianRemote(
     val deskripsi: String? = null
 )
 
-<<<<<<< HEAD
-data class KasTransactionRemote(
-    val id: Long, // Supabase ID is usually Int/Long, but let's check. Admin panel uses it as ID. 
-    // Wait, the admin panel uses `id` which is auto increment int usually.
-    // Let's use Long to be safe or String if unsure. 
-    // In MockData it was String "1".
-    // In admin panel JS: `transactions = (data || []).map(item => ({ id: item.id ...`
-    // Let's check `KasTransaction` model in Models.kt -> `val id: String`.
-    // So we can map it later.
-    // Models in `SupabaseApiService` should match JSON response.
-    // `kas_transaksi` columns: id, jenis, nominal, keterangan, tanggal, kategori
-    val id: Long, 
-    val tanggal: String,
-    val keterangan: String?,
-    val nominal: Long,
-    val jenis: String,
-    val kategori: String
-=======
 data class KasTransaksiRemote(
     val id: Int,
     val tanggal: String,
@@ -96,5 +81,13 @@ data class KasTransaksiRemote(
     val nominal: Long,
     val jenis: String,
     val kategori: String? = null
->>>>>>> 28f3afdf1a41b50cfbfc7feb5ae653a6d8c689b2
+)
+
+data class BannerRemote(
+    val id: Int,
+    val title: String? = null,
+    val image_url: String,
+    val display_order: Int = 1,
+    val aktif: Boolean = true,
+    val created_at: String? = null
 )

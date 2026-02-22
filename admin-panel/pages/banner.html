@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Banner - Admin Masjid Jami' Al-Hidayah</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Global Variables -->
+    <link rel="stylesheet" href="../css/variables.css">
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: var(--font-family-base);
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ============================================ */
+        /* NAVBAR */
+        /* ============================================ */
+
+        .navbar {
+            background: var(--color-bg-secondary);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            padding: 12px 24px;
+            height: 70px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 1050;
+        }
+
+        .navbar-brand {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-primary) !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            margin-right: 48px;
+        }
+
+        .mosque-icon {
+            font-size: 24px;
+            background: var(--color-primary-light);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: var(--color-primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-left: auto;
+            background: var(--color-bg-tertiary);
+            padding: 6px 6px 6px 20px;
+            border-radius: 30px;
+        }
+
+        .user-info {
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        .user-email-display {
+            color: var(--color-text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .logout-label {
+            color: var(--color-text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .user-avatar-btn {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            color: var(--color-danger);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-avatar-btn:hover {
+            background: var(--color-danger);
+            color: white;
+            border-color: var(--color-danger);
+            transform: scale(1.05);
+        }
+
+        /* ============================================ */
+        /* SIDEBAR */
+        /* ============================================ */
+
+        .main-sidebar {
+            background: var(--color-bg-secondary);
+            border-right: 1px solid var(--color-border);
+            height: calc(100vh - 70px);
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 260px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-menu {
+            padding: 24px 16px;
+        }
+
+        .sidebar-section {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            padding: 0 16px;
+            letter-spacing: 0.8px;
+            margin: 24px 0 12px;
+        }
+
+        .sidebar-section:first-child {
+            margin-top: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin-bottom: 4px;
+        }
+
+        .nav-link i {
+            font-size: 18px;
+            color: var(--color-text-tertiary);
+            transition: color 0.2s ease;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-link:hover {
+            background-color: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+        }
+
+        .nav-link:hover i {
+            color: var(--color-primary);
+        }
+
+        .nav-link.active {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary-dark);
+            font-weight: 600;
+        }
+
+        .nav-link.active i {
+            color: var(--color-primary);
+        }
+
+        .content-wrapper {
+            margin-left: 260px;
+            margin-top: 70px;
+            padding: 32px;
+            background: var(--color-bg-primary);
+            min-height: calc(100vh - 70px);
+        }
+
+        /* ============================================ */
+        /* PAGE SPECIFIC STYLES */
+        /* ============================================ */
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .page-icon-large {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .page-title h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .page-title p {
+            color: var(--color-text-secondary);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* INSTRUCTION BOX */
+        .instruction-box {
+            background: var(--color-bg-tertiary);
+            border-left: 4px solid #f59e0b;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid var(--color-border);
+        }
+
+        .instruction-box h3 {
+            color: #f59e0b;
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instruction-box p {
+            color: var(--color-text-secondary);
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* BANNER COUNT BAR */
+        .banner-count-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .banner-count-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .banner-count-info .count-number {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .banner-count-info .count-label {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .count-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar-wrapper {
+            width: 120px;
+            height: 8px;
+            background: var(--color-bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        /* UPLOAD AREA */
+        .upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 48px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--color-bg-secondary);
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.04);
+        }
+
+        .upload-area.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #f59e0b;
+            margin-bottom: 16px;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 8px;
+        }
+
+        .upload-subtitle {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .upload-formats {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+        }
+
+        /* BANNER GRID */
+        .banner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .banner-card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .banner-card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-4px);
+            border-color: var(--color-border-hover);
+        }
+
+        .banner-image-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: var(--color-bg-tertiary);
+        }
+
+        .banner-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .banner-card:hover .banner-image-wrapper img {
+            transform: scale(1.05);
+        }
+
+        .banner-order-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            backdrop-filter: blur(4px);
+        }
+
+        .banner-card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+        }
+
+        .banner-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .banner-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
+        }
+
+        .banner-card-meta {
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+        }
+
+        .banner-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .banner-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-bg-primary);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .banner-btn:hover {
+            background: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+        }
+
+        .banner-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--color-text-tertiary);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* SLIDESHOW PREVIEW */
+        .preview-section {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 32px;
+        }
+
+        .preview-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-slideshow {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .preview-slideshow img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .preview-slideshow img.active {
+            opacity: 1;
+        }
+
+        .preview-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: var(--color-bg-tertiary);
+        }
+
+        .preview-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--color-border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .preview-dot.active {
+            background: #f59e0b;
+            transform: scale(1.2);
+        }
+
+        .preview-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #64748b;
+            gap: 12px;
+        }
+
+        .preview-empty i {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+
+        /* ALERTS */
+        .alert {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            display: none;
+            border: 1px solid transparent;
+            font-size: 14px;
+        }
+
+        .alert.show {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #7f1d1d;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* LOADING */
+        .page-loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-bg-primary);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--color-border);
+            border-top-color: #f59e0b;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Upload progress overlay */
+        .upload-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .upload-overlay.show {
+            display: flex;
+        }
+
+        .upload-progress-card {
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+            min-width: 300px;
+        }
+
+        .upload-progress-card .spinner {
+            border-top-color: #f59e0b;
+        }
+
+        .upload-progress-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-top: 12px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .main-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .main-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .content-wrapper {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 12px 16px;
+            }
+
+            .content-wrapper {
+                padding: 20px;
+            }
+
+            .banner-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-area {
+                padding: 32px 20px;
+            }
+
+            .banner-count-bar {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body class="hold-transition">
+    <!-- Loading Screen -->
+    <div class="page-loading show" id="pageLoading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <p style="color: var(--color-text-secondary); margin-top: 16px;">Memuat data banner...</p>
+        </div>
+    </div>
+
+    <!-- Upload Progress Overlay -->
+    <div class="upload-overlay" id="uploadOverlay">
+        <div class="upload-progress-card">
+            <div class="spinner"></div>
+            <div class="upload-progress-text">Mengupload banner...</div>
+        </div>
+    </div>
+
+    <div class="wrapper" id="pageContent" style="display: none;">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <button id="sidebarToggle" class="sidebar-toggle-btn">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand" href="../dashboard.html">
+                <span class="mosque-icon">🕌</span>
+                <span>Masjid Jami' Al-Hidayah</span>
+            </a>
+
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-email-display" id="userEmailDisplay">admin@masjid.com</div>
+                    <div class="logout-label">Administrator</div>
+                </div>
+                <button class="user-avatar-btn" onclick="handleLogout()" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="main-sidebar">
+            <nav class="sidebar-menu">
+                <div class="sidebar-section">Menu Utama</div>
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="sidebar-section">Manajemen Data</div>
+
+                <a href="kas_masjid.html" class="nav-link">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Kas Masjid</span>
+                </a>
+
+                <a href="ayat_quran.html" class="nav-link">
+                    <i class="bi bi-book-half"></i>
+                    <span>Ayat Al-Quran</span>
+                </a>
+
+                <a href="hadist.html" class="nav-link">
+                    <i class="bi bi-chat-left-quote"></i>
+                    <span>Hadist</span>
+                </a>
+
+                <a href="pengajian.html" class="nav-link">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>Pengajian</span>
+                </a>
+
+                <a href="banner.html" class="nav-link active">
+                    <i class="bi bi-images"></i>
+                    <span>Banner Acara</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-wrapper">
+            <div class="page-header">
+                <div class="page-icon-large">
+                    <i class="bi bi-images"></i>
+                </div>
+                <div class="page-title">
+                    <h1>Kelola Banner Acara</h1>
+                    <p>Upload gambar banner untuk ditampilkan sebagai slideshow di layar TV.</p>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div id="successAlert" class="alert alert-success">
+                <i class="bi bi-check-circle-fill"></i>
+                <span id="successMessage"></span>
+            </div>
+            <div id="errorAlert" class="alert alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instruction-box">
+                <h3><i class="bi bi-lightbulb-fill"></i> Panduan Penggunaan</h3>
+                <p>• Upload gambar banner acara dalam format <strong>JPG</strong> atau <strong>PNG</strong>.</p>
+                <p>• Maksimal <strong>10 banner</strong> yang dapat ditampilkan secara bersamaan.</p>
+                <p>• Banner akan ditampilkan sebagai slideshow otomatis di layar TV masjid.</p>
+                <p>• Gunakan rasio gambar <strong>16:9</strong> untuk tampilan terbaik (1920×1080).</p>
+            </div>
+
+            <!-- Banner Count Bar -->
+            <div class="banner-count-bar">
+                <div class="banner-count-info">
+                    <span class="count-number" id="bannerCount">0</span>
+                    <span class="count-label">/ 10 Banner aktif</span>
+                </div>
+                <div class="count-progress">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" style="display: none;" multiple>
+                <div class="upload-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                <div class="upload-title">Drag & Drop atau Klik untuk Upload</div>
+                <div class="upload-subtitle">Pilih gambar banner acara untuk ditampilkan</div>
+                <button class="upload-btn" type="button" id="uploadBtn">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    Pilih Gambar
+                </button>
+                <div class="upload-formats">Format: JPG, PNG • Maks. 5MB per file</div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-header">
+                    <i class="bi bi-tv-fill"></i> Preview Slideshow di Layar TV
+                </div>
+                <div class="preview-slideshow" id="previewSlideshow">
+                    <div class="preview-empty" id="previewEmpty">
+                        <i class="bi bi-images"></i>
+                        <span>Belum ada banner</span>
+                    </div>
+                </div>
+                <div class="preview-dots" id="previewDots"></div>
+            </div>
+
+            <!-- Banner Grid -->
+            <div class="banner-grid" id="bannerGrid">
+                <!-- Cards populated by JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="bi bi-images"></i>
+                <h3>Belum Ada Banner</h3>
+                <p>Upload gambar banner pertama Anda untuk memulai.</p>
+            </div>
+
+            <!-- Footer -->
+            <div
+                style="text-align: center; color: var(--color-text-tertiary); font-size: 13px; margin-top: 60px; margin-bottom: 20px;">
+                <p>© 2026 Masjid Jami' Al-Hidayah • Sistem Administrasi v1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase JS -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const SUPABASE_URL = 'https://wqupptqjbkuldglnpvor.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdXBwdHFqYmt1bGRnbG5wdm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMDA5MzYsImV4cCI6MjA4MjU3NjkzNn0.-MJ1IYVHeQTHMOhXftTW8l_-bb0sA5yPco2T_sRq5M4';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabase = supabase;
+
+        // Global Logout function
+        window.handleLogout = async function () {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.removeItem('manual_auth');
+                try {
+                    await supabase.auth.signOut();
+                } catch (e) { console.log('Signout fallback', e); }
+                window.location.href = '../login.html';
+            }
+        };
+
+        console.log('✅ Banner Supabase Initialized');
+    </script>
+
+    <!-- Page Logic -->
+    <script>
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const pageLoading = document.getElementById('pageLoading');
+        const pageContent = document.getElementById('pageContent');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const bannerGrid = document.getElementById('bannerGrid');
+        const emptyState = document.getElementById('emptyState');
+        const bannerCount = document.getElementById('bannerCount');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const uploadOverlay = document.getElementById('uploadOverlay');
+        const previewSection = document.getElementById('previewSection');
+        const previewSlideshow = document.getElementById('previewSlideshow');
+        const previewDots = document.getElementById('previewDots');
+        const previewEmpty = document.getElementById('previewEmpty');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        const MAX_BANNERS = 10;
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        let banners = [];
+        let previewInterval = null;
+        let currentPreviewIndex = 0;
+
+        // ============================================
+        // AUTH
+        // ============================================
+        async function waitForAuth() {
+            if (localStorage.getItem('manual_auth') === 'true') {
+                initPage({ email: 'admin@alhidayah.com' });
+                return;
+            }
+
+            const checkInterval = setInterval(async () => {
+                if (window.supabase && window.supabase.auth) {
+                    clearInterval(checkInterval);
+                    try {
+                        const { data: { session }, error } = await window.supabase.auth.getSession();
+                        if (error || !session) {
+                            window.location.href = '../login.html';
+                            return;
+                        }
+                        initPage(session.user);
+                    } catch (e) {
+                        window.location.href = '../login.html';
+                    }
+                }
+            }, 100);
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        async function initPage(user) {
+            console.log('Initializing Banner Page for:', user.email);
+            if (user.email) userEmailDisplay.textContent = user.email;
+
+            setupUploadHandlers();
+
+            try {
+                await loadBanners();
+            } catch (err) {
+                console.error('Load error', err);
+            }
+
+            pageContent.style.display = 'flex';
+            pageLoading.classList.remove('show');
+        }
+
+        // ============================================
+        // UPLOAD HANDLERS
+        // ============================================
+        function setupUploadHandlers() {
+            // Click to upload
+            uploadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (banners.length >= MAX_BANNERS) return;
+                fileInput.click();
+            });
+
+            uploadArea.addEventListener('click', () => {
+                if (banners.length >= MAX_BANNERS) return;
+                fileInput.click();
+            });
+
+            // File selected
+            fileInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    await handleFiles(files);
+                }
+                fileInput.value = '';
+            });
+
+            // Drag & Drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                if (banners.length >= MAX_BANNERS) return;
+
+                const files = Array.from(e.dataTransfer.files).filter(f =>
+                    f.type === 'image/jpeg' || f.type === 'image/png'
+                );
+
+                if (files.length > 0) {
+                    await handleFiles(files);
+                }
+            });
+        }
+
+        // ============================================
+        // FILE HANDLING
+        // ============================================
+        async function handleFiles(files) {
+            const remaining = MAX_BANNERS - banners.length;
+            const filesToUpload = files.slice(0, remaining);
+
+            for (const file of filesToUpload) {
+                // Validate type
+                if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                    showError(`File "${file.name}" bukan format JPG/PNG.`);
+                    continue;
+                }
+
+                // Validate size
+                if (file.size > MAX_FILE_SIZE) {
+                    showError(`File "${file.name}" melebihi batas 5MB.`);
+                    continue;
+                }
+
+                try {
+                    uploadOverlay.classList.add('show');
+                    await uploadBanner(file);
+                    showSuccess(`Banner "${file.name}" berhasil diupload!`);
+                } catch (err) {
+                    console.error('Upload error:', err);
+                    showError(`Gagal upload "${file.name}": ${err.message}`);
+                } finally {
+                    uploadOverlay.classList.remove('show');
+                }
+            }
+
+            await loadBanners();
+        }
+
+        async function uploadBanner(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const fileName = `banner_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
+
+            // Upload to Supabase Storage
+            const { data: storageData, error: storageError } = await window.supabase.storage
+                .from('banners')
+                .upload(fileName, file, {
+                    contentType: file.type,
+                    upsert: false
+                });
+
+            if (storageError) throw storageError;
+
+            // Get public URL
+            const { data: urlData } = window.supabase.storage
+                .from('banners')
+                .getPublicUrl(fileName);
+
+            const imageUrl = urlData.publicUrl;
+
+            // Determine display order
+            const nextOrder = banners.length > 0
+                ? Math.max(...banners.map(b => b.display_order)) + 1
+                : 1;
+
+            // Insert into DB
+            const { error: dbError } = await window.supabase
+                .from('banners')
+                .insert([{
+                    title: file.name.replace(/\.[^/.]+$/, ''),
+                    image_url: imageUrl,
+                    display_order: nextOrder,
+                    aktif: true
+                }]);
+
+            if (dbError) throw dbError;
+        }
+
+        // ============================================
+        // LOAD BANNERS
+        // ============================================
+        async function loadBanners() {
+            try {
+                const { data, error } = await window.supabase
+                    .from('banners')
+                    .select('*')
+                    .eq('aktif', true)
+                    .order('display_order', { ascending: true });
+
+                if (error) throw error;
+
+                banners = data || [];
+                renderBanners();
+                updateCountBar();
+                updatePreview();
+            } catch (error) {
+                console.error('Load banners error:', error);
+                showError('Gagal memuat data banner: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // RENDER
+        // ============================================
+        function renderBanners() {
+            bannerGrid.innerHTML = '';
+
+            if (banners.length === 0) {
+                emptyState.style.display = 'block';
+                previewSection.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            previewSection.style.display = 'block';
+
+            banners.forEach((banner, index) => {
+                const card = document.createElement('div');
+                card.className = 'banner-card';
+                card.innerHTML = `
+                    <div class="banner-image-wrapper">
+                        <img src="${banner.image_url}" alt="${banner.title || 'Banner'}" loading="lazy">
+                        <div class="banner-order-badge">${index + 1}</div>
+                    </div>
+                    <div class="banner-card-actions">
+                        <div class="banner-card-info">
+                            <div class="banner-card-title">${banner.title || 'Banner ' + (index + 1)}</div>
+                            <div class="banner-card-meta">Urutan #${index + 1}</div>
+                        </div>
+                        <div class="banner-btns">
+                            ${index > 0 ? `<button class="banner-btn" onclick="moveBanner('${banner.id}', 'up')" title="Geser ke atas"><i class="bi bi-chevron-up"></i></button>` : ''}
+                            ${index < banners.length - 1 ? `<button class="banner-btn" onclick="moveBanner('${banner.id}', 'down')" title="Geser ke bawah"><i class="bi bi-chevron-down"></i></button>` : ''}
+                            <button class="banner-btn delete" onclick="deleteBanner('${banner.id}', '${banner.image_url}')" title="Hapus">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                bannerGrid.appendChild(card);
+            });
+        }
+
+        function updateCountBar() {
+            const count = banners.length;
+            bannerCount.textContent = count;
+            const pct = Math.round((count / MAX_BANNERS) * 100);
+            progressBar.style.width = pct + '%';
+            progressText.textContent = pct + '%';
+
+            // Disable upload if max reached
+            if (count >= MAX_BANNERS) {
+                uploadArea.classList.add('disabled');
+            } else {
+                uploadArea.classList.remove('disabled');
+            }
+        }
+
+        // ============================================
+        // PREVIEW SLIDESHOW
+        // ============================================
+        function updatePreview() {
+            // Clear existing preview images
+            const existingImgs = previewSlideshow.querySelectorAll('img');
+            existingImgs.forEach(img => img.remove());
+            previewDots.innerHTML = '';
+
+            if (banners.length === 0) {
+                previewEmpty.style.display = 'flex';
+                if (previewInterval) clearInterval(previewInterval);
+                return;
+            }
+
+            previewEmpty.style.display = 'none';
+            currentPreviewIndex = 0;
+
+            banners.forEach((banner, i) => {
+                const img = document.createElement('img');
+                img.src = banner.image_url;
+                img.alt = banner.title || 'Banner';
+                if (i === 0) img.classList.add('active');
+                previewSlideshow.appendChild(img);
+
+                const dot = document.createElement('div');
+                dot.className = 'preview-dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goToSlide(i));
+                previewDots.appendChild(dot);
+            });
+
+            // Start auto-play
+            if (previewInterval) clearInterval(previewInterval);
+            if (banners.length > 1) {
+                previewInterval = setInterval(() => {
+                    goToSlide((currentPreviewIndex + 1) % banners.length);
+                }, 4000);
+            }
+        }
+
+        function goToSlide(index) {
+            const imgs = previewSlideshow.querySelectorAll('img');
+            const dots = previewDots.querySelectorAll('.preview-dot');
+
+            imgs.forEach(img => img.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+
+            if (imgs[index]) imgs[index].classList.add('active');
+            if (dots[index]) dots[index].classList.add('active');
+            currentPreviewIndex = index;
+        }
+
+        // ============================================
+        // ACTIONS
+        // ============================================
+        window.moveBanner = async function (id, direction) {
+            const index = banners.findIndex(b => b.id === id);
+            if (index === -1) return;
+
+            const swapIndex = direction === 'up' ? index - 1 : index + 1;
+            if (swapIndex < 0 || swapIndex >= banners.length) return;
+
+            // Swap display_order values
+            const orderA = banners[index].display_order;
+            const orderB = banners[swapIndex].display_order;
+
+            try {
+                await window.supabase
+                    .from('banners')
+                    .update({ display_order: orderB })
+                    .eq('id', banners[index].id);
+
+                await window.supabase
+                    .from('banners')
+                    .update({ display_order: orderA })
+                    .eq('id', banners[swapIndex].id);
+
+                await loadBanners();
+            } catch (err) {
+                console.error('Move error:', err);
+                showError('Gagal mengubah urutan banner.');
+            }
+        };
+
+        window.deleteBanner = async function (id, imageUrl) {
+            if (!confirm('Hapus banner ini?')) return;
+
+            try {
+                uploadOverlay.classList.add('show');
+
+                // Extract filename from URL
+                const urlParts = imageUrl.split('/');
+                const fileName = urlParts[urlParts.length - 1];
+
+                // Delete from storage
+                await window.supabase.storage
+                    .from('banners')
+                    .remove([fileName]);
+
+                // Delete from DB
+                const { error } = await window.supabase
+                    .from('banners')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showSuccess('Banner berhasil dihapus.');
+                await loadBanners();
+            } catch (err) {
+                console.error('Delete error:', err);
+                showError('Gagal menghapus banner: ' + err.message);
+            } finally {
+                uploadOverlay.classList.remove('show');
+            }
+        };
+
+        // ============================================
+        // ALERTS
+        // ============================================
+        function showSuccess(msg) {
+            successMessage.textContent = msg;
+            successAlert.classList.add('show');
+            errorAlert.classList.remove('show');
+            setTimeout(() => successAlert.classList.remove('show'), 3000);
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorAlert.classList.add('show');
+            successAlert.classList.remove('show');
+            setTimeout(() => errorAlert.classList.remove('show'), 5000);
+        }
+
+        // Start
+        waitForAuth();
+    </script>
+    <!-- Main JS -->
+    <script src="../js/main.js"></script>
+</body>
+
+</html>

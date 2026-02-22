@@ -390,6 +390,129 @@
         }
 
         /* ============================================ */
+        /* BANNER SLIDESHOW */
+        /* ============================================ */
+
+        .banner-slideshow-section {
+            margin-bottom: 32px;
+        }
+
+        .banner-slideshow-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .banner-slideshow-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .banner-slideshow-header h3 i {
+            color: var(--color-primary);
+        }
+
+        .banner-manage-link {
+            font-size: 13px;
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .banner-manage-link:hover {
+            opacity: 0.8;
+        }
+
+        .banner-slideshow-container {
+            position: relative;
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background: var(--color-bg-tertiary);
+            aspect-ratio: 16 / 5;
+        }
+
+        .banner-slideshow-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .banner-slideshow-container img.active {
+            opacity: 1;
+        }
+
+        .banner-slideshow-dots {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .banner-slideshow-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .banner-slideshow-dots .dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: #FFA500;
+        }
+
+        .banner-slideshow-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.45));
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .banner-slideshow-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--color-text-tertiary);
+            gap: 8px;
+        }
+
+        .banner-slideshow-empty i {
+            font-size: 36px;
+            opacity: 0.4;
+        }
+
+        .banner-slideshow-empty span {
+            font-size: 14px;
+        }
+
+        /* ============================================ */
         /* LOADING STATE */
         /* ============================================ */
 
@@ -561,6 +684,11 @@
                     <i class="bi bi-calendar-event"></i>
                     <span>Pengajian</span>
                 </a>
+
+                <a href="pages/banner.html" class="nav-link">
+                    <i class="bi bi-images"></i>
+                    <span>Banner Acara</span>
+                </a>
             </nav>
         </aside>
 
@@ -580,6 +708,24 @@
                     display masjid dengan mudah dari sini.</p>
             </div>
 
+            <!-- Banner Slideshow -->
+            <div class="banner-slideshow-section" id="bannerSlideshowSection" style="display: none;">
+                <div class="banner-slideshow-header">
+                    <h3><i class="bi bi-tv-fill"></i> Preview Banner Acara</h3>
+                    <a href="pages/banner.html" class="banner-manage-link">
+                        Kelola Banner <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="banner-slideshow-container" id="bannerSlideshowContainer">
+                    <div class="banner-slideshow-empty" id="bannerEmpty">
+                        <i class="bi bi-images"></i>
+                        <span>Belum ada banner</span>
+                    </div>
+                    <div class="banner-slideshow-gradient"></div>
+                    <div class="banner-slideshow-dots" id="bannerDots"></div>
+                </div>
+            </div>
+
             <!-- Summary Cards -->
             <div class="cards-grid">
                 <!-- Kas Masjid -->
@@ -596,6 +742,23 @@
                     <div class="card-footer-text">
                         <i class="bi bi-clock"></i>
                         <span id="kasLastUpdate">Belum ada data</span>
+                    </div>
+                </div>
+
+                <!-- Banner Acara -->
+                <div class="summary-card" style="--card-accent: #FFA500;">
+                    <div class="card-header-flex">
+                        <div class="card-icon" style="background: rgba(255,165,0,0.1); color: #FFA500;">
+                            <i class="bi bi-images"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card-title">Banner Aktif</div>
+                        <div class="card-value" id="bannerCount">0</div>
+                    </div>
+                    <div class="card-footer-text">
+                        <i class="bi bi-display"></i>
+                        <span>Ditampilkan di layar TV</span>
                     </div>
                 </div>
 
@@ -798,6 +961,9 @@
                 // document.getElementById('pengajianCount').textContent = '5';
                 // document.getElementById('ayatCount').textContent = '12';
 
+                // 2. Load banner count and slideshow
+                loadBannerSlideshow();
+
             } catch (error) {
                 console.error('Error loading stats:', error);
                 document.getElementById('kasBalance').textContent = 'Rp 0';
@@ -810,6 +976,84 @@
 
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // ============================================
+        // BANNER SLIDESHOW LOGIC
+        // ============================================
+
+        let bannerSlideInterval = null;
+        let currentBannerIndex = 0;
+        let bannerImages = [];
+
+        async function loadBannerSlideshow() {
+            try {
+                const { data: banners, error } = await supabase
+                    .from('banners')
+                    .select('*')
+                    .eq('aktif', true)
+                    .order('display_order', { ascending: true });
+
+                if (error) {
+                    console.warn('⚠️ Banner table may not exist yet:', error.message);
+                    return;
+                }
+
+                // Update banner count card
+                document.getElementById('bannerCount').textContent = (banners || []).length;
+
+                if (banners && banners.length > 0) {
+                    const section = document.getElementById('bannerSlideshowSection');
+                    const container = document.getElementById('bannerSlideshowContainer');
+                    const dotsContainer = document.getElementById('bannerDots');
+                    const emptyState = document.getElementById('bannerEmpty');
+
+                    section.style.display = 'block';
+                    emptyState.style.display = 'none';
+
+                    // Create image elements
+                    bannerImages = [];
+                    banners.forEach((banner, index) => {
+                        const img = document.createElement('img');
+                        img.src = banner.image_url;
+                        img.alt = banner.title || `Banner ${index + 1}`;
+                        if (index === 0) img.classList.add('active');
+                        container.insertBefore(img, container.querySelector('.banner-slideshow-gradient'));
+                        bannerImages.push(img);
+
+                        // Create dot
+                        const dot = document.createElement('div');
+                        dot.className = 'dot' + (index === 0 ? ' active' : '');
+                        dot.addEventListener('click', () => goToBanner(index));
+                        dotsContainer.appendChild(dot);
+                    });
+
+                    // Auto-cycle
+                    if (banners.length > 1) {
+                        bannerSlideInterval = setInterval(() => {
+                            goToBanner((currentBannerIndex + 1) % bannerImages.length);
+                        }, 6000);
+                    }
+                }
+
+                console.log(`✅ Loaded ${(banners || []).length} banners on dashboard`);
+            } catch (e) {
+                console.warn('Banner load skipped:', e.message);
+            }
+        }
+
+        function goToBanner(index) {
+            if (bannerImages.length === 0) return;
+
+            // Remove active from current
+            bannerImages[currentBannerIndex]?.classList.remove('active');
+            const dots = document.querySelectorAll('#bannerDots .dot');
+            dots[currentBannerIndex]?.classList.remove('active');
+
+            // Set new active
+            currentBannerIndex = index;
+            bannerImages[currentBannerIndex]?.classList.add('active');
+            dots[currentBannerIndex]?.classList.add('active');
         }
 
         // Start initialization
