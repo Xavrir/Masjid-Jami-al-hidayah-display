@@ -343,15 +343,15 @@ fun MainDashboard(
                             Icon(
                                 painter = painterResource(id = getPrayerIconRes(prayer.name)),
                                 contentDescription = prayer.name,
-                                modifier = Modifier.size(32.dp),
+                                modifier = Modifier.size(48.dp),
                                 tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
                             )
                             
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             
                             Text(
                                 text = prayer.name.uppercase(),
-                                fontSize = 14.sp,
+                                fontSize = 20.sp,
                                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isCurrent) Color(0xFFFFA500) else Color.White,
                                 letterSpacing = 1.sp
@@ -359,7 +359,7 @@ fun MainDashboard(
                             
                             Text(
                                 text = prayer.adhanTime,
-                                fontSize = 18.sp,
+                                fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
