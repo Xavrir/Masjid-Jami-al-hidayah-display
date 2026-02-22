@@ -1,5 +1,6 @@
 package com.masjiddisplay.data
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.http.*
 
 /**
@@ -49,9 +50,11 @@ interface SupabaseApiService {
 data class QuranVerseRemote(
     val id: String,
     val surah: String,
+    @SerializedName("surah_number")
     val surahNumber: Int,
     val ayah: Int,
     val arabic: String,
+    val translation: String? = null,
     val transliteration: String? = null
 )
 
