@@ -81,7 +81,7 @@ fun EnhancedRunningText(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(64.dp)
             .background(
                 Brush.horizontalGradient(
                     colors = listOf(
@@ -100,8 +100,8 @@ fun EnhancedRunningText(
         Text(
             text = content,
             style = AppTypography.bodyM.copy(
-                fontSize = 16.sp,
-                lineHeight = 24.sp
+                fontSize = 28.sp,
+                lineHeight = 42.sp
             ),
             color = Color.White,
             maxLines = 1,
