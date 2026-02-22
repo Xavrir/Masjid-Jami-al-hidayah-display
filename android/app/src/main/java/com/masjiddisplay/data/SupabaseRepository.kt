@@ -8,8 +8,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.time.LocalDate
-import java.time.YearMonth
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -136,7 +137,8 @@ object SupabaseRepository {
                 var incomeMonth: Long = 0
                 var expenseMonth: Long = 0
                 
-                val currentMonth = LocalDate.now().toString().substring(0, 7)
+                val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"), Locale.ROOT)
+                val currentMonth = "%04d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
                 
                 transactions.forEach { tx ->
                     val jenisLower = tx.jenis.lowercase()
@@ -280,7 +282,7 @@ private fun QuranVerseRemote.toLocal(): QuranVerse {
         surahNumber = this.surahNumber,
         ayah = this.ayah,
         arabic = this.arabic,
-        translation = this.transliteration,
+        translation = this.translation,
         transliteration = this.transliteration
     )
 }
