@@ -246,9 +246,12 @@ object SupabaseRepository {
      */
     suspend fun getPengajianForDisplay(): List<String> {
         return getPengajian()
-            .filter { it.judul != null && it.pembicara != null }
+            .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
             .map { pengajian ->
-                "${pengajian.judul} (${pengajian.hari ?: "-"} - ${pengajian.jam ?: "-"}) - ${pengajian.pembicara}"
+                val title = pengajian.judul ?: pengajian.tema ?: ""
+                val speaker = pengajian.pembicara ?: pengajian.ustadz ?: ""
+                val schedule = pengajian.hari ?: pengajian.tanggal ?: "-"
+                "$title ($schedule - ${pengajian.jam ?: "-"}) - $speaker"
             }
     }
     

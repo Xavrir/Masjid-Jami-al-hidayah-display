@@ -74,7 +74,12 @@ data class PengajianRemote(
     val jam: String? = null,
     val hari: String? = null,
     val lokasi: String? = null,
-    val deskripsi: String? = null
+    val deskripsi: String? = null,
+    // Admin panel uses these column names instead of judul/pembicara
+    val tema: String? = null,
+    val ustadz: String? = null,
+    val tanggal: String? = null,
+    val aktif: Boolean? = null
 )
 
 data class KasTransaksiRemote(

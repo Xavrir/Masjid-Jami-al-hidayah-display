@@ -163,8 +163,13 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             
             val fetchedPengajian = SupabaseRepository.getPengajian()
             pengajian = fetchedPengajian
-                .filter { it.judul != null && it.pembicara != null }
-                .map { "${it.judul} oleh ${it.pembicara} (${it.hari ?: "-"}, ${it.jam ?: "-"})" }
+                .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
+                .map { 
+                    val title = it.judul ?: it.tema ?: ""
+                    val speaker = it.pembicara ?: it.ustadz ?: ""
+                    val schedule = it.hari ?: it.tanggal ?: "-"
+                    "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
+                }
             
             banners = SupabaseRepository.getBanners()
         } catch (e: Exception) {
@@ -235,7 +240,10 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     
     val socialMediaLinks = remember {
         listOf(
-            "Instagram @kurmaalhidayah  •  Instagram @masjidalhidayah.tanahmerdeka  •  YouTube Masjidalhidayah.tanahmerdeka  •  TikTok @kurmaalhidayahofficial"
+            "Instagram @kurmaalhidayah",
+            "Instagram @masjidalhidayah.tanahmerdeka",
+            "YouTube Masjidalhidayah.tanahmerdeka",
+            "TikTok @kurmaalhidayahofficial"
         )
     }
     
