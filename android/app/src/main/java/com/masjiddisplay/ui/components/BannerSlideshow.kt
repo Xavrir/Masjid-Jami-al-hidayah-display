@@ -26,43 +26,57 @@ import kotlinx.coroutines.delay
 /**
  * Banner Slideshow Composable
  *
- * Displays banners from Supabase as a full-width slideshow with:
- * - Auto-advancement every [intervalMs] milliseconds
- * - Crossfade transitions between banners
- * - Navigation dots indicator
- * - Graceful empty/single-banner handling
+ * Displays banners from Supabase as a slideshow that fills available space.
+ * Total display time is [totalDurationMs] (default 10 minutes), divided equally
+ * among all banners. Uses crossfade transitions and navigation dots.
+ *
+ * @param banners List of banners to display
+ * @param totalDurationMs Total cycle duration in ms (default 600,000 = 10 min)
+ * @param onCycleComplete Called when one full cycle through all banners is done
  */
 @Composable
 fun BannerSlideshow(
     banners: List<BannerRemote>,
-    intervalMs: Long = 8000L,
+    totalDurationMs: Long = 600_000L,
+    onCycleComplete: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (banners.isEmpty()) return
 
     var currentIndex by remember { mutableIntStateOf(0) }
+    val perBannerMs = remember(banners.size, totalDurationMs) {
+        if (banners.size > 0) totalDurationMs / banners.size else totalDurationMs
+    }
 
-    // Auto-advance
-    LaunchedEffect(banners.size) {
+    // Auto-advance timer
+    LaunchedEffect(banners.size, perBannerMs) {
         if (banners.size > 1) {
             while (true) {
-                delay(intervalMs)
-                currentIndex = (currentIndex + 1) % banners.size
+                delay(perBannerMs)
+                val nextIndex = (currentIndex + 1) % banners.size
+                currentIndex = nextIndex
+                if (nextIndex == 0) {
+                    onCycleComplete()
+                }
             }
+        } else {
+            // Single banner: wait for full duration then signal complete
+            delay(totalDurationMs)
+            onCycleComplete()
         }
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(12.dp))
     ) {
         // Banner image with crossfade
         AnimatedContent(
             targetState = currentIndex,
             transitionSpec = {
-                fadeIn(animationSpec = androidx.compose.animation.core.tween(800)) togetherWith
-                fadeOut(animationSpec = androidx.compose.animation.core.tween(800))
+                fadeIn(animationSpec = androidx.compose.animation.core.tween(1000)) togetherWith
+                fadeOut(animationSpec = androidx.compose.animation.core.tween(1000))
             },
             label = "banner_crossfade"
         ) { index ->
@@ -75,9 +89,7 @@ fun BannerSlideshow(
                         .build()
                 ),
                 contentDescription = banner.title ?: "Banner ${index + 1}",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         }
@@ -114,7 +126,7 @@ fun BannerSlideshow(
                             .clip(CircleShape)
                             .background(
                                 if (index == currentIndex)
-                                    Color(0xFFFFA500) // Orange for active
+                                    Color(0xFFFFA500)
                                 else
                                     Color.White.copy(alpha = 0.5f)
                             )
@@ -123,12 +135,12 @@ fun BannerSlideshow(
             }
         }
 
-        // Banner title overlay (optional)
+        // Banner title overlay
         val currentBanner = banners.getOrNull(currentIndex)
         if (currentBanner?.title != null && currentBanner.title.isNotBlank()) {
             Text(
                 text = currentBanner.title,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
                 modifier = Modifier

@@ -53,6 +53,30 @@ fun MainDashboard(
     var imsakTime by remember { mutableStateOf("04:24") }
     val isRamadhanNow = remember(currentTime) { isRamadan(currentTime) }
     
+    // Banner visibility: show 20 min after any iqamah for 10-min window
+    val showBanner = remember(currentTime, prayers, banners) {
+        if (banners.isEmpty() || prayers.isEmpty()) false
+        else {
+            val cal = jakartaCalendar(currentTime)
+            val currentTotalMin = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+            prayers.any { prayer ->
+                val name = prayer.name.lowercase()
+                if (name in listOf("shuruq", "syuruq", "sunrise", "imsak")) false
+                else {
+                    val parts = prayer.iqamahTime.split(":")
+                    if (parts.size == 2) {
+                        val iqH = parts[0].toIntOrNull() ?: 0
+                        val iqM = parts[1].toIntOrNull() ?: 0
+                        val iqTotal = iqH * 60 + iqM
+                        val bannerStart = iqTotal + 20   // 20 min after iqamah
+                        val bannerEnd = bannerStart + 10 // 10-min window
+                        currentTotalMin in bannerStart until bannerEnd
+                    } else false
+                }
+            }
+        }
+    }
+    
     LaunchedEffect(Unit) {
         val today = jakartaCalendar().apply {
             set(Calendar.HOUR_OF_DAY, 0)
@@ -254,128 +278,132 @@ fun MainDashboard(
                 }
             }
             
-            // Banner Slideshow (between header and prayer section)
-            if (banners.isNotEmpty()) {
+            
+            // Center area: either banner slideshow or prayer timeline
+            if (showBanner) {
+                // Banner slideshow — replaces prayer area
                 BannerSlideshow(
                     banners = banners,
-                    intervalMs = 8000L,
+                    totalDurationMs = 600_000L, // 10 minutes total
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 24.dp)
+                        .weight(1f)
+                        .padding(vertical = 8.dp)
                 )
-            }
-            
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
-                val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
-                val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "MENUJU",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White.copy(alpha = 0.7f),
-                        letterSpacing = 2.sp
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = countdownText,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                Box(
+            } else {
+                // Normal prayer timeline
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(40.dp),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(2.dp)
-                    ) {
-                        val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
-                        drawLine(
-                            color = timelineColor,
-                            start = Offset(0f, size.height / 2),
-                            end = Offset(size.width, size.height / 2),
-                            strokeWidth = 3f,
-                            pathEffect = dashEffect,
-                            cap = StrokeCap.Round
+                    val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
+                    val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
+                    val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "MENUJU",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.7f),
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = countdownText,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Canvas(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                        ) {
+                            val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
+                            drawLine(
+                                color = timelineColor,
+                                start = Offset(0f, size.height / 2),
+                                end = Offset(size.width, size.height / 2),
+                                strokeWidth = 3f,
+                                pathEffect = dashEffect,
+                                cap = StrokeCap.Round
+                            )
+                        }
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            mainPrayers.forEach { prayer ->
+                                val isPassed = prayer.status == PrayerStatus.PASSED
+                                val isCurrent = prayer.status == PrayerStatus.CURRENT
+                                val isNext = nextPrayer?.name == prayer.name
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .size(if (isCurrent || isNext) 12.dp else 8.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            when {
+                                                isCurrent -> timelineColor
+                                                isNext -> timelineColor
+                                                isPassed -> timelineSoftColor
+                                                else -> timelineFaintColor
+                                            }
+                                        )
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(48.dp))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         mainPrayers.forEach { prayer ->
-                            val isPassed = prayer.status == PrayerStatus.PASSED
                             val isCurrent = prayer.status == PrayerStatus.CURRENT
-                            val isNext = nextPrayer?.name == prayer.name
                             
-                            Box(
-                                modifier = Modifier
-                                    .size(if (isCurrent || isNext) 12.dp else 8.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        when {
-                                            isCurrent -> timelineColor
-                                            isNext -> timelineColor
-                                            isPassed -> timelineSoftColor
-                                            else -> timelineFaintColor
-                                        }
-                                    )
-                            )
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    mainPrayers.forEach { prayer ->
-                        val isCurrent = prayer.status == PrayerStatus.CURRENT
-                        
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                painter = painterResource(id = getPrayerIconRes(prayer.name)),
-                                contentDescription = prayer.name,
-                                modifier = Modifier.size(48.dp),
-                                tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            Text(
-                                text = prayer.name.uppercase(),
-                                fontSize = 20.sp,
-                                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isCurrent) Color(0xFFFFA500) else Color.White,
-                                letterSpacing = 1.sp
-                            )
-                            
-                            Text(
-                                text = prayer.adhanTime,
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    painter = painterResource(id = getPrayerIconRes(prayer.name)),
+                                    contentDescription = prayer.name,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
+                                )
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                Text(
+                                    text = prayer.name.uppercase(),
+                                    fontSize = 20.sp,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isCurrent) Color(0xFFFFA500) else Color.White,
+                                    letterSpacing = 1.sp
+                                )
+                                
+                                Text(
+                                    text = prayer.adhanTime,
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
