@@ -857,29 +857,40 @@
     <!-- Auth Check -->
     <script>
         // Wait for auth state and redirect if not logged in
+        function waitForSupabase() {
+            return new Promise((resolve) => {
+                if (window.supabase && typeof window.supabase.from === 'function') {
+                    resolve();
+                    return;
+                }
+                const check = setInterval(() => {
+                    if (window.supabase && typeof window.supabase.from === 'function') {
+                        clearInterval(check);
+                        resolve();
+                    }
+                }, 50);
+            });
+        }
+
         async function waitForAuth(callback) {
-            // Check manual bypass first
+            await waitForSupabase();
+
             if (localStorage.getItem('manual_auth') === 'true') {
-                if (callback) callback({ email: 'admin@alhidayah.com' }); // Mock user
+                if (callback) callback({ email: 'admin@alhidayah.com' });
                 return;
             }
 
-            const checkInterval = setInterval(async () => {
-                if (window.supabase && window.supabase.auth) {
-                    clearInterval(checkInterval);
-                    try {
-                        const { data: { session }, error } = await window.supabase.auth.getSession();
-                        if (error || !session) {
-                            window.location.href = 'login.html';
-                        } else {
-                            if (callback) callback(session.user);
-                        }
-                    } catch (e) {
-                        console.error('Auth error', e);
-                        window.location.href = 'login.html';
-                    }
+            try {
+                const { data: { session }, error } = await window.supabase.auth.getSession();
+                if (error || !session) {
+                    window.location.href = 'login.html';
+                } else {
+                    if (callback) callback(session.user);
                 }
-            }, 100);
+            } catch (e) {
+                console.error('Auth error', e);
+                window.location.href = 'login.html';
+            }
         }
     </script>
 
@@ -930,7 +941,7 @@
 
         async function loadDashboardStats() {
             try {
-                const { data: transactions, error: kasError } = await supabase
+                const { data: transactions, error: kasError } = await window.supabase
                     .from('kas_transaksi')
                     .select('nominal, jenis');
 
@@ -960,7 +971,7 @@
                     document.getElementById('kasLastUpdate').textContent = 'Update: ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 }
 
-                const { data: hadits, error: haditsError } = await supabase
+                const { data: hadits, error: haditsError } = await window.supabase
                     .from('hadits')
                     .select('id');
                 if (!haditsError) {
@@ -994,7 +1005,7 @@
 
         async function loadBannerSlideshow() {
             try {
-                const { data: banners, error } = await supabase
+                const { data: banners, error } = await window.supabase
                     .from('banners')
                     .select('*')
                     .eq('aktif', true)
