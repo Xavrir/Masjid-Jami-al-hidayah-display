@@ -124,15 +124,17 @@ fun MultiSourceRunningText(
     quranVerses: List<String>,
     hadiths: List<String>,
     pengajian: List<String>,
+    socialMedia: List<String> = emptyList(),
     modifier: Modifier = Modifier
 ) {
-    val allContent = remember(announcements, kasItems, quranVerses, hadiths, pengajian) {
+    val allContent = remember(announcements, kasItems, quranVerses, hadiths, pengajian, socialMedia) {
         mutableListOf<String>().apply {
             addAll(announcements.map { "📢 Pengumuman: $it" })
             addAll(kasItems.map { "💰 Kas Masjid: $it" })
             addAll(quranVerses.map { "📖 Ayat Quran: $it" })
             addAll(hadiths.map { "💭 Hadits: $it" })
             addAll(pengajian.map { "🎓 Pengajian: $it" })
+            addAll(socialMedia.map { "📱 Ikuti Kami: $it" })
         }
     }
     

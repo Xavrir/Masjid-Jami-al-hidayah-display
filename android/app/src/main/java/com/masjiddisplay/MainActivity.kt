@@ -233,6 +233,12 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         }
     }
     
+    val socialMediaLinks = remember {
+        listOf(
+            "Instagram @kurmaalhidayah  •  Instagram @masjidalhidayah.tanahmerdeka  •  YouTube Masjidalhidayah.tanahmerdeka  •  TikTok @kurmaalhidayahofficial"
+        )
+    }
+    
     LaunchedEffect(appClock, prayers) {
         if (prayers.isEmpty() || prayerAlertVisible) return@LaunchedEffect
         
@@ -341,6 +347,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             quranVerses = quranVerses,
             hadiths = hadiths,
             pengajian = pengajian,
+            socialMedia = socialMediaLinks,
             banners = banners,
             onPrayerStart = { },
             onKasDetailRequested = {

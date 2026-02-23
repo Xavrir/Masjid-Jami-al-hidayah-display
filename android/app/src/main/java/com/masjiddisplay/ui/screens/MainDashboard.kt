@@ -42,6 +42,7 @@ fun MainDashboard(
     quranVerses: List<String> = emptyList(),
     hadiths: List<String> = emptyList(),
     pengajian: List<String> = emptyList(),
+    socialMedia: List<String> = emptyList(),
     banners: List<BannerRemote> = emptyList(),
     onPrayerStart: (Prayer) -> Unit = {},
     onKasDetailRequested: () -> Unit = {},
@@ -433,7 +434,8 @@ fun MainDashboard(
                 kasItems = kasItems,
                 quranVerses = quranVerses,
                 hadiths = hadiths,
-                pengajian = pengajian
+                pengajian = pengajian,
+                socialMedia = socialMedia
             )
         }
     }
