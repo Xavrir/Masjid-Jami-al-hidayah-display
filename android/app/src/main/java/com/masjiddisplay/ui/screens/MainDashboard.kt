@@ -146,7 +146,6 @@ fun MainDashboard(
     val cornerEmoji = if (isRamadhanNow) "☀️" else "🌙"
     val cornerColor = if (isRamadhanNow) Color(0xFFFFA500) else Color(0xFF9C88FF)
     
-    // Banner timing: show 15 min after iqamah for 10 min
     val shouldShowBanners = remember(currentTime, prayers, banners) {
         if (banners.isEmpty() || prayers.isEmpty()) return@remember false
         val now = jakartaCalendar(currentTime)
@@ -227,11 +226,12 @@ fun MainDashboard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 48.dp, vertical = 24.dp)
+                .padding(vertical = 24.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 48.dp)
                     .padding(bottom = 32.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
@@ -305,16 +305,15 @@ fun MainDashboard(
                     BannerSlideshow(
                         banners = banners,
                         intervalMs = bannerIntervalMs,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center)
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 
                 if (!shouldShowBanners) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(horizontal = 48.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {

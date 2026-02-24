@@ -54,17 +54,19 @@ fun BannerSlideshow(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .fillMaxSize()
     ) {
-        // Banner image with crossfade
         AnimatedContent(
             targetState = currentIndex,
+            modifier = Modifier.fillMaxSize(),
             transitionSpec = {
-                fadeIn(animationSpec = androidx.compose.animation.core.tween(800)) togetherWith
-                fadeOut(animationSpec = androidx.compose.animation.core.tween(800))
+                if (targetState > initialState) {
+                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                } else {
+                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                }
             },
-            label = "banner_crossfade"
+            label = "banner_slide"
         ) { index ->
             val banner = banners.getOrNull(index) ?: banners[0]
             Image(
@@ -75,9 +77,7 @@ fun BannerSlideshow(
                         .build()
                 ),
                 contentDescription = banner.title ?: "Banner ${index + 1}",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         }
