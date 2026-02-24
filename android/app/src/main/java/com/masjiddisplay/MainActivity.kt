@@ -152,34 +152,37 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     }
 
     LaunchedEffect(Unit) {
-        try {
-            kasData = SupabaseRepository.getKasData()
-            
-            val fetchedQuran = SupabaseRepository.getQuranVerses()
-            quranVerses = fetchedQuran.map { 
-                val text = it.translation ?: it.transliteration ?: it.arabic
-                "QS ${it.surah} (${it.surahNumber}):${it.ayah} - $text"
-            }
-            
-            val fetchedHadiths = SupabaseRepository.getHadiths()
-            hadiths = fetchedHadiths.map { 
-                val text = it.translation ?: it.arabic
-                "${it.source}: $text"
-            }
-            
-            val fetchedPengajian = SupabaseRepository.getPengajian()
-            pengajian = fetchedPengajian
-                .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
-                .map { 
-                    val title = it.judul ?: it.tema ?: ""
-                    val speaker = it.pembicara ?: it.ustadz ?: ""
-                    val schedule = it.hari ?: it.tanggal ?: "-"
-                    "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
+        while (currentCoroutineContext().isActive) {
+            try {
+                kasData = SupabaseRepository.getKasData()
+                
+                val fetchedQuran = SupabaseRepository.getQuranVerses()
+                quranVerses = fetchedQuran.map { 
+                    val text = it.translation ?: it.transliteration ?: it.arabic
+                    "QS ${it.surah} (${it.surahNumber}):${it.ayah} - $text"
                 }
-            
-            banners = SupabaseRepository.getBanners()
-        } catch (e: Exception) {
-            e.printStackTrace()
+                
+                val fetchedHadiths = SupabaseRepository.getHadiths()
+                hadiths = fetchedHadiths.map { 
+                    val text = it.translation ?: it.arabic
+                    "${it.source}: $text"
+                }
+                
+                val fetchedPengajian = SupabaseRepository.getPengajian()
+                pengajian = fetchedPengajian
+                    .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
+                    .map { 
+                        val title = it.judul ?: it.tema ?: ""
+                        val speaker = it.pembicara ?: it.ustadz ?: ""
+                        val schedule = it.hari ?: it.tanggal ?: "-"
+                        "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
+                    }
+                
+                banners = SupabaseRepository.getBanners()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            delay(30L * 60 * 1000)
         }
     }
     
