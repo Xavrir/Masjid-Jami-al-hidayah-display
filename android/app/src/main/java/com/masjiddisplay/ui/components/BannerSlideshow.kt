@@ -5,8 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,13 +13,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.masjiddisplay.data.BannerRemote
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 /**
  * Banner Slideshow Composable
@@ -42,12 +40,21 @@ fun BannerSlideshow(
 
     var currentIndex by remember { mutableIntStateOf(0) }
 
-    // Auto-advance
     LaunchedEffect(banners.size) {
+        if (currentIndex >= banners.size) {
+            currentIndex = 0
+        }
+    }
+
+    // Auto-advance
+    LaunchedEffect(banners.size, intervalMs) {
         if (banners.size > 1) {
-            while (true) {
+            while (currentCoroutineContext().isActive) {
                 delay(intervalMs)
-                currentIndex = (currentIndex + 1) % banners.size
+                val safeSize = banners.size
+                if (safeSize > 1) {
+                    currentIndex = (currentIndex + 1) % safeSize
+                }
             }
         }
     }
@@ -68,7 +75,11 @@ fun BannerSlideshow(
             },
             label = "banner_slide"
         ) { index ->
-            val banner = banners.getOrNull(index) ?: banners[0]
+            val banner = banners.getOrNull(index) ?: banners.firstOrNull()
+            if (banner == null) {
+                Box(modifier = Modifier.fillMaxSize())
+                return@AnimatedContent
+            }
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)

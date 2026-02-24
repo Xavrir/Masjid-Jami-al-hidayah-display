@@ -45,8 +45,11 @@ import com.masjiddisplay.ui.components.OverlayType
 import com.masjiddisplay.ui.screens.MainDashboard
 import com.masjiddisplay.ui.theme.MasjidDisplayTheme
 import com.masjiddisplay.utils.PrayerTimeCalculator
+import com.masjiddisplay.utils.jakartaDateFormat
 import com.masjiddisplay.utils.jakartaCalendar
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import java.util.*
 
 class MainActivity : ComponentActivity() {
@@ -113,6 +116,9 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     var prayerAlertVisible by remember { mutableStateOf(false) }
     var currentOverlayType by remember { mutableStateOf(OverlayType.ADHAN) }
     var alertPrayer by remember { mutableStateOf<Prayer?>(null) }
+    val currentDateKey = remember(appClock) {
+        jakartaDateFormat("yyyy-MM-dd", Locale.ROOT).format(appClock)
+    }
     
     var lastAdhanAlertKey by remember { mutableStateOf("") }
     var lastIqamahAlertKey by remember { mutableStateOf("") }
@@ -178,14 +184,14 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     }
     
     LaunchedEffect(Unit) {
-        while (true) {
+        while (currentCoroutineContext().isActive) {
             appClock = Date()
             delay(1000)
         }
     }
     
-    LaunchedEffect(Unit) {
-        val today = jakartaCalendar().apply {
+    LaunchedEffect(currentDateKey) {
+        val today = jakartaCalendar(appClock).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)

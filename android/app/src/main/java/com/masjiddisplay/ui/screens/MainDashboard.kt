@@ -31,7 +31,9 @@ import com.masjiddisplay.data.BannerRemote
 import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import java.util.*
 
 @Composable
@@ -55,16 +57,19 @@ fun MainDashboard(
     var shuruqTime by remember { mutableStateOf("05:55") }
     var imsakTime by remember { mutableStateOf("04:24") }
     val isRamadhanNow = remember(currentTime) { isRamadan(currentTime) }
+    val currentDateKey = remember(currentTime) {
+        jakartaDateFormat("yyyy-MM-dd", Locale.ROOT).format(currentTime)
+    }
     
-    LaunchedEffect(Unit) {
-        val today = jakartaCalendar().apply {
+    LaunchedEffect(currentDateKey) {
+        val today = jakartaCalendar(currentTime).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.time
         
-        val tomorrow = jakartaCalendar().apply {
+        val tomorrow = jakartaCalendar(today).apply {
             add(Calendar.DAY_OF_YEAR, 1)
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -79,7 +84,7 @@ fun MainDashboard(
     }
     
     LaunchedEffect(Unit) {
-        while (true) {
+        while (currentCoroutineContext().isActive) {
             currentTime = Date()
             delay(1000)
         }
@@ -301,14 +306,6 @@ fun MainDashboard(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                if (shouldShowBanners) {
-                    BannerSlideshow(
-                        banners = banners,
-                        intervalMs = bannerIntervalMs,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
                 if (!shouldShowBanners) {
                 Column(
                     modifier = Modifier
@@ -437,6 +434,14 @@ fun MainDashboard(
                 socialMedia = socialMedia
             )
         }
+
+        if (shouldShowBanners) {
+            BannerSlideshow(
+                banners = banners,
+                intervalMs = bannerIntervalMs,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }
 
@@ -467,10 +472,13 @@ private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String 
     try {
         val timeParts = prayer.adhanTime.split(":")
         if (timeParts.size != 2) return "—"
+        val hour = timeParts.getOrNull(0)?.trim()?.toIntOrNull() ?: return "—"
+        val minute = timeParts.getOrNull(1)?.trim()?.toIntOrNull() ?: return "—"
+        if (hour !in 0..23 || minute !in 0..59) return "—"
         
         val prayerCal = jakartaCalendar(currentTime).apply {
-            set(Calendar.HOUR_OF_DAY, timeParts[0].toInt())
-            set(Calendar.MINUTE, timeParts[1].toInt())
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
         }
         
