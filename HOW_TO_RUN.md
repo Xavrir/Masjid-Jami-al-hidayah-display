@@ -1,13 +1,23 @@
 # How to Run the Masjid Display App
 
-## 📱 APK Location
-```
-D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android\app\build\outputs\apk\debug\app-debug.apk
+## 📱 Getting the APK
+
+### Option A: Download from GitHub Actions (Recommended)
+1. Go to the **Actions** tab in this GitHub repository
+2. Click on the latest successful **"Build APK"** workflow run
+3. Scroll to **Artifacts** at the bottom
+4. Download **app-debug** or **app-release**
+
+### Option B: Build Locally
+```bash
+cd android
+./gradlew assembleDebug
+# APK will be at: android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ## ✅ BUILD STATUS
-- ✅ **APK Built Successfully**: 3.7 MB
-- ✅ **Ready to Install**: app-debug.apk
+- ✅ **APK Built via GitHub Actions CI**
+- ✅ **Ready to Install**: app-debug.apk / app-release.apk
 - ✅ **Target**: Android API 21+ (Android TV & Tablets)
 
 ---
@@ -35,8 +45,8 @@ Select the Android TV emulator
 
 **Method B - Via Command Line:**
 ```bash
-cd D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android
-.\gradlew.bat installDebug runDebug
+cd android
+./gradlew installDebug
 ```
 
 ---
@@ -56,9 +66,9 @@ cd D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android
 ### Step 3: Install APK
 **Via Command Line:**
 ```bash
-cd D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android
+cd android
 adb devices                    # List connected devices
-.\gradlew.bat installDebug     # Install on connected device
+./gradlew installDebug         # Install on connected device
 ```
 
 **Manual Installation:**
@@ -71,7 +81,7 @@ adb devices                    # List connected devices
 ## 📺 OPTION 3: Direct APK Installation (Easiest)
 
 ### On Windows PC:
-1. Navigate to: `D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android\app\build\outputs\apk\debug\`
+1. Navigate to: `android/app/build/outputs/apk/debug/`
 2. Copy `app-debug.apk` file
 3. Transfer to Android TV device or emulator
 4. Open with APK installer on device
@@ -81,10 +91,9 @@ adb devices                    # List connected devices
 ## 🎮 Using Android Emulator (Step-by-Step)
 
 ### Quick Setup:
-```powershell
-# Install APK to emulator
-cd D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android
-.\gradlew.bat installDebug
+```bash
+cd android
+./gradlew installDebug
 ```
 
 ### Launch App:
@@ -197,14 +206,15 @@ App displays with default Islamic content
 
 ### Full Build & Install to Emulator:
 ```bash
-cd D:\ProjekMasjid\Masjid-Jami-al-hidayah-display\android
-.\gradlew.bat installDebug
+cd android
+./gradlew installDebug
 ```
 
 ### Clean Build:
 ```bash
-.\gradlew.bat clean
-.\gradlew.bat assembleDebug
+cd android
+./gradlew clean
+./gradlew assembleDebug
 ```
 
 ### View App on Device:

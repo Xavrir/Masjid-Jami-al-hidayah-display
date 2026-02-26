@@ -45,8 +45,11 @@ import com.masjiddisplay.ui.components.OverlayType
 import com.masjiddisplay.ui.screens.MainDashboard
 import com.masjiddisplay.ui.theme.MasjidDisplayTheme
 import com.masjiddisplay.utils.PrayerTimeCalculator
+import com.masjiddisplay.utils.jakartaDateFormat
 import com.masjiddisplay.utils.jakartaCalendar
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import java.util.*
 
 class MainActivity : ComponentActivity() {
@@ -113,6 +116,9 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     var prayerAlertVisible by remember { mutableStateOf(false) }
     var currentOverlayType by remember { mutableStateOf(OverlayType.ADHAN) }
     var alertPrayer by remember { mutableStateOf<Prayer?>(null) }
+    val currentDateKey = remember(appClock) {
+        jakartaDateFormat("yyyy-MM-dd", Locale.ROOT).format(appClock)
+    }
     
     var lastAdhanAlertKey by remember { mutableStateOf("") }
     var lastIqamahAlertKey by remember { mutableStateOf("") }
@@ -146,41 +152,49 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     }
 
     LaunchedEffect(Unit) {
-        try {
-            kasData = SupabaseRepository.getKasData()
-            
-            val fetchedQuran = SupabaseRepository.getQuranVerses()
-            quranVerses = fetchedQuran.map { 
-                val text = it.translation ?: it.transliteration ?: it.arabic
-                "QS ${it.surah} (${it.surahNumber}):${it.ayah} - $text"
+        while (currentCoroutineContext().isActive) {
+            try {
+                kasData = SupabaseRepository.getKasData()
+                
+                val fetchedQuran = SupabaseRepository.getQuranVerses()
+                quranVerses = fetchedQuran.map { 
+                    val text = it.translation ?: it.transliteration ?: it.arabic
+                    "QS ${it.surah} (${it.surahNumber}):${it.ayah} - $text"
+                }
+                
+                val fetchedHadiths = SupabaseRepository.getHadiths()
+                hadiths = fetchedHadiths.map { 
+                    val text = it.translation ?: it.arabic
+                    "${it.source}: $text"
+                }
+                
+                val fetchedPengajian = SupabaseRepository.getPengajian()
+                pengajian = fetchedPengajian
+                    .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
+                    .map { 
+                        val title = it.judul ?: it.tema ?: ""
+                        val speaker = it.pembicara ?: it.ustadz ?: ""
+                        val schedule = it.hari ?: it.tanggal ?: "-"
+                        "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
+                    }
+                
+                banners = SupabaseRepository.getBanners()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            
-            val fetchedHadiths = SupabaseRepository.getHadiths()
-            hadiths = fetchedHadiths.map { 
-                val text = it.translation ?: it.arabic
-                "${it.source}: $text"
-            }
-            
-            val fetchedPengajian = SupabaseRepository.getPengajian()
-            pengajian = fetchedPengajian
-                .filter { it.judul != null && it.pembicara != null }
-                .map { "${it.judul} oleh ${it.pembicara} (${it.hari ?: "-"}, ${it.jam ?: "-"})" }
-            
-            banners = SupabaseRepository.getBanners()
-        } catch (e: Exception) {
-            e.printStackTrace()
+            delay(30L * 60 * 1000)
         }
     }
     
     LaunchedEffect(Unit) {
-        while (true) {
+        while (currentCoroutineContext().isActive) {
             appClock = Date()
             delay(1000)
         }
     }
     
-    LaunchedEffect(Unit) {
-        val today = jakartaCalendar().apply {
+    LaunchedEffect(currentDateKey) {
+        val today = jakartaCalendar(appClock).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -231,6 +245,15 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
         } else {
             staticReminders
         }
+    }
+    
+    val socialMediaLinks = remember {
+        listOf(
+            "Instagram @kurmaalhidayah",
+            "Instagram @masjidalhidayah.tanahmerdeka",
+            "YouTube Masjidalhidayah.tanahmerdeka",
+            "TikTok @kurmaalhidayahofficial"
+        )
     }
     
     LaunchedEffect(appClock, prayers) {
@@ -341,6 +364,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             quranVerses = quranVerses,
             hadiths = hadiths,
             pengajian = pengajian,
+            socialMedia = socialMediaLinks,
             banners = banners,
             onPrayerStart = { },
             onKasDetailRequested = {

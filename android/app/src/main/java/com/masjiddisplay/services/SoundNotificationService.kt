@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.util.Log
+import com.masjiddisplay.R
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -14,7 +15,7 @@ import kotlin.concurrent.withLock
 class SoundNotificationService(private val context: Context) {
     
     companion object {
-        private const val TAG = "SoundNotificationService"
+        private const val TAG = "SoundNotifService"
         private const val ADHAN_DURATION_MS = 60_000L
         private const val IQAMAH_DURATION_MS = 60_000L
     }
@@ -33,11 +34,7 @@ class SoundNotificationService(private val context: Context) {
             try {
                 releaseInternal()
                 
-                val resourceId = context.resources.getIdentifier(
-                    "beep_alarm_sound_effect",
-                    "raw",
-                    context.packageName
-                )
+                val resourceId = R.raw.beep_alarm_sound_effect
                 
                 if (resourceId != 0) {
                     mediaPlayer = MediaPlayer.create(context, resourceId)?.apply {
@@ -98,11 +95,7 @@ class SoundNotificationService(private val context: Context) {
                     // Note: initialize() handles its own lock, so we call the internal version
                     releaseInternal()
                     
-                    val resourceId = context.resources.getIdentifier(
-                        "beep_alarm_sound_effect",
-                        "raw",
-                        context.packageName
-                    )
+                    val resourceId = R.raw.beep_alarm_sound_effect
                     
                     if (resourceId != 0) {
                         mediaPlayer = MediaPlayer.create(context, resourceId)?.apply {

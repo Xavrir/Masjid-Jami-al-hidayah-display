@@ -340,10 +340,10 @@
             color: var(--color-card-kas);
         }
 
-        /* Announcements variant */
-        .summary-card.announcements .card-icon {
+        /* Hadist variant */
+        .summary-card.hadist .card-icon {
             background: rgba(59, 130, 246, 0.1);
-            color: var(--color-card-announcements);
+            color: #3b82f6;
         }
 
         /* Pengajian variant */
@@ -762,20 +762,20 @@
                     </div>
                 </div>
 
-                <!-- Announcements -->
-                <div class="summary-card announcements">
+                <!-- Hadist -->
+                <div class="summary-card hadist">
                     <div class="card-header-flex">
                         <div class="card-icon">
-                            <i class="bi bi-megaphone"></i>
+                            <i class="bi bi-chat-left-quote"></i>
                         </div>
                     </div>
                     <div>
-                        <div class="card-title">Pengumuman Aktif</div>
-                        <div class="card-value" id="announcementCount">0</div>
+                        <div class="card-title">Koleksi Hadist</div>
+                        <div class="card-value" id="hadistCount">0</div>
                     </div>
                     <div class="card-footer-text">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Total pengumuman</span>
+                        <i class="bi bi-star"></i>
+                        <span>Ditampilkan di layar</span>
                     </div>
                 </div>
 
@@ -857,29 +857,40 @@
     <!-- Auth Check -->
     <script>
         // Wait for auth state and redirect if not logged in
+        function waitForSupabase() {
+            return new Promise((resolve) => {
+                if (window.supabase && typeof window.supabase.from === 'function') {
+                    resolve();
+                    return;
+                }
+                const check = setInterval(() => {
+                    if (window.supabase && typeof window.supabase.from === 'function') {
+                        clearInterval(check);
+                        resolve();
+                    }
+                }, 50);
+            });
+        }
+
         async function waitForAuth(callback) {
-            // Check manual bypass first
+            await waitForSupabase();
+
             if (localStorage.getItem('manual_auth') === 'true') {
-                if (callback) callback({ email: 'admin@alhidayah.com' }); // Mock user
+                if (callback) callback({ email: 'admin@alhidayah.com' });
                 return;
             }
 
-            const checkInterval = setInterval(async () => {
-                if (window.supabase && window.supabase.auth) {
-                    clearInterval(checkInterval);
-                    try {
-                        const { data: { session }, error } = await window.supabase.auth.getSession();
-                        if (error || !session) {
-                            window.location.href = 'login.html';
-                        } else {
-                            if (callback) callback(session.user);
-                        }
-                    } catch (e) {
-                        console.error('Auth error', e);
-                        window.location.href = 'login.html';
-                    }
+            try {
+                const { data: { session }, error } = await window.supabase.auth.getSession();
+                if (error || !session) {
+                    window.location.href = 'login.html';
+                } else {
+                    if (callback) callback(session.user);
                 }
-            }, 100);
+            } catch (e) {
+                console.error('Auth error', e);
+                window.location.href = 'login.html';
+            }
         }
     </script>
 
@@ -930,17 +941,21 @@
 
         async function loadDashboardStats() {
             try {
-                // 1. Load Kas Balance (table has: id, kategori, nominal, keterangan, tanggal - NO type)
-                const { data: transactions, error: kasError } = await supabase
+                const { data: transactions, error: kasError } = await window.supabase
                     .from('kas_transaksi')
-                    .select('nominal');
+                    .select('nominal, jenis');
 
                 if (kasError) throw kasError;
 
                 if (transactions) {
-                    // Sum all nominal values (no type column to differentiate masuk/keluar)
                     const balance = transactions.reduce((acc, curr) => {
-                        return acc + (curr.nominal || 0);
+                        const jenis = (curr.jenis || '').toLowerCase();
+                        const amount = curr.nominal || 0;
+                        if (jenis === 'masuk' || jenis === 'pemasukan') {
+                            return acc + amount;
+                        } else {
+                            return acc - amount;
+                        }
                     }, 0);
 
                     const formattedBalance = new Intl.NumberFormat('id-ID', {
@@ -956,12 +971,14 @@
                     document.getElementById('kasLastUpdate').textContent = 'Update: ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 }
 
-                // Placeholder for other counts - would need other tables
-                // document.getElementById('announcementCount').textContent = '3';
-                // document.getElementById('pengajianCount').textContent = '5';
-                // document.getElementById('ayatCount').textContent = '12';
+                const { data: hadits, error: haditsError } = await window.supabase
+                    .from('hadits')
+                    .select('id');
+                if (!haditsError) {
+                    document.getElementById('hadistCount').textContent = (hadits || []).length;
+                }
 
-                // 2. Load banner count and slideshow
+                // Load banner count and slideshow
                 loadBannerSlideshow();
 
             } catch (error) {
@@ -988,7 +1005,7 @@
 
         async function loadBannerSlideshow() {
             try {
-                const { data: banners, error } = await supabase
+                const { data: banners, error } = await window.supabase
                     .from('banners')
                     .select('*')
                     .eq('aktif', true)

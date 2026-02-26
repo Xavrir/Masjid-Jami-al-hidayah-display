@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masjiddisplay.data.Prayer
@@ -110,15 +111,14 @@ fun PrayerAlertOverlay(
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.65f)
-                    .align(Alignment.Center) // Explicitly center the card
-                    .graphicsLayer { translationY = 40f } // Nudge down to correct visual center
+                    .align(Alignment.Center)
                     .shadow(
                         elevation = 48.dp,
-                        shape = RoundedCornerShape(40.dp),
+                        shape = RoundedCornerShape(24.dp),
                         spotColor = Color.Black.copy(alpha = 0.8f),
                         ambientColor = Color.Black.copy(alpha = 0.5f)
                     )
-                    .clip(RoundedCornerShape(40.dp))
+                    .clip(RoundedCornerShape(24.dp))
                     .background(AppColors.surfaceElevated.copy(alpha = 0.6f))
                     .background(
                         Brush.radialGradient(
@@ -138,9 +138,9 @@ fun PrayerAlertOverlay(
                                 Color.White.copy(alpha = 0.0f)
                             )
                         ),
-                        shape = RoundedCornerShape(40.dp)
+                        shape = RoundedCornerShape(24.dp)
                     )
-                    .padding(horizontal = 48.dp, vertical = 36.dp)
+                    .padding(horizontal = 48.dp, vertical = 28.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -199,15 +199,17 @@ fun PrayerAlertOverlay(
 
                     Text(
                         text = subtitle,
-                        fontSize = 44.sp,
+                        fontSize = 36.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White.copy(alpha = 0.95f),
                         textAlign = TextAlign.Center,
-                        lineHeight = 52.sp
+                        lineHeight = 44.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     if (prayer != null && overlayType != OverlayType.FRIDAY_REMINDER && overlayType != OverlayType.PRE_ADHAN) {
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(40.dp)
@@ -223,7 +225,7 @@ fun PrayerAlertOverlay(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = prayer.adhanTime,
-                                    fontSize = 44.sp,
+                                    fontSize = 36.sp,
                                     fontWeight = FontWeight.Light,
                                     color = AppColors.textPrimary
                                 )
@@ -240,7 +242,7 @@ fun PrayerAlertOverlay(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = prayer.iqamahTime,
-                                    fontSize = 44.sp,
+                                    fontSize = 36.sp,
                                     fontWeight = FontWeight.Light,
                                     color = AppColors.textPrimary
                                 )
@@ -249,7 +251,7 @@ fun PrayerAlertOverlay(
                     }
 
                     if (overlayType == OverlayType.IQAMAH) {
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         val ringColor = when {
                             countdownValue <= 3 -> Color(0xFFE74C3C)
@@ -259,10 +261,10 @@ fun PrayerAlertOverlay(
 
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(120.dp)
+                            modifier = Modifier.size(90.dp)
                         ) {
                             Canvas(modifier = Modifier.fillMaxSize()) {
-                                val strokeWidth = 10.dp.toPx()
+                                val strokeWidth = 8.dp.toPx()
                                 drawCircle(
                                     color = Color.White.copy(alpha = 0.1f),
                                     style = Stroke(width = strokeWidth)
@@ -281,24 +283,24 @@ fun PrayerAlertOverlay(
 
                             Text(
                                 text = "$countdownValue",
-                                fontSize = 56.sp,
+                                fontSize = 40.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = ringColor
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
                             text = "BERSIAP UNTUK SHALAT",
-                            fontSize = 22.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.8f),
                             letterSpacing = 2.sp
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(36.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         text = "Ketuk untuk menutup",

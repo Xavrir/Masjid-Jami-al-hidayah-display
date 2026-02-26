@@ -124,8 +124,16 @@ fun isRamadan(date: Date): Boolean {
  */
 fun parseTimeToCalendar(time: String, reference: Date): Calendar {
     val parts = time.split(":")
-    val hour = parts.getOrNull(0)?.toIntOrNull() ?: 0
-    val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
+    val hour = parts.getOrNull(0)
+        ?.trim()
+        ?.toIntOrNull()
+        ?.coerceIn(0, 23)
+        ?: 0
+    val minute = parts.getOrNull(1)
+        ?.trim()
+        ?.toIntOrNull()
+        ?.coerceIn(0, 59)
+        ?: 0
     
     val calendar = jakartaCalendar(reference)
     calendar.set(Calendar.HOUR_OF_DAY, hour)

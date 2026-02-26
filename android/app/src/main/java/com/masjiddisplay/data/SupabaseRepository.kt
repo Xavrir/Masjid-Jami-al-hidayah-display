@@ -6,14 +6,10 @@ import com.google.gson.Gson
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
-import java.time.LocalDate
-import java.time.YearMonth
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 
 /**
  * Repository for managing all data from Supabase
@@ -21,27 +17,12 @@ import javax.net.ssl.X509TrustManager
  */
 object SupabaseRepository {
     
-    /**
-     * Create OkHttpClient that trusts all certificates (for debug/emulator only)
-     * This bypasses SSL certificate validation issues on emulators with outdated CA stores
-     */
-    private fun createUnsafeOkHttpClient(): OkHttpClient {
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-        })
-        
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-        
+    private fun createOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         }
         
         return OkHttpClient.Builder()
-            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -50,7 +31,7 @@ object SupabaseRepository {
     
     private val retrofit = Retrofit.Builder()
         .baseUrl(SupabaseConfig.SUPABASE_URL + "/")
-        .client(createUnsafeOkHttpClient())
+        .client(createOkHttpClient())
         .addConverterFactory(GsonConverterFactory.create(Gson()))
         .build()
     
@@ -136,7 +117,8 @@ object SupabaseRepository {
                 var incomeMonth: Long = 0
                 var expenseMonth: Long = 0
                 
-                val currentMonth = LocalDate.now().toString().substring(0, 7)
+                val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"), Locale.ROOT)
+                val currentMonth = "%04d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
                 
                 transactions.forEach { tx ->
                     val jenisLower = tx.jenis.lowercase()
@@ -244,9 +226,12 @@ object SupabaseRepository {
      */
     suspend fun getPengajianForDisplay(): List<String> {
         return getPengajian()
-            .filter { it.judul != null && it.pembicara != null }
+            .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
             .map { pengajian ->
-                "${pengajian.judul} (${pengajian.hari ?: "-"} - ${pengajian.jam ?: "-"}) - ${pengajian.pembicara}"
+                val title = pengajian.judul ?: pengajian.tema ?: ""
+                val speaker = pengajian.pembicara ?: pengajian.ustadz ?: ""
+                val schedule = pengajian.hari ?: pengajian.tanggal ?: "-"
+                "$title ($schedule - ${pengajian.jam ?: "-"}) - $speaker"
             }
     }
     
@@ -280,7 +265,7 @@ private fun QuranVerseRemote.toLocal(): QuranVerse {
         surahNumber = this.surahNumber,
         ayah = this.ayah,
         arabic = this.arabic,
-        translation = this.transliteration,
+        translation = this.translation,
         transliteration = this.transliteration
     )
 }

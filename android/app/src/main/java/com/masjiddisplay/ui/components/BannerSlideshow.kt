@@ -5,8 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,72 +13,73 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.masjiddisplay.data.BannerRemote
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 /**
  * Banner Slideshow Composable
  *
- * Displays banners from Supabase as a slideshow that fills available space.
- * Total display time is [totalDurationMs] (default 10 minutes), divided equally
- * among all banners. Uses crossfade transitions and navigation dots.
- *
- * @param banners List of banners to display
- * @param totalDurationMs Total cycle duration in ms (default 600,000 = 10 min)
- * @param onCycleComplete Called when one full cycle through all banners is done
+ * Displays banners from Supabase as a full-width slideshow with:
+ * - Auto-advancement every [intervalMs] milliseconds
+ * - Crossfade transitions between banners
+ * - Navigation dots indicator
+ * - Graceful empty/single-banner handling
  */
 @Composable
 fun BannerSlideshow(
     banners: List<BannerRemote>,
-    totalDurationMs: Long = 600_000L,
-    onCycleComplete: () -> Unit = {},
+    intervalMs: Long = 8000L,
     modifier: Modifier = Modifier
 ) {
     if (banners.isEmpty()) return
 
     var currentIndex by remember { mutableIntStateOf(0) }
-    val perBannerMs = remember(banners.size, totalDurationMs) {
-        if (banners.size > 0) totalDurationMs / banners.size else totalDurationMs
+
+    LaunchedEffect(banners.size) {
+        if (currentIndex >= banners.size) {
+            currentIndex = 0
+        }
     }
 
-    // Auto-advance timer
-    LaunchedEffect(banners.size, perBannerMs) {
+    // Auto-advance
+    LaunchedEffect(banners.size, intervalMs) {
         if (banners.size > 1) {
-            while (true) {
-                delay(perBannerMs)
-                val nextIndex = (currentIndex + 1) % banners.size
-                currentIndex = nextIndex
-                if (nextIndex == 0) {
-                    onCycleComplete()
+            while (currentCoroutineContext().isActive) {
+                delay(intervalMs)
+                val safeSize = banners.size
+                if (safeSize > 1) {
+                    currentIndex = (currentIndex + 1) % safeSize
                 }
             }
-        } else {
-            // Single banner: wait for full duration then signal complete
-            delay(totalDurationMs)
-            onCycleComplete()
         }
     }
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .fillMaxSize()
     ) {
-        // Banner image with crossfade
         AnimatedContent(
             targetState = currentIndex,
+            modifier = Modifier.fillMaxSize(),
             transitionSpec = {
-                fadeIn(animationSpec = androidx.compose.animation.core.tween(1000)) togetherWith
-                fadeOut(animationSpec = androidx.compose.animation.core.tween(1000))
+                if (targetState > initialState) {
+                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                } else {
+                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                }
             },
-            label = "banner_crossfade"
+            label = "banner_slide"
         ) { index ->
-            val banner = banners.getOrNull(index) ?: banners[0]
+            val banner = banners.getOrNull(index) ?: banners.firstOrNull()
+            if (banner == null) {
+                Box(modifier = Modifier.fillMaxSize())
+                return@AnimatedContent
+            }
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
@@ -126,7 +125,7 @@ fun BannerSlideshow(
                             .clip(CircleShape)
                             .background(
                                 if (index == currentIndex)
-                                    Color(0xFFFFA500)
+                                    Color(0xFFFFA500) // Orange for active
                                 else
                                     Color.White.copy(alpha = 0.5f)
                             )
@@ -135,18 +134,6 @@ fun BannerSlideshow(
             }
         }
 
-        // Banner title overlay
-        val currentBanner = banners.getOrNull(currentIndex)
-        if (currentBanner?.title != null && currentBanner.title.isNotBlank()) {
-            Text(
-                text = currentBanner.title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, bottom = 28.dp)
-            )
-        }
+
     }
 }

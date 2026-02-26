@@ -1,5 +1,6 @@
 package com.masjiddisplay.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,7 +31,9 @@ import com.masjiddisplay.data.BannerRemote
 import com.masjiddisplay.ui.components.*
 import com.masjiddisplay.ui.theme.*
 import com.masjiddisplay.utils.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import java.util.*
 
 @Composable
@@ -40,6 +44,7 @@ fun MainDashboard(
     quranVerses: List<String> = emptyList(),
     hadiths: List<String> = emptyList(),
     pengajian: List<String> = emptyList(),
+    socialMedia: List<String> = emptyList(),
     banners: List<BannerRemote> = emptyList(),
     onPrayerStart: (Prayer) -> Unit = {},
     onKasDetailRequested: () -> Unit = {},
@@ -52,40 +57,19 @@ fun MainDashboard(
     var shuruqTime by remember { mutableStateOf("05:55") }
     var imsakTime by remember { mutableStateOf("04:24") }
     val isRamadhanNow = remember(currentTime) { isRamadan(currentTime) }
-    
-    // Banner visibility: show 20 min after any iqamah for 10-min window
-    val showBanner = remember(currentTime, prayers, banners) {
-        if (banners.isEmpty() || prayers.isEmpty()) false
-        else {
-            val cal = jakartaCalendar(currentTime)
-            val currentTotalMin = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
-            prayers.any { prayer ->
-                val name = prayer.name.lowercase()
-                if (name in listOf("shuruq", "syuruq", "sunrise", "imsak")) false
-                else {
-                    val parts = prayer.iqamahTime.split(":")
-                    if (parts.size == 2) {
-                        val iqH = parts[0].toIntOrNull() ?: 0
-                        val iqM = parts[1].toIntOrNull() ?: 0
-                        val iqTotal = iqH * 60 + iqM
-                        val bannerStart = iqTotal + 20   // 20 min after iqamah
-                        val bannerEnd = bannerStart + 10 // 10-min window
-                        currentTotalMin in bannerStart until bannerEnd
-                    } else false
-                }
-            }
-        }
+    val currentDateKey = remember(currentTime) {
+        jakartaDateFormat("yyyy-MM-dd", Locale.ROOT).format(currentTime)
     }
     
-    LaunchedEffect(Unit) {
-        val today = jakartaCalendar().apply {
+    LaunchedEffect(currentDateKey) {
+        val today = jakartaCalendar(currentTime).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.time
         
-        val tomorrow = jakartaCalendar().apply {
+        val tomorrow = jakartaCalendar(today).apply {
             add(Calendar.DAY_OF_YEAR, 1)
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -100,7 +84,7 @@ fun MainDashboard(
     }
     
     LaunchedEffect(Unit) {
-        while (true) {
+        while (currentCoroutineContext().isActive) {
             currentTime = Date()
             delay(1000)
         }
@@ -167,6 +151,24 @@ fun MainDashboard(
     val cornerEmoji = if (isRamadhanNow) "☀️" else "🌙"
     val cornerColor = if (isRamadhanNow) Color(0xFFFFA500) else Color(0xFF9C88FF)
     
+    val shouldShowBanners = remember(currentTime, prayers, banners) {
+        if (banners.isEmpty() || prayers.isEmpty()) return@remember false
+        val now = jakartaCalendar(currentTime)
+        prayers.any { prayer ->
+            val name = prayer.name.lowercase()
+            if (name in listOf("imsak", "shuruq", "syuruq", "sunrise")) return@any false
+            val iqamahCal = parseTimeToCalendar(prayer.iqamahTime, currentTime)
+            val startCal = (iqamahCal.clone() as Calendar).apply { add(Calendar.MINUTE, 15) }
+            val endCal = (iqamahCal.clone() as Calendar).apply { add(Calendar.MINUTE, 25) }
+            now.timeInMillis >= startCal.timeInMillis && now.timeInMillis < endCal.timeInMillis
+        }
+    }
+
+    val bannerIntervalMs = remember(banners) {
+        if (banners.isEmpty()) 8000L
+        else (10L * 60 * 1000) / banners.size.coerceAtLeast(1)
+    }
+    
     val kasItems = listOf(
         "Saldo: ${formatCurrency(kasData.balance)} | Pemasukan Bulan Ini: ${formatCurrency(kasData.incomeMonth)} | Pengeluaran Bulan Ini: ${formatCurrency(kasData.expenseMonth)}"
     )
@@ -186,35 +188,55 @@ fun MainDashboard(
         )
         
         if (isRamadhanNow) {
+            val infiniteTransition = rememberInfiniteTransition(label = "ketupat_sway")
+            val swayDp by infiniteTransition.animateFloat(
+                initialValue = -12f,
+                targetValue = 12f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(5000, easing = EaseInOutSine),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "sway_offset"
+            )
+            val density = LocalDensity.current
+            val swayPx = with(density) { swayDp.dp.toPx() }
+
             Image(
-                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                painter = painterResource(id = R.drawable.ic_ramadhan_ketupat),
                 contentDescription = null,
                 modifier = Modifier
                     .size(140.dp)
                     .align(Alignment.TopStart)
                     .offset(x = 24.dp, y = 24.dp)
-                    .alpha(0.06f)
+                    .alpha(0.08f)
+                    .graphicsLayer {
+                        translationX = swayPx
+                    }
             )
             Image(
-                painter = painterResource(id = R.drawable.ic_ramadhan_lantern),
+                painter = painterResource(id = R.drawable.ic_ramadhan_ketupat),
                 contentDescription = null,
                 modifier = Modifier
                     .size(140.dp)
                     .align(Alignment.TopEnd)
                     .offset(x = (-24).dp, y = 24.dp)
-                    .alpha(0.06f)
-                    .graphicsLayer { scaleX = -1f }
+                    .alpha(0.08f)
+                    .graphicsLayer {
+                        scaleX = -1f
+                        translationX = -swayPx // Inverted for symmetry
+                    }
             )
         }
         
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 48.dp, vertical = 24.dp)
+                .padding(vertical = 24.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 48.dp)
                     .padding(bottom = 32.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
@@ -278,134 +300,128 @@ fun MainDashboard(
                 }
             }
             
-            
-            // Center area: either banner slideshow or prayer timeline
-            if (showBanner) {
-                // Banner slideshow — replaces prayer area
-                BannerSlideshow(
-                    banners = banners,
-                    totalDurationMs = 600_000L, // 10 minutes total
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(vertical = 8.dp)
-                )
-            } else {
-                // Normal prayer timeline
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!shouldShowBanners) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .padding(horizontal = 48.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
-                    val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
-                    val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
-                    
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "MENUJU",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = 0.7f),
-                            letterSpacing = 2.sp
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = countdownText,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    Box(
+                val timelineColor = if (isRamadhanNow) TimelineColors.ramadhan else TimelineColors.normal
+                val timelineSoftColor = if (isRamadhanNow) TimelineColors.ramadhanSoft else TimelineColors.normalSoft
+                val timelineFaintColor = if (isRamadhanNow) TimelineColors.ramadhanFaint else TimelineColors.normalFaint
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "MENUJU",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = countdownText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(
                         modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(40.dp),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .height(2.dp)
                     ) {
-                        Canvas(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(2.dp)
-                        ) {
-                            val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
-                            drawLine(
-                                color = timelineColor,
-                                start = Offset(0f, size.height / 2),
-                                end = Offset(size.width, size.height / 2),
-                                strokeWidth = 3f,
-                                pathEffect = dashEffect,
-                                cap = StrokeCap.Round
-                            )
-                        }
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            mainPrayers.forEach { prayer ->
-                                val isPassed = prayer.status == PrayerStatus.PASSED
-                                val isCurrent = prayer.status == PrayerStatus.CURRENT
-                                val isNext = nextPrayer?.name == prayer.name
-                                
-                                Box(
-                                    modifier = Modifier
-                                        .size(if (isCurrent || isNext) 12.dp else 8.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            when {
-                                                isCurrent -> timelineColor
-                                                isNext -> timelineColor
-                                                isPassed -> timelineSoftColor
-                                                else -> timelineFaintColor
-                                            }
-                                        )
-                                )
-                            }
-                        }
+                        val dashEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
+                        drawLine(
+                            color = timelineColor,
+                            start = Offset(0f, size.height / 2),
+                            end = Offset(size.width, size.height / 2),
+                            strokeWidth = 3f,
+                            pathEffect = dashEffect,
+                            cap = StrokeCap.Round
+                        )
                     }
-                    
-                    Spacer(modifier = Modifier.height(48.dp))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         mainPrayers.forEach { prayer ->
+                            val isPassed = prayer.status == PrayerStatus.PASSED
                             val isCurrent = prayer.status == PrayerStatus.CURRENT
+                            val isNext = nextPrayer?.name == prayer.name
                             
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    painter = painterResource(id = getPrayerIconRes(prayer.name)),
-                                    contentDescription = prayer.name,
-                                    modifier = Modifier.size(48.dp),
-                                    tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
-                                )
-                                
-                                Spacer(modifier = Modifier.height(12.dp))
-                                
-                                Text(
-                                    text = prayer.name.uppercase(),
-                                    fontSize = 20.sp,
-                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isCurrent) Color(0xFFFFA500) else Color.White,
-                                    letterSpacing = 1.sp
-                                )
-                                
-                                Text(
-                                    text = prayer.adhanTime,
-                                    fontSize = 26.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(if (isCurrent || isNext) 12.dp else 8.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        when {
+                                            isCurrent -> timelineColor
+                                            isNext -> timelineColor
+                                            isPassed -> timelineSoftColor
+                                            else -> timelineFaintColor
+                                        }
+                                    )
+                            )
                         }
                     }
+                }
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    mainPrayers.forEach { prayer ->
+                        val isCurrent = prayer.status == PrayerStatus.CURRENT
+                        
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                painter = painterResource(id = getPrayerIconRes(prayer.name)),
+                                contentDescription = prayer.name,
+                                modifier = Modifier.size(48.dp),
+                                tint = if (isCurrent) timelineColor else Color.White.copy(alpha = 0.8f)
+                            )
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            Text(
+                                text = prayer.name.uppercase(),
+                                fontSize = 20.sp,
+                                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isCurrent) Color(0xFFFFA500) else Color.White,
+                                letterSpacing = 1.sp
+                            )
+                            
+                            Text(
+                                text = prayer.adhanTime,
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+                }
                 }
             }
             
@@ -414,7 +430,16 @@ fun MainDashboard(
                 kasItems = kasItems,
                 quranVerses = quranVerses,
                 hadiths = hadiths,
-                pengajian = pengajian
+                pengajian = pengajian,
+                socialMedia = socialMedia
+            )
+        }
+
+        if (shouldShowBanners) {
+            BannerSlideshow(
+                banners = banners,
+                intervalMs = bannerIntervalMs,
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
@@ -447,10 +472,13 @@ private fun calculateTimeUntilPrayer(prayer: Prayer, currentTime: Date): String 
     try {
         val timeParts = prayer.adhanTime.split(":")
         if (timeParts.size != 2) return "—"
+        val hour = timeParts.getOrNull(0)?.trim()?.toIntOrNull() ?: return "—"
+        val minute = timeParts.getOrNull(1)?.trim()?.toIntOrNull() ?: return "—"
+        if (hour !in 0..23 || minute !in 0..59) return "—"
         
         val prayerCal = jakartaCalendar(currentTime).apply {
-            set(Calendar.HOUR_OF_DAY, timeParts[0].toInt())
-            set(Calendar.MINUTE, timeParts[1].toInt())
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
         }
         
