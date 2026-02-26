@@ -523,6 +523,113 @@
             }
         }
 
+        /* TABLE STYLES */
+        .data-table-section {
+            margin-top: 32px;
+        }
+
+        .data-table-section .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .data-table-section .card-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-count {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--color-bg-tertiary);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            border-bottom: 2px solid var(--color-border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+        }
+
+        tr:hover td {
+            background: var(--color-bg-tertiary);
+        }
+
+        .arabic-cell {
+            font-family: 'Scheherazade New', serif;
+            font-size: 18px;
+            direction: rtl;
+            line-height: 1.6;
+            max-width: 250px;
+        }
+
+        .text-truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            color: var(--color-text-secondary);
+        }
+
+        .action-btn.delete {
+            color: var(--color-text-secondary);
+        }
+
+        .action-btn.delete:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--color-text-tertiary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.4;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .main-sidebar {
@@ -735,6 +842,40 @@
                 </div>
 
             </div>
+
+            <!-- Data Table -->
+            <div class="data-table-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-ul"></i> Daftar Ayat Al-Quran</h3>
+                        <span class="data-count" id="ayatCount">0 data</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table id="ayatTable">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Surah</th>
+                                        <th>No. Ayat</th>
+                                        <th>Teks Arab</th>
+                                        <th>Terjemahan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ayatTableBody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <i class="bi bi-book"></i>
+                                            Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -820,8 +961,8 @@
             setupLivePreview();
 
             try {
-                // Mock Load Active Verse
                 await loadActiveVerse();
+                await loadAllAyat();
             } catch (err) {
                 console.error('Load error', err);
             }
@@ -848,19 +989,20 @@
             previewTranslation.textContent = translationInput.value || '...';
         }
 
+        const ayatTableBody = document.getElementById('ayatTableBody');
+        const ayatCount = document.getElementById('ayatCount');
+
         async function loadActiveVerse() {
             try {
-                // Fetch from Supabase - get first/active record
                 const { data, error } = await window.supabase
                     .from('ayat_quran')
                     .select('*')
                     .limit(1)
                     .single();
 
-                if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+                if (error && error.code !== 'PGRST116') throw error;
 
                 if (data) {
-                    // Fill form with DB data
                     surahNameInput.value = data.surah || '';
                     surahNumberInput.value = data.surahNumber || '';
                     verseNumberInput.value = data.ayah || '';
@@ -873,6 +1015,84 @@
                 console.error('Load error:', error);
             }
         }
+
+        async function loadAllAyat() {
+            try {
+                const { data, error } = await window.supabase
+                    .from('ayat_quran')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) throw error;
+
+                const items = data || [];
+                ayatCount.textContent = `${items.length} data`;
+
+                if (items.length === 0) {
+                    ayatTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <i class="bi bi-book"></i>
+                                Belum ada data ayat
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                ayatTableBody.innerHTML = items.map((item, idx) => {
+                    const arabicShort = (item.arabic || '').length > 60
+                        ? item.arabic.substring(0, 60) + '...'
+                        : item.arabic || '-';
+                    const terjemahanShort = (item.transliteration || '').length > 50
+                        ? item.transliteration.substring(0, 50) + '...'
+                        : item.transliteration || '-';
+
+                    return `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td><strong>${item.surah || '-'}</strong><br><small style="color:var(--color-text-tertiary)">Surah ke-${item.surahNumber || '-'}</small></td>
+                            <td>${item.ayah || '-'}</td>
+                            <td class="arabic-cell">${arabicShort}</td>
+                            <td class="text-truncate">${terjemahanShort}</td>
+                            <td>
+                                <button class="action-btn delete" onclick="deleteAyat(${item.id})" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join('');
+            } catch (error) {
+                console.error('Load all ayat error:', error);
+                ayatTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state" style="color: var(--color-danger);">
+                            Gagal memuat data: ${error.message}
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        window.deleteAyat = async function (id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus ayat ini?')) return;
+
+            pageLoading.classList.add('show');
+            try {
+                const { error } = await window.supabase
+                    .from('ayat_quran')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                pageLoading.classList.remove('show');
+                showSuccess('Ayat berhasil dihapus!');
+                await loadAllAyat();
+            } catch (error) {
+                console.error('Delete error:', error);
+                pageLoading.classList.remove('show');
+                showError('Gagal menghapus: ' + error.message);
+            }
+        };
 
         async function handleSave(e) {
             e.preventDefault();
@@ -888,19 +1108,21 @@
             };
 
             try {
-                // Upsert - update if exists, insert if not
                 const { error } = await window.supabase
                     .from('ayat_quran')
-                    .upsert([newVerse], { onConflict: 'id' });
+                    .insert([newVerse]);
 
                 if (error) throw error;
 
                 pageLoading.classList.remove('show');
-                showSuccess('Ayat berhasil diperbarui dan ditampilkan!');
+                showSuccess('Ayat berhasil ditambahkan!');
+                verseForm.reset();
+                updatePreview();
+                await loadAllAyat();
             } catch (error) {
                 console.error('Save error:', error);
                 pageLoading.classList.remove('show');
-                alert('Gagal menyimpan: ' + error.message);
+                showError('Gagal menyimpan: ' + error.message);
             }
         }
 
@@ -909,6 +1131,13 @@
             successAlert.style.display = 'block';
             errorAlert.style.display = 'none';
             setTimeout(() => successAlert.style.display = 'none', 3000);
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorAlert.style.display = 'block';
+            successAlert.style.display = 'none';
+            setTimeout(() => errorAlert.style.display = 'none', 5000);
         }
 
         // Start

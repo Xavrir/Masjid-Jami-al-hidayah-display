@@ -27,7 +27,7 @@ async function logoutUser(customMessage = '', silent = false) {
         if (!silent) {
             const message = customMessage || 'Apakah Anda yakin ingin keluar dari akun ini?';
             const confirmed = confirm(message);
-            
+
             if (!confirmed) {
                 console.log('Logout cancelled by user');
                 return;
@@ -61,7 +61,7 @@ async function logoutUser(customMessage = '', silent = false) {
 
         // Redirect to login after brief delay
         setTimeout(() => {
-            window.location.href = '/admin-panel/login.html';
+            window.location.href = '/login.html';
         }, 800);
 
     } catch (error) {
@@ -79,7 +79,7 @@ async function logoutUser(customMessage = '', silent = false) {
  * @param {boolean} showConfirm - Show confirmation dialog (default: true)
  * @returns {Promise<void>}
  */
-async function logoutUserWithRedirect(redirectUrl = '/admin-panel/login.html', showConfirm = true) {
+async function logoutUserWithRedirect(redirectUrl = '/login.html', showConfirm = true) {
     try {
         if (showConfirm) {
             const confirmed = confirm('Apakah Anda yakin ingin keluar dari akun ini?');
@@ -118,9 +118,9 @@ async function logoutUserWithRedirect(redirectUrl = '/admin-panel/login.html', s
 async function silentLogout() {
     try {
         console.log('Performing silent logout...');
-        
+
         const { error } = await supabase.auth.signOut();
-        
+
         if (error) {
             console.error('Silent logout error:', error);
             return false;
@@ -143,12 +143,12 @@ async function silentLogout() {
  */
 async function forceLogout() {
     try {
-        await supabase.auth.signOut().catch(() => {});
+        await supabase.auth.signOut().catch(() => { });
         clearAllStorage();
-        window.location.href = '/admin-panel/login.html';
+        window.location.href = '/login.html';
     } catch (error) {
         console.error('Force logout error:', error);
-        window.location.href = '/admin-panel/login.html';
+        window.location.href = '/login.html';
     }
 }
 
@@ -202,7 +202,7 @@ async function getSession() {
 function showLogoutLoading() {
     // Check if there's an existing loading element
     let loadingDiv = document.getElementById('logoutLoading');
-    
+
     if (!loadingDiv) {
         loadingDiv = document.createElement('div');
         loadingDiv.id = 'logoutLoading';
@@ -258,7 +258,7 @@ function hideLogoutLoading() {
  */
 function showLogoutSuccess() {
     let successDiv = document.getElementById('logoutSuccess');
-    
+
     if (!successDiv) {
         successDiv = document.createElement('div');
         successDiv.id = 'logoutSuccess';
@@ -300,7 +300,7 @@ function showLogoutSuccess() {
  */
 function showLogoutError(message = 'Gagal keluar dari akun') {
     let errorDiv = document.getElementById('logoutError');
-    
+
     if (!errorDiv) {
         errorDiv = document.createElement('div');
         errorDiv.id = 'logoutError';
@@ -354,12 +354,12 @@ window.addEventListener('beforeunload', () => {
 if (typeof supabase !== 'undefined') {
     supabase.auth.onAuthStateChange((event, session) => {
         console.log('Auth state changed:', event);
-        
+
         // Handle token expiry
         if (event === 'TOKEN_REFRESHED') {
             console.log('Token refreshed');
         }
-        
+
         if (event === 'SIGNED_OUT') {
             console.log('User signed out');
             clearAllStorage();

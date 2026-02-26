@@ -38,7 +38,7 @@ function createLoadingScreen() {
         z-index: 9999;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
-    
+
     screen.innerHTML = `
         <div style="text-align: center;">
             <div style="
@@ -62,7 +62,7 @@ function createLoadingScreen() {
             }
         </style>
     `;
-    
+
     document.body.appendChild(screen);
     return screen;
 }
@@ -93,7 +93,7 @@ function removeLoadingScreen() {
  * 5. Resolve promise when ready
  * 
  * @param {Object} options - Configuration options
- * @param {string} options.loginUrl - URL to redirect if not authenticated (default: /admin-panel/login.html)
+ * @param {string} options.loginUrl - URL to redirect if not authenticated (default: /login.html)
  * @param {boolean} options.hideContent - Hide page content while checking (default: true)
  * @returns {Promise<Object>} User object if authenticated
  * 
@@ -108,7 +108,7 @@ function removeLoadingScreen() {
  */
 async function requireAuth(options = {}) {
     const {
-        loginUrl = '/admin-panel/login.html',
+        loginUrl = '/login.html',
         hideContent = true
     } = options;
 
@@ -142,7 +142,7 @@ async function requireAuth(options = {}) {
         // User is authenticated - show content
         console.log('✓ User authenticated:', user.email);
         removeLoadingScreen();
-        
+
         if (hideContent) {
             document.body.style.opacity = '1';
         }
@@ -179,11 +179,11 @@ async function requireAuth(options = {}) {
 async function checkAuth() {
     try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        
+
         if (error || !user) {
             return null;
         }
-        
+
         return user;
     } catch (error) {
         console.error('Check auth error:', error);
@@ -208,11 +208,11 @@ async function checkAuth() {
 async function getSession() {
     try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error || !session) {
             return null;
         }
-        
+
         return session;
     } catch (error) {
         console.error('Get session error:', error);
@@ -230,7 +230,7 @@ async function getSession() {
  * Clears Supabase session and redirects to login page.
  * 
  * @param {Object} options - Configuration options
- * @param {string} options.loginUrl - URL to redirect after logout (default: /admin-panel/login.html)
+ * @param {string} options.loginUrl - URL to redirect after logout (default: /login.html)
  * @param {Function} options.onSuccess - Callback after successful logout
  * @returns {Promise<boolean>} True if logout successful
  * 
@@ -246,14 +246,14 @@ async function getSession() {
  */
 async function logout(options = {}) {
     const {
-        loginUrl = '/admin-panel/login.html',
+        loginUrl = '/login.html',
         onSuccess = null
     } = options;
 
     try {
         // Show loading indicator
         const loadingScreen = createLoadingScreen();
-        
+
         // Sign out from Supabase
         const { error } = await supabase.auth.signOut();
 

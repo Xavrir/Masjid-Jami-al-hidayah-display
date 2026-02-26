@@ -940,14 +940,13 @@
         // ============================================
 
         async function loadDashboardStats() {
+            // Load kas balance
             try {
                 const { data: transactions, error: kasError } = await window.supabase
                     .from('kas_transaksi')
                     .select('nominal, jenis');
 
-                if (kasError) throw kasError;
-
-                if (transactions) {
+                if (!kasError && transactions) {
                     const balance = transactions.reduce((acc, curr) => {
                         const jenis = (curr.jenis || '').toLowerCase();
                         const amount = curr.nominal || 0;
@@ -970,21 +969,54 @@
                     const now = new Date();
                     document.getElementById('kasLastUpdate').textContent = 'Update: ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 }
+            } catch (error) {
+                console.error('Error loading kas:', error);
+            }
 
+            // Load hadist count
+            try {
                 const { data: hadits, error: haditsError } = await window.supabase
                     .from('hadits')
                     .select('id');
                 if (!haditsError) {
                     document.getElementById('hadistCount').textContent = (hadits || []).length;
                 }
-
-                // Load banner count and slideshow
-                loadBannerSlideshow();
-
             } catch (error) {
-                console.error('Error loading stats:', error);
-                document.getElementById('kasBalance').textContent = 'Rp 0';
+                console.error('Error loading hadits:', error);
             }
+
+            // Load ayat count
+            try {
+                const { data: ayat, error: ayatError } = await window.supabase
+                    .from('ayat_quran')
+                    .select('id');
+                console.log('✅ Ayat query result:', { data: ayat, error: ayatError });
+                if (!ayatError) {
+                    document.getElementById('ayatCount').textContent = (ayat || []).length;
+                } else {
+                    console.error('❌ Ayat error:', ayatError);
+                }
+            } catch (error) {
+                console.error('Error loading ayat:', error);
+            }
+
+            // Load pengajian count
+            try {
+                const { data: pengajian, error: pengajianError } = await window.supabase
+                    .from('pengajian')
+                    .select('id');
+                console.log('✅ Pengajian query result:', { data: pengajian, error: pengajianError });
+                if (!pengajianError) {
+                    document.getElementById('pengajianCount').textContent = (pengajian || []).length;
+                } else {
+                    console.error('❌ Pengajian error:', pengajianError);
+                }
+            } catch (error) {
+                console.error('Error loading pengajian:', error);
+            }
+
+            // Load banner count and slideshow
+            loadBannerSlideshow();
         }
 
         // ============================================

@@ -1,0 +1,36 @@
+﻿On branch main
+Your branch and 'origin/main' have diverged,
+and have 1 and 11 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	new file:   .github/workflows/build-apk.yml
+	modified:   HOW_TO_RUN.md
+	modified:   admin-panel/dashboard.html
+	modified:   admin-panel/pages/banner.html
+	modified:   android/app/build.gradle.kts
+	modified:   android/app/src/main/java/com/masjiddisplay/data/SupabaseApiService.kt
+	modified:   android/app/src/main/java/com/masjiddisplay/data/SupabaseRepository.kt
+	modified:   android/build.gradle
+	modified:   android/gradle.properties
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+	both modified:   android/app/src/main/java/com/masjiddisplay/ui/components/BannerSlideshow.kt
+	both modified:   android/app/src/main/java/com/masjiddisplay/ui/screens/MainDashboard.kt
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   admin-panel/js/auth.js
+	modified:   admin-panel/js/logout.js
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	git_status.txt
+	git_status_output.txt
+

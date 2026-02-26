@@ -516,6 +516,126 @@
             }
         }
 
+        /* TABLE STYLES */
+        .data-table-section {
+            margin-top: 32px;
+        }
+
+        .data-table-section .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .data-table-section .card-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-count {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--color-bg-tertiary);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            border-bottom: 2px solid var(--color-border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+        }
+
+        tr:hover td {
+            background: var(--color-bg-tertiary);
+        }
+
+        .arabic-cell {
+            font-family: 'Scheherazade New', serif;
+            font-size: 18px;
+            direction: rtl;
+            line-height: 1.6;
+            max-width: 250px;
+        }
+
+        .text-truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            color: var(--color-text-secondary);
+        }
+
+        .action-btn.delete:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-aktif {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-nonaktif {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--color-text-tertiary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.4;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .main-sidebar {
@@ -709,6 +829,40 @@
                 </div>
 
             </div>
+
+            <!-- Data Table -->
+            <div class="data-table-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-ul"></i> Daftar Hadist</h3>
+                        <span class="data-count" id="hadistCount">0 data</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table id="hadistTable">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Sumber</th>
+                                        <th>Teks Arab</th>
+                                        <th>Terjemahan</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hadistTableBody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <i class="bi bi-chat-left-quote"></i>
+                                            Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -793,6 +947,7 @@
 
             try {
                 await loadActiveHadith();
+                await loadAllHadist();
             } catch (err) {
                 console.error('Load error', err);
             }
@@ -816,9 +971,11 @@
             previewTranslation.textContent = translationInput.value || '...';
         }
 
+        const hadistTableBody = document.getElementById('hadistTableBody');
+        const hadistCount = document.getElementById('hadistCount');
+
         async function loadActiveHadith() {
             try {
-                // Fetch from Supabase - get active hadith
                 const { data, error } = await window.supabase
                     .from('hadits')
                     .select('*')
@@ -829,7 +986,6 @@
                 if (error && error.code !== 'PGRST116') throw error;
 
                 if (data) {
-                    // Fill form with DB data - map DB columns to form fields
                     hadithSourceInput.value = data.sumber || '';
                     arabicHadithInput.value = data.teks || '';
                     translationInput.value = data.terjemahan || '';
@@ -840,6 +996,87 @@
                 console.error('Load error:', error);
             }
         }
+
+        async function loadAllHadist() {
+            try {
+                const { data, error } = await window.supabase
+                    .from('hadits')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) throw error;
+
+                const items = data || [];
+                hadistCount.textContent = `${items.length} data`;
+
+                if (items.length === 0) {
+                    hadistTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <i class="bi bi-chat-left-quote"></i>
+                                Belum ada data hadist
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                hadistTableBody.innerHTML = items.map((item, idx) => {
+                    const teksShort = (item.teks || '').length > 60
+                        ? item.teks.substring(0, 60) + '...'
+                        : item.teks || '-';
+                    const terjemahanShort = (item.terjemahan || '').length > 50
+                        ? item.terjemahan.substring(0, 50) + '...'
+                        : item.terjemahan || '-';
+                    const statusBadge = item.aktif
+                        ? '<span class="badge badge-aktif">Aktif</span>'
+                        : '<span class="badge badge-nonaktif">Nonaktif</span>';
+
+                    return `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td><strong>${item.sumber || '-'}</strong></td>
+                            <td class="arabic-cell">${teksShort}</td>
+                            <td class="text-truncate">${terjemahanShort}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="action-btn delete" onclick="deleteHadist(${item.id})" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join('');
+            } catch (error) {
+                console.error('Load all hadist error:', error);
+                hadistTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state" style="color: var(--color-danger);">
+                            Gagal memuat data: ${error.message}
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        window.deleteHadist = async function (id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus hadist ini?')) return;
+
+            pageLoading.classList.add('show');
+            try {
+                const { error } = await window.supabase
+                    .from('hadits')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                pageLoading.classList.remove('show');
+                showSuccess('Hadist berhasil dihapus!');
+                await loadAllHadist();
+            } catch (error) {
+                console.error('Delete error:', error);
+                pageLoading.classList.remove('show');
+                showError('Gagal menghapus: ' + error.message);
+            }
+        };
 
         async function handleSave(e) {
             e.preventDefault();
@@ -854,7 +1091,6 @@
             };
 
             try {
-                // Insert new hadith
                 const { error } = await window.supabase
                     .from('hadits')
                     .insert([newHadith]);
@@ -862,11 +1098,14 @@
                 if (error) throw error;
 
                 pageLoading.classList.remove('show');
-                showSuccess('Hadist berhasil diperbarui dan ditampilkan!');
+                showSuccess('Hadist berhasil ditambahkan!');
+                hadithForm.reset();
+                updatePreview();
+                await loadAllHadist();
             } catch (error) {
                 console.error('Save error:', error);
                 pageLoading.classList.remove('show');
-                alert('Gagal menyimpan: ' + error.message);
+                showError('Gagal menyimpan: ' + error.message);
             }
         }
 
@@ -875,6 +1114,13 @@
             successAlert.style.display = 'block';
             errorAlert.style.display = 'none';
             setTimeout(() => successAlert.style.display = 'none', 3000);
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorAlert.style.display = 'block';
+            successAlert.style.display = 'none';
+            setTimeout(() => errorAlert.style.display = 'none', 5000);
         }
 
         // Start
