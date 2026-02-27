@@ -742,7 +742,7 @@
             <!-- Instructions -->
             <div class="instruction-box">
                 <h3><i class="bi bi-lightbulb-fill"></i> Panduan Penggunaan</h3>
-                <p>• Masukkan terjemahan dan sumber rawi hadist.</p>
+                <p>• Masukkan tulisan hadist dan sumber referensinya.</p>
                 <p>• Pastikan teks sudah benar dan sesuai dengan sumber terpercaya.</p>
                 <p>• Pratinjau otomatis akan muncul di sebelah kanan.</p>
             </div>
@@ -768,9 +768,9 @@
 
                                 <div class="form-section-title" style="margin-top: 24px;">Konten Hadist</div>
                                 <div class="form-group">
-                                    <label for="translation">Terjemahan Indonesia</label>
-                                    <textarea id="translation" class="form-control" placeholder="Masukkan terjemahan..."
-                                        rows="4" required></textarea>
+                                    <label for="translation">Tulisan Hadist</label>
+                                    <textarea id="translation" class="form-control"
+                                        placeholder="Masukkan isi/tulisan hadist..." rows="4" required></textarea>
                                 </div>
 
                                 <button type="submit" class="btn-save" id="saveBtn">
@@ -812,7 +812,7 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Sumber</th>
-                                        <th>Terjemahan</th>
+                                        <th>Tulisan Hadist</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -1043,6 +1043,7 @@
             pageLoading.classList.add('show');
 
             const newHadith = {
+                teks: "", // Arabic field is no longer used but required by some models
                 sumber: hadithSourceInput.value,
                 terjemahan: translationInput.value,
                 aktif: true

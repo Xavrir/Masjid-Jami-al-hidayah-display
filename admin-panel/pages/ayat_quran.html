@@ -945,9 +945,10 @@
 
         function updatePreview() {
             const name = surahNameInput.value || '-';
-            const num = verseNumberInput.value || '';
+            const sNum = surahNumberInput.value || '-';
+            const vNum = verseNumberInput.value || '';
 
-            previewSurah.textContent = `${name} : ${num}`;
+            previewSurah.textContent = `${name} (${sNum}) : ${vNum}`;
             previewTranslation.textContent = translationInput.value || '...';
         }
 
@@ -1060,7 +1061,6 @@
                 surah: surahNameInput.value,
                 surahNumber: parseInt(surahNumberInput.value) || 1,
                 ayah: parseInt(verseNumberInput.value) || 1,
-                arabic: arabicTextInput.value,
                 transliteration: translationInput.value
             };
 
