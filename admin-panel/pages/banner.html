@@ -1330,13 +1330,14 @@
 
             canvas.toBlob(async (blob) => {
                 try {
+                    const fileName = currentFile.name;
+                    const fileType = currentFile.type;
+
                     closeCropModal();
                     uploadOverlay.classList.add('show');
 
                     // Create a new File object from the blob
-                    const ext = currentFile.name.split('.').pop().toLowerCase();
-                    const fileName = currentFile.name;
-                    const croppedFile = new File([blob], fileName, { type: currentFile.type });
+                    const croppedFile = new File([blob], fileName, { type: fileType });
 
                     await uploadBanner(croppedFile, 'image');
                     showSuccess(`Banner "${fileName}" berhasil diproses dan diupload!`);
