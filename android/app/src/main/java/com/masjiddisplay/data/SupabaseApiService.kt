@@ -95,6 +95,7 @@ data class BannerRemote(
     val id: Int,
     val title: String? = null,
     val image_url: String,
+    val type: String? = "image",
     val display_order: Int = 1,
     val aktif: Boolean = true,
     val created_at: String? = null

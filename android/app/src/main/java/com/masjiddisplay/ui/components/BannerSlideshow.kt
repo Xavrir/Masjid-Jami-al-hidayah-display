@@ -47,15 +47,15 @@ fun BannerSlideshow(
     }
 
     // Auto-advance
-    LaunchedEffect(banners.size, intervalMs) {
+    LaunchedEffect(banners.size, intervalMs, currentIndex) {
         if (banners.size > 1) {
-            while (currentCoroutineContext().isActive) {
-                delay(intervalMs)
-                val safeSize = banners.size
-                if (safeSize > 1) {
-                    currentIndex = (currentIndex + 1) % safeSize
-                }
-            }
+            val currentBanner = banners.getOrNull(currentIndex)
+            // If it's a video, we might want to wait for it to finish or just use a longer interval
+            // For now, let's stick to intervalMs or video duration if we could easily get it
+            val delayValue = if (currentBanner?.type == "video") 15000L else intervalMs
+            
+            delay(delayValue)
+            currentIndex = (currentIndex + 1) % banners.size
         }
     }
 
@@ -80,17 +80,25 @@ fun BannerSlideshow(
                 Box(modifier = Modifier.fillMaxSize())
                 return@AnimatedContent
             }
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(banner.image_url)
-                        .crossfade(true)
-                        .build()
-                ),
-                contentDescription = banner.title ?: "Banner ${index + 1}",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+
+            if (banner.type == "video") {
+                VideoPlayer(
+                    url = banner.image_url,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(banner.image_url)
+                            .crossfade(true)
+                            .build()
+                    ),
+                    contentDescription = banner.title ?: "Banner ${index + 1}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
 
         // Bottom gradient for dots visibility
@@ -133,7 +141,45 @@ fun BannerSlideshow(
                 }
             }
         }
-
-
     }
+}
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@Composable
+fun VideoPlayer(
+    url: String,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+            val mediaItem = androidx.media3.common.MediaItem.fromUri(url)
+            setMediaItem(mediaItem)
+            repeatMode = androidx.media3.common.Player.REPEAT_MODE_ALL
+            volume = 0f // Mute for banners
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    DisposableEffect(url) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    androidx.compose.ui.viewinterop.AndroidView(
+        factory = { ctx ->
+            androidx.media3.ui.PlayerView(ctx).apply {
+                player = exoPlayer
+                useController = false
+                resizeMode = androidx.media3.ui.AspectRatioFramesLayout.RESIZE_MODE_ZOOM
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+        },
+        modifier = modifier
+    )
 }

@@ -90,7 +90,9 @@ dependencies {
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.5.0")
 
-    // Media/Sound
+    // Media/ExoPlayer
+    implementation("androidx.media3:media3-exoplayer:1.1.1")
+    implementation("androidx.media3:media3-ui:1.1.1")
     implementation("androidx.media:media:1.5.0")
 
     // Date/Time
