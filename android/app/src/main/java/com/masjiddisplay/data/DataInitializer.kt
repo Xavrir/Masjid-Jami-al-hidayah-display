@@ -28,12 +28,11 @@ object DataInitializer {
         CREATE TABLE IF NOT EXISTS ayat_quran (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             surah VARCHAR(100) NOT NULL,
-            surah_number INTEGER NOT NULL,
+            "surahNumber" INTEGER NOT NULL,
             ayah INTEGER NOT NULL,
-            arabic TEXT NOT NULL,
-            translation TEXT NOT NULL,
+            arabic TEXT,
+            translation TEXT,
             transliteration TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """
@@ -86,8 +85,16 @@ object DataInitializer {
      */
     val sampleQuranVerses = listOf(
         mapOf(
+            "surah" to "Al-Fatihah",
+            "surahNumber" to 1,
+            "ayah" to 1,
+            "arabic" to "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+            "translation" to "Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang",
+            "transliteration" to "Bismi Allahi alrrahmani alrraheemi"
+        ),
+        mapOf(
             "surah" to "Al-Baqarah",
-            "surah_number" to 2,
+            "surahNumber" to 2,
             "ayah" to 186,
             "arabic" to "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ",
             "translation" to "Dan apabila hamba-hamba-Ku bertanya kepadamu tentang Aku, sesungguhnya Aku dekat",
@@ -95,7 +102,7 @@ object DataInitializer {
         ),
         mapOf(
             "surah" to "Ali 'Imran",
-            "surah_number" to 3,
+            "surahNumber" to 3,
             "ayah" to 159,
             "arabic" to "فَاعْفُ عَنْهُمْ وَاسْتَغْفِرْ لَهُمْ وَشَاوِرْهُمْ فِي الْأَمْرِ",
             "translation" to "Maka maafkanlah mereka dan mohonkanlah ampunan untuk mereka",
@@ -103,7 +110,7 @@ object DataInitializer {
         ),
         mapOf(
             "surah" to "Al-Insyirah",
-            "surah_number" to 94,
+            "surahNumber" to 94,
             "ayah" to 5,
             "arabic" to "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
             "translation" to "Maka sesungguhnya bersama kesulitan ada kemudahan",

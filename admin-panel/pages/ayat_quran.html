@@ -13,8 +13,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Arabic Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+
 
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
@@ -361,14 +360,6 @@
             box-shadow: 0 0 0 3px var(--color-primary-light);
         }
 
-        .form-control.arabic-input {
-            font-family: 'Scheherazade New', serif;
-            font-size: 28px;
-            line-height: 1.8;
-            direction: rtl;
-            text-align: center;
-            min-height: 160px;
-        }
 
         .form-row {
             display: grid;
@@ -445,15 +436,6 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
-        .preview-verse {
-            font-family: 'Scheherazade New', serif;
-            font-size: 48px;
-            line-height: 2;
-            color: #ffffff;
-            margin-bottom: 40px;
-            direction: rtl;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
 
         .preview-translation {
             font-size: 18px;
@@ -582,13 +564,6 @@
             background: var(--color-bg-tertiary);
         }
 
-        .arabic-cell {
-            font-family: 'Scheherazade New', serif;
-            font-size: 18px;
-            direction: rtl;
-            line-height: 1.6;
-            max-width: 250px;
-        }
 
         .text-truncate {
             max-width: 200px;
@@ -769,8 +744,7 @@
             <!-- Instructions -->
             <div class="instruction-box">
                 <h3><i class="bi bi-lightbulb-fill"></i> Panduan Penggunaan</h3>
-                <p>• Masukkan teks Arab ayat pada kolom yang tersedia.</p>
-                <p>• Sertakan terjemahan Bahasa Indonesia yang sesuai.</p>
+                <p>• Masukkan tulisan latin ayat pada kolom yang tersedia.</p>
                 <p>• Pratinjau di sebelah kanan menunjukkan tampilan di layar TV.</p>
             </div>
 
@@ -805,17 +779,10 @@
                                     </div>
                                 </div>
 
-                                <div class="form-section-title" style="margin-top: 24px;">Konten Ayat</div>
                                 <div class="form-group">
-                                    <label for="arabicVerse">Teks Arab</label>
-                                    <textarea id="arabicVerse" class="form-control arabic-input"
-                                        placeholder="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ" required></textarea>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="translation">Terjemahan Indonesia</label>
-                                    <textarea id="translation" class="form-control" placeholder="Masukkan terjemahan..."
-                                        rows="4" required></textarea>
+                                    <label for="translation">Tulisan Latin</label>
+                                    <textarea id="translation" class="form-control"
+                                        placeholder="Masukkan tulisan latin..." rows="4" required></textarea>
                                 </div>
 
                                 <button type="submit" class="btn-save" id="saveBtn">
@@ -835,7 +802,6 @@
                         </div>
                         <div class="preview-tv">
                             <div id="previewSurah" class="preview-surah">-</div>
-                            <div id="previewVerse" class="preview-verse">Pratinjau ayat...</div>
                             <div id="previewTranslation" class="preview-translation">-</div>
                         </div>
                     </div>
@@ -858,8 +824,7 @@
                                         <th>No</th>
                                         <th>Surah</th>
                                         <th>No. Ayat</th>
-                                        <th>Teks Arab</th>
-                                        <th>Terjemahan</th>
+                                        <th>Tulisan Latin</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -917,11 +882,9 @@
         const surahNameInput = document.getElementById('surahName');
         const surahNumberInput = document.getElementById('surahNumber');
         const verseNumberInput = document.getElementById('verseNumber');
-        const arabicVerseInput = document.getElementById('arabicVerse');
         const translationInput = document.getElementById('translation');
 
         const previewSurah = document.getElementById('previewSurah');
-        const previewVerse = document.getElementById('previewVerse');
         const previewTranslation = document.getElementById('previewTranslation');
 
         const successAlert = document.getElementById('successAlert');
@@ -974,7 +937,7 @@
         }
 
         function setupLivePreview() {
-            const inputs = [surahNameInput, surahNumberInput, verseNumberInput, arabicVerseInput, translationInput];
+            const inputs = [surahNameInput, surahNumberInput, verseNumberInput, translationInput];
             inputs.forEach(input => {
                 input.addEventListener('input', updatePreview);
             });
@@ -985,7 +948,6 @@
             const num = verseNumberInput.value || '';
 
             previewSurah.textContent = `${name} : ${num}`;
-            previewVerse.textContent = arabicVerseInput.value || '...';
             previewTranslation.textContent = translationInput.value || '...';
         }
 
@@ -1006,7 +968,6 @@
                     surahNameInput.value = data.surah || '';
                     surahNumberInput.value = data.surahNumber || '';
                     verseNumberInput.value = data.ayah || '';
-                    arabicVerseInput.value = data.arabic || '';
                     translationInput.value = data.transliteration || data.translation || '';
                 }
 
@@ -1040,20 +1001,16 @@
                 }
 
                 ayatTableBody.innerHTML = items.map((item, idx) => {
-                    const arabicShort = (item.arabic || '').length > 60
-                        ? item.arabic.substring(0, 60) + '...'
-                        : item.arabic || '-';
                     const terjemahanShort = (item.transliteration || '').length > 50
                         ? item.transliteration.substring(0, 50) + '...'
                         : item.transliteration || '-';
-
                     return `
                         <tr>
                             <td>${idx + 1}</td>
                             <td><strong>${item.surah || '-'}</strong><br><small style="color:var(--color-text-tertiary)">Surah ke-${item.surahNumber || '-'}</small></td>
                             <td>${item.ayah || '-'}</td>
-                            <td class="arabic-cell">${arabicShort}</td>
-                            <td class="text-truncate">${terjemahanShort}</td>
+                            <td><p dir="rtl" class="mb-1" style="font-family:'Traditional Arabic', serif; font-size: 24px;">${item.arabic || '-'}</p>
+                                <small style="color:var(--color-text-secondary)">${item.transliteration || item.translation || '-'}</small></td>
                             <td>
                                 <button class="action-btn delete" onclick="deleteAyat(${item.id})" title="Hapus">
                                     <i class="bi bi-trash"></i>
@@ -1103,7 +1060,7 @@
                 surah: surahNameInput.value,
                 surahNumber: parseInt(surahNumberInput.value) || 1,
                 ayah: parseInt(verseNumberInput.value) || 1,
-                arabic: arabicVerseInput.value,
+                arabic: arabicTextInput.value,
                 transliteration: translationInput.value
             };
 

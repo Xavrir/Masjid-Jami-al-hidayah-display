@@ -13,8 +13,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Arabic Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+
 
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
@@ -355,14 +354,6 @@
             box-shadow: 0 0 0 3px var(--color-primary-light);
         }
 
-        .form-control.arabic-input {
-            font-family: 'Scheherazade New', serif;
-            font-size: 24px;
-            line-height: 1.8;
-            direction: rtl;
-            text-align: center;
-            min-height: 140px;
-        }
 
         /* BUTTONS */
         .btn-save {
@@ -430,15 +421,6 @@
             letter-spacing: 2px;
         }
 
-        .preview-hadith {
-            font-family: 'Scheherazade New', serif;
-            font-size: 32px;
-            line-height: 1.8;
-            color: #ffffff;
-            margin-bottom: 32px;
-            direction: rtl;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
 
         .preview-translation {
             font-size: 16px;
@@ -575,13 +557,6 @@
             background: var(--color-bg-tertiary);
         }
 
-        .arabic-cell {
-            font-family: 'Scheherazade New', serif;
-            font-size: 18px;
-            direction: rtl;
-            line-height: 1.6;
-            max-width: 250px;
-        }
 
         .text-truncate {
             max-width: 200px;
@@ -767,7 +742,7 @@
             <!-- Instructions -->
             <div class="instruction-box">
                 <h3><i class="bi bi-lightbulb-fill"></i> Panduan Penggunaan</h3>
-                <p>• Masukkan teks Arab hadist, terjemahan, dan sumber rawi.</p>
+                <p>• Masukkan terjemahan dan sumber rawi hadist.</p>
                 <p>• Pastikan teks sudah benar dan sesuai dengan sumber terpercaya.</p>
                 <p>• Pratinjau otomatis akan muncul di sebelah kanan.</p>
             </div>
@@ -793,12 +768,6 @@
 
                                 <div class="form-section-title" style="margin-top: 24px;">Konten Hadist</div>
                                 <div class="form-group">
-                                    <label for="arabicHadith">Teks Arab</label>
-                                    <textarea id="arabicHadith" class="form-control arabic-input"
-                                        placeholder="Teks hadist..." required></textarea>
-                                </div>
-
-                                <div class="form-group">
                                     <label for="translation">Terjemahan Indonesia</label>
                                     <textarea id="translation" class="form-control" placeholder="Masukkan terjemahan..."
                                         rows="4" required></textarea>
@@ -821,7 +790,6 @@
                         </div>
                         <div class="preview-tv">
                             <div class="preview-title">Hadist Pilihan</div>
-                            <div id="previewHadith" class="preview-hadith">...</div>
                             <div id="previewTranslation" class="preview-translation">...</div>
                             <div id="previewSource" class="preview-source">-</div>
                         </div>
@@ -844,7 +812,6 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Sumber</th>
-                                        <th>Teks Arab</th>
                                         <th>Terjemahan</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
@@ -902,10 +869,8 @@
         const hadithForm = document.getElementById('hadithForm');
 
         const hadithSourceInput = document.getElementById('hadithSource');
-        const arabicHadithInput = document.getElementById('arabicHadith');
         const translationInput = document.getElementById('translation');
 
-        const previewHadith = document.getElementById('previewHadith');
         const previewTranslation = document.getElementById('previewTranslation');
         const previewSource = document.getElementById('previewSource');
 
@@ -959,7 +924,7 @@
         }
 
         function setupLivePreview() {
-            const inputs = [hadithSourceInput, arabicHadithInput, translationInput];
+            const inputs = [hadithSourceInput, translationInput];
             inputs.forEach(input => {
                 input.addEventListener('input', updatePreview);
             });
@@ -967,7 +932,6 @@
 
         function updatePreview() {
             previewSource.textContent = hadithSourceInput.value || '-';
-            previewHadith.textContent = arabicHadithInput.value || '...';
             previewTranslation.textContent = translationInput.value || '...';
         }
 
@@ -987,7 +951,6 @@
 
                 if (data) {
                     hadithSourceInput.value = data.sumber || '';
-                    arabicHadithInput.value = data.teks || '';
                     translationInput.value = data.terjemahan || '';
                 }
 
@@ -1021,9 +984,6 @@
                 }
 
                 hadistTableBody.innerHTML = items.map((item, idx) => {
-                    const teksShort = (item.teks || '').length > 60
-                        ? item.teks.substring(0, 60) + '...'
-                        : item.teks || '-';
                     const terjemahanShort = (item.terjemahan || '').length > 50
                         ? item.terjemahan.substring(0, 50) + '...'
                         : item.terjemahan || '-';
@@ -1035,7 +995,6 @@
                         <tr>
                             <td>${idx + 1}</td>
                             <td><strong>${item.sumber || '-'}</strong></td>
-                            <td class="arabic-cell">${teksShort}</td>
                             <td class="text-truncate">${terjemahanShort}</td>
                             <td>${statusBadge}</td>
                             <td>
@@ -1085,7 +1044,6 @@
 
             const newHadith = {
                 sumber: hadithSourceInput.value,
-                teks: arabicHadithInput.value,
                 terjemahan: translationInput.value,
                 aktif: true
             };

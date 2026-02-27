@@ -157,16 +157,10 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                 kasData = SupabaseRepository.getKasData()
                 
                 val fetchedQuran = SupabaseRepository.getQuranVerses()
-                quranVerses = fetchedQuran.map { 
-                    val text = it.translation ?: it.transliteration ?: it.arabic
-                    "QS ${it.surah} (${it.surahNumber}):${it.ayah} - $text"
-                }
+                quranVerses = SupabaseRepository.getQuranVersesForDisplay()
                 
                 val fetchedHadiths = SupabaseRepository.getHadiths()
-                hadiths = fetchedHadiths.map { 
-                    val text = it.translation ?: it.arabic
-                    "${it.source}: $text"
-                }
+                hadiths = SupabaseRepository.getHadithsForDisplay()
                 
                 val fetchedPengajian = SupabaseRepository.getPengajian()
                 pengajian = fetchedPengajian

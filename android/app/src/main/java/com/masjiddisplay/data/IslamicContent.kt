@@ -30,6 +30,15 @@ data class Hadith(
  */
 val quranVerses = listOf(
     QuranVerse(
+        id = "0",
+        surah = "Al-Fatihah",
+        surahNumber = 1,
+        ayah = 1,
+        arabic = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+        translation = "Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang.",
+        transliteration = "Bismi Allahi alrrahmani alrraheemi"
+    ),
+    QuranVerse(
         id = "1",
         surah = "Al-Baqarah",
         surahNumber = 2,

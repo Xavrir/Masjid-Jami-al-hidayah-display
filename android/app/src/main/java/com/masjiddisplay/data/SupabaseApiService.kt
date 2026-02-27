@@ -50,7 +50,7 @@ interface SupabaseApiService {
 data class QuranVerseRemote(
     val id: String,
     val surah: String,
-    @SerializedName("surah_number")
+    @SerializedName("surahNumber")
     val surahNumber: Int,
     val ayah: Int,
     val arabic: String,

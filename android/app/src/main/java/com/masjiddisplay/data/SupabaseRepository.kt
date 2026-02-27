@@ -206,8 +206,16 @@ object SupabaseRepository {
      */
     suspend fun getQuranVersesForDisplay(): List<String> {
         return getQuranVerses().map { verse ->
-            val text = verse.translation ?: verse.transliteration ?: verse.arabic
-            "${verse.surah} (${verse.ayah}): $text"
+            val translation = verse.translation ?: verse.transliteration ?: ""
+            val arabic = verse.arabic ?: ""
+            
+            if (arabic.isNotEmpty() && translation.isNotEmpty()) {
+                "${verse.surah} (${verse.ayah}): $arabic — $translation"
+            } else if (arabic.isNotEmpty()) {
+                "${verse.surah} (${verse.ayah}): $arabic"
+            } else {
+                "${verse.surah} (${verse.ayah}): $translation"
+            }
         }
     }
     
@@ -216,8 +224,16 @@ object SupabaseRepository {
      */
     suspend fun getHadithsForDisplay(): List<String> {
         return getHadiths().map { hadith ->
-            val text = hadith.translation ?: hadith.arabic
-            "${hadith.source}: $text"
+            val arabic = hadith.arabic ?: ""
+            val translation = hadith.translation ?: ""
+            
+            if (arabic.isNotEmpty() && translation.isNotEmpty()) {
+                "${hadith.source}: $arabic — $translation"
+            } else if (arabic.isNotEmpty()) {
+                "${hadith.source}: $arabic"
+            } else {
+                "${hadith.source}: $translation"
+            }
         }
     }
     
