@@ -50,9 +50,12 @@ fun BannerSlideshow(
     LaunchedEffect(banners.size, intervalMs, currentIndex) {
         if (banners.size > 1) {
             val currentBanner = banners.getOrNull(currentIndex)
-            // If it's a video, we might want to wait for it to finish or just use a longer interval
-            // For now, let's stick to intervalMs or video duration if we could easily get it
-            val delayValue = if (currentBanner?.type == "video") 15000L else intervalMs
+            val isVideo = currentBanner?.type == "video" || 
+                         currentBanner?.image_url?.lowercase()?.let { 
+                             it.endsWith(".mp4") || it.endsWith(".mkv") || it.endsWith(".webm") 
+                         } == true
+            
+            val delayValue = if (isVideo) 15000L else intervalMs
             
             delay(delayValue)
             currentIndex = (currentIndex + 1) % banners.size
@@ -81,7 +84,12 @@ fun BannerSlideshow(
                 return@AnimatedContent
             }
 
-            if (banner.type == "video") {
+            val isVideo = banner.type == "video" || 
+                         banner.image_url.lowercase().let { 
+                             it.endsWith(".mp4") || it.endsWith(".mkv") || it.endsWith(".webm") 
+                         }
+
+            if (isVideo) {
                 VideoPlayer(
                     url = banner.image_url,
                     modifier = Modifier.fillMaxSize()
@@ -100,7 +108,6 @@ fun BannerSlideshow(
                 )
             }
         }
-
         // Bottom gradient for dots visibility
         Box(
             modifier = Modifier
@@ -141,6 +148,7 @@ fun BannerSlideshow(
                 }
             }
         }
+
     }
 }
 
@@ -151,7 +159,7 @@ fun VideoPlayer(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember {
+    val exoPlayer = remember(url) {
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
             val mediaItem = androidx.media3.common.MediaItem.fromUri(url)
             setMediaItem(mediaItem)
@@ -173,7 +181,10 @@ fun VideoPlayer(
             androidx.media3.ui.PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = false
-                resizeMode = androidx.media3.ui.AspectRatioFramesLayout.RESIZE_MODE_ZOOM
+                // Use TextureView for better support with Compose animations/transitions
+                @Suppress("DEPRECATION")
+                surfaceType = androidx.media3.ui.PlayerView.SURFACE_TYPE_TEXTURE_VIEW
+                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 layoutParams = android.view.ViewGroup.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -183,3 +194,4 @@ fun VideoPlayer(
         modifier = modifier
     )
 }
+

@@ -19,7 +19,8 @@ interface SupabaseApiService {
     @GET("rest/v1/ayat_quran")
     suspend fun getQuranVerses(
         @Header("apikey") apiKey: String,
-        @Header("Authorization") auth: String
+        @Header("Authorization") auth: String,
+        @Query("order") order: String = "surahNumber.asc,ayah.asc"
     ): List<QuranVerseRemote>
     
     @GET("rest/v1/hadits")
@@ -48,12 +49,12 @@ interface SupabaseApiService {
  * Remote data models matching Supabase database schema
  */
 data class QuranVerseRemote(
-    val id: String,
-    val surah: String,
+    val id: Any, // Can be String or Int
+    val surah: String? = null,
     @SerializedName("surahNumber")
-    val surahNumber: Int,
-    val ayah: Int,
-    val arabic: String,
+    val surahNumber: Int? = null,
+    val ayah: Int? = null,
+    val arabic: String? = null,
     val translation: String? = null,
     val transliteration: String? = null
 )

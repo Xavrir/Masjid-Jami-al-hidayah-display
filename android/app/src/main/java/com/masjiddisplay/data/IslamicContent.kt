@@ -5,10 +5,10 @@ package com.masjiddisplay.data
  */
 data class QuranVerse(
     val id: String,
-    val surah: String,
-    val surahNumber: Int,
-    val ayah: Int,
-    val arabic: String,
+    val surah: String? = null,
+    val surahNumber: Int? = null,
+    val ayah: Int? = null,
+    val arabic: String? = null,
     val translation: String? = null,
     val transliteration: String? = null
 )

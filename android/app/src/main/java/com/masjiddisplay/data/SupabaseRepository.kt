@@ -205,16 +205,28 @@ object SupabaseRepository {
      * Get formatted Quran verses as display strings
      */
     suspend fun getQuranVersesForDisplay(): List<String> {
-        return getQuranVerses().map { verse ->
-            val translation = verse.translation ?: verse.transliteration ?: ""
+        val verses = getQuranVerses()
+        if (verses.isEmpty()) return emptyList()
+        
+        return verses.map { verse ->
+            val surahPart = if (verse.surah != null) "${verse.surah}" else "QS"
+            val numPart = if (verse.surahNumber != null && verse.ayah != null) {
+                " (${verse.surahNumber}:${verse.ayah})"
+            } else if (verse.ayah != null) {
+                " (Ayat ${verse.ayah})"
+            } else ""
+            
             val arabic = verse.arabic ?: ""
+            val translation = verse.translation ?: verse.transliteration ?: ""
             
             if (arabic.isNotEmpty() && translation.isNotEmpty()) {
-                "${verse.surah} (${verse.ayah}): $arabic — $translation"
+                "$surahPart$numPart: $arabic — $translation"
             } else if (arabic.isNotEmpty()) {
-                "${verse.surah} (${verse.ayah}): $arabic"
+                "$surahPart$numPart: $arabic"
+            } else if (translation.isNotEmpty()) {
+                "$surahPart$numPart: $translation"
             } else {
-                "${verse.surah} (${verse.ayah}): $translation"
+                "$surahPart$numPart"
             }
         }
     }

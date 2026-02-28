@@ -153,15 +153,31 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
 
     LaunchedEffect(Unit) {
         while (currentCoroutineContext().isActive) {
+            // Fetch each component independently so one failure doesn't block others
+            
+            // Kas Data
             try {
                 kasData = SupabaseRepository.getKasData()
-                
-                val fetchedQuran = SupabaseRepository.getQuranVerses()
+            } catch (e: Exception) {
+                println("⚠️ Refresh error (Kas): ${e.message}")
+            }
+            
+            // Quran Verses
+            try {
                 quranVerses = SupabaseRepository.getQuranVersesForDisplay()
-                
-                val fetchedHadiths = SupabaseRepository.getHadiths()
+            } catch (e: Exception) {
+                println("⚠️ Refresh error (Quran): ${e.message}")
+            }
+            
+            // Hadiths
+            try {
                 hadiths = SupabaseRepository.getHadithsForDisplay()
-                
+            } catch (e: Exception) {
+                println("⚠️ Refresh error (Hadiths): ${e.message}")
+            }
+            
+            // Pengajian
+            try {
                 val fetchedPengajian = SupabaseRepository.getPengajian()
                 pengajian = fetchedPengajian
                     .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
@@ -171,11 +187,17 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                         val schedule = it.hari ?: it.tanggal ?: "-"
                         "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
                     }
-                
+            } catch (e: Exception) {
+                println("⚠️ Refresh error (Pengajian): ${e.message}")
+            }
+            
+            // Banners
+            try {
                 banners = SupabaseRepository.getBanners()
             } catch (e: Exception) {
-                e.printStackTrace()
+                println("⚠️ Refresh error (Banners): ${e.message}")
             }
+
             delay(30L * 60 * 1000)
         }
     }
