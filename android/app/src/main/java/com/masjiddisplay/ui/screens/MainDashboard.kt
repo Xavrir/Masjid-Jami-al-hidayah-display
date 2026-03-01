@@ -151,16 +151,20 @@ fun MainDashboard(
     val cornerEmoji = if (isRamadhanNow) "☀️" else "🌙"
     val cornerColor = if (isRamadhanNow) Color(0xFFFFA500) else Color(0xFF9C88FF)
     
-    val shouldShowBanners = remember(currentTime, prayers, banners) {
-        if (banners.isEmpty() || prayers.isEmpty()) return@remember false
-        val now = jakartaCalendar(currentTime)
-        prayers.any { prayer ->
-            val name = prayer.name.lowercase()
-            if (name in listOf("imsak", "shuruq", "syuruq", "sunrise")) return@any false
-            val iqamahCal = parseTimeToCalendar(prayer.iqamahTime, currentTime)
-            val startCal = (iqamahCal.clone() as Calendar).apply { add(Calendar.MINUTE, 15) }
-            val endCal = (iqamahCal.clone() as Calendar).apply { add(Calendar.MINUTE, 25) }
-            now.timeInMillis >= startCal.timeInMillis && now.timeInMillis < endCal.timeInMillis
+    var isBannerActive by remember { mutableStateOf(false) }
+    
+    // Banner toggle loop: 15 minutes Dashboard, 10 minutes Banner
+    LaunchedEffect(banners) {
+        if (banners.isEmpty()) {
+            isBannerActive = false
+            return@LaunchedEffect
+        }
+        
+        while (isActive) {
+            isBannerActive = false
+            delay(15L * 60 * 1000) // 15 mins
+            isBannerActive = true
+            delay(10L * 60 * 1000) // 10 mins
         }
     }
 
@@ -306,7 +310,7 @@ fun MainDashboard(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                if (!shouldShowBanners) {
+                if (!isBannerActive) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -435,7 +439,7 @@ fun MainDashboard(
             )
         }
 
-        if (shouldShowBanners) {
+        if (isBannerActive) {
             BannerSlideshow(
                 banners = banners,
                 intervalMs = bannerIntervalMs,
