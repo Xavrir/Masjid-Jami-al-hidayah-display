@@ -79,14 +79,14 @@ fun QuranVerseCard(
             ) {
                 // Arabic text
                 Text(
-                    text = verse.arabic,
+                    text = verse.arabic ?: "",
                     style = AppTypography.bodyL.copy(
                         fontSize = 18.sp,
                         lineHeight = 32.sp
                     ),
                     color = AppColors.textPrimary,
                     textAlign = TextAlign.End,
-                    maxLines = 3,
+                    maxLines = 6,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -101,7 +101,7 @@ fun QuranVerseCard(
                             lineHeight = 14.sp
                         ),
                         color = AppColors.accentSecondary,
-                        maxLines = 2,
+                        maxLines = 3,
                         overflow = TextOverflow.Ellipsis
                     )
                 }

@@ -88,7 +88,7 @@ fun HadithCard(
                     ),
                     color = AppColors.textPrimary,
                     textAlign = TextAlign.End,
-                    maxLines = 4,
+                    maxLines = 6,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth()
                 )

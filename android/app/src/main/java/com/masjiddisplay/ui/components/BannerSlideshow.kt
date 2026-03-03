@@ -39,6 +39,7 @@ fun BannerSlideshow(
     if (banners.isEmpty()) return
 
     var currentIndex by remember { mutableIntStateOf(0) }
+    var videoCompleted by remember { mutableStateOf(false) }
 
     LaunchedEffect(banners.size) {
         if (currentIndex >= banners.size) {
@@ -48,6 +49,7 @@ fun BannerSlideshow(
 
     // Auto-advance
     LaunchedEffect(banners.size, intervalMs, currentIndex) {
+        videoCompleted = false
         if (banners.size > 1) {
             val currentBanner = banners.getOrNull(currentIndex)
             val isVideo = currentBanner?.type == "video" || 
@@ -55,9 +57,16 @@ fun BannerSlideshow(
                              it.endsWith(".mp4") || it.endsWith(".mkv") || it.endsWith(".webm") 
                          } == true
             
-            val delayValue = if (isVideo) 15000L else intervalMs
-            
-            delay(delayValue)
+            if (isVideo) {
+                var waited = 0L
+                while (!videoCompleted && waited < 120_000L) {
+                    delay(500L)
+                    waited += 500L
+                }
+                delay(1000L)
+            } else {
+                delay(intervalMs)
+            }
             currentIndex = (currentIndex + 1) % banners.size
         }
     }
@@ -92,7 +101,9 @@ fun BannerSlideshow(
             if (isVideo) {
                 VideoPlayer(
                     url = banner.image_url,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    loop = banners.size <= 1,
+                    onVideoEnd = { videoCompleted = true }
                 )
             } else {
                 Image(
@@ -156,22 +167,34 @@ fun BannerSlideshow(
 @Composable
 fun VideoPlayer(
     url: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    loop: Boolean = true,
+    onVideoEnd: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val exoPlayer = remember(url) {
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
             val mediaItem = androidx.media3.common.MediaItem.fromUri(url)
             setMediaItem(mediaItem)
-            repeatMode = androidx.media3.common.Player.REPEAT_MODE_ALL
-            volume = 0f // Mute for banners
+            repeatMode = if (loop) androidx.media3.common.Player.REPEAT_MODE_ALL
+                         else androidx.media3.common.Player.REPEAT_MODE_OFF
+            volume = 0f
             prepare()
             playWhenReady = true
         }
     }
 
     DisposableEffect(url) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
+                    onVideoEnd?.invoke()
+                }
+            }
+        }
+        exoPlayer.addListener(listener)
         onDispose {
+            exoPlayer.removeListener(listener)
             exoPlayer.release()
         }
     }
@@ -181,9 +204,6 @@ fun VideoPlayer(
             androidx.media3.ui.PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = false
-                // Use TextureView for better support with Compose animations/transitions
-                @Suppress("DEPRECATION")
-                surfaceType = androidx.media3.ui.PlayerView.SURFACE_TYPE_TEXTURE_VIEW
                 resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 layoutParams = android.view.ViewGroup.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,

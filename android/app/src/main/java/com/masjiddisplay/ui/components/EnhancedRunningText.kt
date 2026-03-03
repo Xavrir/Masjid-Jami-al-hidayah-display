@@ -46,7 +46,7 @@ fun EnhancedRunningText(
     }
     
     val durationMs = remember(content) {
-        (content.length * 300).coerceIn(20000, 60000)
+        (content.length * 300).coerceIn(20000, 180000)
     }
     
     val infiniteTransition = rememberInfiniteTransition(label = "marquee_$content")
@@ -128,14 +128,27 @@ fun MultiSourceRunningText(
     modifier: Modifier = Modifier
 ) {
     val allContent = remember(announcements, kasItems, quranVerses, hadiths, pengajian, socialMedia) {
-        mutableListOf<String>().apply {
-            addAll(announcements.map { "📢 Pengumuman: $it" })
-            addAll(kasItems.map { "💰 Kas Masjid: $it" })
-            addAll(quranVerses.map { "📖 Ayat Quran: $it" })
-            addAll(hadiths.map { "💭 Hadits: $it" })
-            addAll(pengajian.map { "🎓 Pengajian: $it" })
-            addAll(socialMedia.map { "📱 Ikuti Kami: $it" })
+        val sources = listOf(
+            announcements.map { "📢 Pengumuman: $it" },
+            kasItems.map { "💰 Kas Masjid: $it" },
+            quranVerses.map { "📖 Ayat Quran: $it" },
+            hadiths.map { "💭 Hadits: $it" },
+            pengajian.map { "🎓 Pengajian: $it" },
+            socialMedia.map { "📱 Ikuti Kami: $it" }
+        ).filter { it.isNotEmpty() }
+
+        val result = mutableListOf<String>()
+        if (sources.isNotEmpty()) {
+            val maxSize = sources.maxOf { it.size }
+            for (i in 0 until maxSize) {
+                for (source in sources) {
+                    if (i < source.size) {
+                        result.add(source[i])
+                    }
+                }
+            }
         }
+        result
     }
     
     var currentIndex by remember { mutableStateOf(0) }

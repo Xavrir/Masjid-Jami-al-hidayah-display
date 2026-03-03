@@ -157,21 +157,30 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             
             // Kas Data
             try {
-                kasData = SupabaseRepository.getKasData()
+                val fetchedKas = SupabaseRepository.getKasData()
+                if (fetchedKas.recentTransactions.isNotEmpty() || fetchedKas.balance != 0L || fetchedKas.incomeMonth != 0L) {
+                    kasData = fetchedKas
+                }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Kas): ${e.message}")
             }
             
             // Quran Verses
             try {
-                quranVerses = SupabaseRepository.getQuranVersesForDisplay()
+                val fetchedQuran = SupabaseRepository.getQuranVersesForDisplay()
+                if (fetchedQuran.isNotEmpty()) {
+                    quranVerses = fetchedQuran
+                }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Quran): ${e.message}")
             }
             
             // Hadiths
             try {
-                hadiths = SupabaseRepository.getHadithsForDisplay()
+                val fetchedHadiths = SupabaseRepository.getHadithsForDisplay()
+                if (fetchedHadiths.isNotEmpty()) {
+                    hadiths = fetchedHadiths
+                }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Hadiths): ${e.message}")
             }
@@ -179,7 +188,7 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
             // Pengajian
             try {
                 val fetchedPengajian = SupabaseRepository.getPengajian()
-                pengajian = fetchedPengajian
+                val formattedPengajian = fetchedPengajian
                     .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
                     .map { 
                         val title = it.judul ?: it.tema ?: ""
@@ -187,13 +196,19 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
                         val schedule = it.hari ?: it.tanggal ?: "-"
                         "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
                     }
+                if (formattedPengajian.isNotEmpty()) {
+                    pengajian = formattedPengajian
+                }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Pengajian): ${e.message}")
             }
             
             // Banners
             try {
-                banners = SupabaseRepository.getBanners()
+                val fetchedBanners = SupabaseRepository.getBanners()
+                if (fetchedBanners.isNotEmpty()) {
+                    banners = fetchedBanners
+                }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Banners): ${e.message}")
             }
