@@ -1,0 +1,7 @@
+Total messages: 5 (Errors: 0, Warnings: 0)
+
+[LOG] ✅ Dashboard Supabase initialized @ http://127.0.0.1:4173/dashboard.html:853
+[LOG] Initializing dashboard for user: admin@alhidayah.com @ http://127.0.0.1:4173/dashboard.html:915
+[LOG] ✅ Ayat query result: {data: Array(5), error: null} @ http://127.0.0.1:4173/dashboard.html:994
+[LOG] ✅ Pengajian query result: {data: Array(1), error: null} @ http://127.0.0.1:4173/dashboard.html:1009
+[LOG] ✅ Loaded 6 banners on dashboard @ http://127.0.0.1:4173/dashboard.html:1123

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.masjiddisplay.data.BannerRemote
+import com.masjiddisplay.data.MediaCacheProvider
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -97,10 +98,11 @@ fun BannerSlideshow(
                          banner.image_url.lowercase().let { 
                              it.endsWith(".mp4") || it.endsWith(".mkv") || it.endsWith(".webm") 
                          }
+            val mediaUrl = banner.local_path ?: banner.image_url
 
             if (isVideo) {
                 VideoPlayer(
-                    url = banner.image_url,
+                    url = mediaUrl,
                     modifier = Modifier.fillMaxSize(),
                     loop = banners.size <= 1,
                     onVideoEnd = { videoCompleted = true }
@@ -109,7 +111,7 @@ fun BannerSlideshow(
                 Image(
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(LocalContext.current)
-                            .data(banner.image_url)
+                            .data(mediaUrl)
                             .crossfade(true)
                             .build()
                     ),
@@ -172,8 +174,15 @@ fun VideoPlayer(
     onVideoEnd: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember(url) {
-        androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+    val exoPlayer = remember(url, loop) {
+        val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(
+            MediaCacheProvider.buildVideoDataSourceFactory(context)
+        )
+
+        androidx.media3.exoplayer.ExoPlayer.Builder(context)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build()
+            .apply {
             val mediaItem = androidx.media3.common.MediaItem.fromUri(url)
             setMediaItem(mediaItem)
             repeatMode = if (loop) androidx.media3.common.Player.REPEAT_MODE_ALL
@@ -181,10 +190,10 @@ fun VideoPlayer(
             volume = 0f
             prepare()
             playWhenReady = true
-        }
+            }
     }
 
-    DisposableEffect(url) {
+    DisposableEffect(exoPlayer) {
         val listener = object : androidx.media3.common.Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
@@ -202,7 +211,6 @@ fun VideoPlayer(
     androidx.compose.ui.viewinterop.AndroidView(
         factory = { ctx ->
             androidx.media3.ui.PlayerView(ctx).apply {
-                player = exoPlayer
                 useController = false
                 resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 layoutParams = android.view.ViewGroup.LayoutParams(
@@ -211,7 +219,9 @@ fun VideoPlayer(
                 )
             }
         },
+        update = { playerView ->
+            playerView.player = exoPlayer
+        },
         modifier = modifier
     )
 }
-

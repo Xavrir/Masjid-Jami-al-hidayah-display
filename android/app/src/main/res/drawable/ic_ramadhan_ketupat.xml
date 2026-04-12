@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="140dp"
+    android:height="140dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Hanging loop -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M48,0 L52,0 L52,15 L48,15 Z" />
+
+    <!-- Left Tail -->
+    <path
+        android:fillColor="#11C76F"
+        android:pathData="M35,80 L25,98 L45,92 Z" />
+
+    <!-- Right Tail -->
+    <path
+        android:fillColor="#11C76F"
+        android:pathData="M65,80 L75,98 L55,92 Z" />
+
+    <!-- Main Ketupat Body (Green Diamond) -->
+    <path
+        android:fillColor="#11C76F"
+        android:pathData="M50,10 L90,50 L50,90 L10,50 Z" />
+
+    <!-- Center Gold Highlight -->
+    <path
+        android:fillColor="#D4AF37"
+        android:fillAlpha="0.5"
+        android:pathData="M50,30 L70,50 L50,70 L30,50 Z" />
+    
+    <!-- Vertical Stripe -->
+    <path
+        android:fillColor="#D4AF37"
+        android:fillAlpha="0.3"
+        android:pathData="M48,15 L52,15 L52,85 L48,85 Z" />
+
+    <!-- Horizontal Stripe -->
+    <path
+        android:fillColor="#D4AF37"
+        android:fillAlpha="0.3"
+        android:pathData="M15,48 L85,48 L85,52 L15,52 Z" />
+
+</vector>

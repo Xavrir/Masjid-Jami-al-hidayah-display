@@ -887,6 +887,8 @@
         console.log('✅ Kas Masjid Supabase Initialized');
     </script>
 
+    <script src="../js/cache.js"></script>
+
     <!-- Auth & Logic -->
     <script>
         // DOM Elements
@@ -916,6 +918,8 @@
 
         // State
         let transactions = [];
+        const KAS_TRANSACTIONS_CACHE_KEY = 'kas:transactions';
+        const CACHE_TTL_MS = 5 * 60 * 1000;
 
         // Auth Check
         async function waitForAuth() {
@@ -975,17 +979,23 @@
         // Load Transactions
         async function loadTransactions() {
             try {
-                // Fetch from Supabase
-                const { data, error } = await window.supabase
-                    .from('kas_transaksi')
-                    .select('*')
-                    .order('tanggal', { ascending: false });
+                let data = window.pageCache.get(KAS_TRANSACTIONS_CACHE_KEY, CACHE_TTL_MS);
 
-                if (error) throw error;
+                if (!data) {
+                    const response = await window.supabase
+                        .from('kas_transaksi')
+                        .select('*')
+                        .order('tanggal', { ascending: false });
+
+                    if (response.error) throw response.error;
+
+                    data = response.data || [];
+                    window.pageCache.set(KAS_TRANSACTIONS_CACHE_KEY, data);
+                }
 
                 // Map database columns to internal structure
                 // Supabase columns: id, jenis, nominal, keterangan, tanggal, kategori
-                transactions = (data || []).map(item => ({
+                transactions = data.map(item => ({
                     id: item.id,
                     type: item.jenis || 'masuk', // Use 'jenis' column for type (masuk/keluar)
                     amount: item.nominal || 0,
@@ -1102,6 +1112,7 @@
 
                 if (error) throw error;
 
+                window.pageCache.remove(KAS_TRANSACTIONS_CACHE_KEY);
                 // Success
                 pageLoading.classList.remove('show');
                 showSuccess('Transaksi berhasil disimpan');
@@ -1158,6 +1169,7 @@
 
                     if (error) throw error;
 
+                    window.pageCache.remove(KAS_TRANSACTIONS_CACHE_KEY);
                     showSuccess('Data dihapus');
                     await loadTransactions();
 

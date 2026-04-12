@@ -1,0 +1,23 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e6]: 🕌
+    - heading "Masjid Admin" [level=1] [ref=e7]
+    - paragraph [ref=e8]: Masuk untuk mengelola Dashboard Masjid Jami' Al-Hidayah
+  - generic [ref=e9]:
+    - text:  
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Email / Username
+        - generic [ref=e13]:
+          - textbox "Email / Username" [active] [ref=e14]:
+            - /placeholder: Email or Username
+          - generic [ref=e15]: 
+      - generic [ref=e16]:
+        - generic [ref=e17]: Password
+        - generic [ref=e18]:
+          - textbox "Password" [ref=e19]:
+            - /placeholder: Masukkan password Anda
+          - generic [ref=e20]: 
+      - button "Masuk ke Dashboard" [ref=e21] [cursor=pointer]:
+        - generic [ref=e22]: Masuk ke Dashboard
+  - paragraph [ref=e24]: © 2026 Masjid Jami' Al-Hidayah. All rights reserved.

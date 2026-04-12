@@ -1032,8 +1032,8 @@
                     <i class="bi bi-plus-circle-fill"></i>
                     Pilih Gambar
                 </button>
-                <div class="upload-formats">Format: JPG, PNG, MP4, WEBM • Maks. 5MB (Gambar) / 20MB (Video) • Durasi
-                    maks video: 1 menit</div>
+                <div class="upload-formats">Format: JPG, PNG, MP4, WEBM • Maks. 2MB (Gambar) / 8MB (Video) • Durasi
+                    maks video: 30 detik</div>
             </div>
 
             <!-- Live Preview -->
@@ -1094,6 +1094,8 @@
         console.log('✅ Banner Supabase Initialized');
     </script>
 
+    <script src="../js/cache.js"></script>
+
     <!-- Page Logic -->
     <script>
         // ============================================
@@ -1127,9 +1129,11 @@
         let currentFile = null;
 
         const MAX_BANNERS = 10;
-        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for images
-        const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20MB for videos
-        const MAX_VIDEO_DURATION = 60; // 60 seconds
+        const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB for images
+        const MAX_VIDEO_SIZE = 8 * 1024 * 1024; // 8MB for videos
+        const MAX_VIDEO_DURATION = 30; // 30 seconds
+        const BANNER_CACHE_KEY = 'banners:active';
+        const BANNER_CACHE_TTL_MS = 60 * 1000;
         let banners = [];
         let previewInterval = null;
         let currentPreviewIndex = 0;
@@ -1361,6 +1365,7 @@
             const { data: storageData, error: storageError } = await window.supabase.storage
                 .from('banners')
                 .upload(fileName, file, {
+                    cacheControl: '31536000',
                     contentType: file.type,
                     upsert: false
                 });
@@ -1391,6 +1396,7 @@
                 }]);
 
             if (dbError) throw dbError;
+            window.pageCache.remove(BANNER_CACHE_KEY);
         }
 
         // ============================================
@@ -1398,15 +1404,22 @@
         // ============================================
         async function loadBanners() {
             try {
-                const { data, error } = await window.supabase
-                    .from('banners')
-                    .select('*')
-                    .eq('aktif', true)
-                    .order('display_order', { ascending: true });
+                let data = window.pageCache.get(BANNER_CACHE_KEY, BANNER_CACHE_TTL_MS);
 
-                if (error) throw error;
+                if (!data) {
+                    const response = await window.supabase
+                        .from('banners')
+                        .select('*')
+                        .eq('aktif', true)
+                        .order('display_order', { ascending: true });
 
-                banners = data || [];
+                    if (response.error) throw response.error;
+
+                    data = response.data || [];
+                    window.pageCache.set(BANNER_CACHE_KEY, data);
+                }
+
+                banners = data;
                 renderBanners();
                 updateCountBar();
                 updatePreview();
@@ -1437,7 +1450,7 @@
 
                 let mediaHtml = '';
                 if (banner.type === 'video') {
-                    mediaHtml = `<video src="${banner.image_url}" muted loop style="width:100%; height:100%; object-fit:cover;"></video>`;
+                    mediaHtml = `<video data-src="${banner.image_url}" muted loop preload="none" playsinline style="width:100%; height:100%; object-fit:cover;"></video>`;
                 } else {
                     mediaHtml = `<img src="${banner.image_url}" alt="${banner.title || 'Banner'}" loading="lazy">`;
                 }
@@ -1464,7 +1477,13 @@
                 `;
 
                 if (banner.type === 'video') {
-                    card.addEventListener('mouseenter', () => card.querySelector('video').play());
+                    card.addEventListener('mouseenter', () => {
+                        const v = card.querySelector('video');
+                        if (!v.getAttribute('src') && v.dataset.src) {
+                            v.src = v.dataset.src;
+                        }
+                        v.play();
+                    });
                     card.addEventListener('mouseleave', () => {
                         const v = card.querySelector('video');
                         v.pause();
@@ -1515,13 +1534,16 @@
                     el = document.createElement('video');
                     el.muted = true;
                     el.loop = true;
+                    el.preload = 'none';
                     el.playsInline = true;
                 } else {
                     el = document.createElement('img');
+                    el.loading = 'lazy';
                 }
 
-                el.src = banner.image_url;
+                el.dataset.src = banner.image_url;
                 if (i === 0) {
+                    hydratePreviewMedia(el);
                     el.classList.add('active');
                     if (banner.type === 'video') el.play();
                 }
@@ -1537,8 +1559,9 @@
             if (previewInterval) clearInterval(previewInterval);
             if (banners.length > 1) {
                 previewInterval = setInterval(() => {
+                    if (document.hidden) return;
                     goToSlide((currentPreviewIndex + 1) % banners.length);
-                }, 4000);
+                }, 8000);
             }
         }
 
@@ -1556,6 +1579,7 @@
             dots.forEach(dot => dot.classList.remove('active'));
 
             if (els[index]) {
+                hydratePreviewMedia(els[index]);
                 els[index].classList.add('active');
                 if (els[index].tagName === 'VIDEO') els[index].play();
             }
@@ -1563,11 +1587,17 @@
             currentPreviewIndex = index;
         }
 
+        function hydratePreviewMedia(el) {
+            if (!el || el.getAttribute('src') || !el.dataset.src) return;
+            el.src = el.dataset.src;
+        }
+
         // ============================================
         // ACTIONS
         // ============================================
         window.moveBanner = async function (id, direction) {
-            const index = banners.findIndex(b => b.id === id);
+            const bannerId = Number(id);
+            const index = banners.findIndex(b => Number(b.id) === bannerId);
             if (index === -1) return;
 
             const swapIndex = direction === 'up' ? index - 1 : index + 1;
@@ -1588,6 +1618,7 @@
                     .update({ display_order: orderA })
                     .eq('id', banners[swapIndex].id);
 
+                window.pageCache.remove(BANNER_CACHE_KEY);
                 await loadBanners();
             } catch (err) {
                 console.error('Move error:', err);
@@ -1597,6 +1628,8 @@
 
         window.deleteBanner = async function (id, imageUrl) {
             if (!confirm('Hapus banner ini?')) return;
+
+            const bannerId = Number(id);
 
             try {
                 uploadOverlay.classList.add('show');
@@ -1614,10 +1647,11 @@
                 const { error } = await window.supabase
                     .from('banners')
                     .delete()
-                    .eq('id', id);
+                    .eq('id', bannerId);
 
                 if (error) throw error;
 
+                window.pageCache.remove(BANNER_CACHE_KEY);
                 showSuccess('Banner berhasil dihapus.');
                 await loadBanners();
             } catch (err) {

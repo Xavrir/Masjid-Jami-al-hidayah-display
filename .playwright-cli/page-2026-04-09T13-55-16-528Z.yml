@@ -1,0 +1,183 @@
+- generic [ref=e2]:
+  - text: 
+  - navigation [ref=e3]:
+    - text: 
+    - link "🕌 Masjid Jami' Al-Hidayah" [ref=e4] [cursor=pointer]:
+      - /url: ../dashboard.html
+      - generic [ref=e5]: 🕌
+      - generic [ref=e6]: Masjid Jami' Al-Hidayah
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: admin@alhidayah.com
+        - generic [ref=e10]: Administrator
+      - button "" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 
+  - complementary [ref=e13]:
+    - navigation [ref=e14]:
+      - generic [ref=e15]: Menu Utama
+      - link " Dashboard" [ref=e16] [cursor=pointer]:
+        - /url: ../dashboard.html
+        - generic [ref=e17]: 
+        - generic [ref=e18]: Dashboard
+      - generic [ref=e19]: Manajemen Data
+      - link " Kas Masjid" [ref=e20] [cursor=pointer]:
+        - /url: kas_masjid.html
+        - generic [ref=e21]: 
+        - generic [ref=e22]: Kas Masjid
+      - link " Ayat Al-Quran" [ref=e23] [cursor=pointer]:
+        - /url: ayat_quran.html
+        - generic [ref=e24]: 
+        - generic [ref=e25]: Ayat Al-Quran
+      - link " Hadist" [ref=e26] [cursor=pointer]:
+        - /url: hadist.html
+        - generic [ref=e27]: 
+        - generic [ref=e28]: Hadist
+      - link " Pengajian" [ref=e29] [cursor=pointer]:
+        - /url: pengajian.html
+        - generic [ref=e30]: 
+        - generic [ref=e31]: Pengajian
+      - link " Banner Acara" [ref=e32] [cursor=pointer]:
+        - /url: banner.html
+        - generic [ref=e33]: 
+        - generic [ref=e34]: Banner Acara
+  - main [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e38]: 
+      - generic [ref=e39]:
+        - heading "Kelola Banner Acara" [level=1] [ref=e40]
+        - paragraph [ref=e41]: Upload gambar banner untuk ditampilkan sebagai slideshow di layar TV.
+    - text:  
+    - generic [ref=e42]:
+      - heading " Panduan Penggunaan" [level=3] [ref=e43]:
+        - generic [ref=e44]: 
+        - text: Panduan Penggunaan
+      - paragraph [ref=e45]:
+        - text: • Upload gambar banner acara dalam format
+        - strong [ref=e46]: JPG
+        - text: atau
+        - strong [ref=e47]: PNG
+        - text: .
+      - paragraph [ref=e48]:
+        - text: • Maksimal
+        - strong [ref=e49]: 10 banner
+        - text: yang dapat ditampilkan secara bersamaan.
+      - paragraph [ref=e50]: • Banner akan ditampilkan sebagai slideshow otomatis di layar TV masjid.
+      - paragraph [ref=e51]:
+        - text: • Gunakan rasio gambar
+        - strong [ref=e52]: 16:9
+        - text: untuk tampilan terbaik (1920×1080).
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: "6"
+        - generic [ref=e56]: / 10 Banner aktif
+      - generic [ref=e60]: 60%
+    - generic [ref=e61] [cursor=pointer]:
+      - generic [ref=e63]: 
+      - generic [ref=e64]: Drag & Drop atau Klik untuk Upload
+      - generic [ref=e65]: Pilih gambar banner acara untuk ditampilkan
+      - button " Pilih Gambar" [ref=e66]:
+        - generic [ref=e67]: 
+        - text: Pilih Gambar
+      - generic [ref=e68]: "Format: JPG, PNG, MP4, WEBM • Maks. 2MB (Gambar) / 8MB (Video) • Durasi maks video: 30 detik"
+    - generic [ref=e69]:
+      - generic [ref=e70]:
+        - generic [ref=e71]: 
+        - text: Preview Slideshow di Layar TV
+      - generic [ref=e72]:
+        - text: 
+        - img [ref=e73]
+        - img [ref=e74]
+        - img [ref=e75]
+        - img [ref=e76]
+        - img [ref=e78]
+    - generic [ref=e86]:
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - img "Banner Habib Hud (2)" [ref=e89]
+          - generic [ref=e90]: "1"
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e93]: Banner Habib Hud (2)
+            - generic [ref=e94]: "Gambar • Urutan #1"
+          - generic [ref=e95]:
+            - button "" [ref=e96] [cursor=pointer]:
+              - generic [ref=e97]: 
+            - button "" [ref=e98] [cursor=pointer]:
+              - generic [ref=e99]: 
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - img "Banner Habib Abdurrahman" [ref=e102]
+          - generic [ref=e103]: "2"
+        - generic [ref=e104]:
+          - generic [ref=e105]:
+            - generic [ref=e106]: Banner Habib Abdurrahman
+            - generic [ref=e107]: "Gambar • Urutan #2"
+          - generic [ref=e108]:
+            - button "" [ref=e109] [cursor=pointer]:
+              - generic [ref=e110]: 
+            - button "" [ref=e111] [cursor=pointer]:
+              - generic [ref=e112]: 
+            - button "" [ref=e113] [cursor=pointer]:
+              - generic [ref=e114]: 
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - img "BANNER SHUBUH" [ref=e117]
+          - generic [ref=e118]: "3"
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]: BANNER SHUBUH
+            - generic [ref=e122]: "Gambar • Urutan #3"
+          - generic [ref=e123]:
+            - button "" [ref=e124] [cursor=pointer]:
+              - generic [ref=e125]: 
+            - button "" [ref=e126] [cursor=pointer]:
+              - generic [ref=e127]: 
+            - button "" [ref=e128] [cursor=pointer]:
+              - generic [ref=e129]: 
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - img "IMG-20260304-WA0018" [ref=e132]
+          - generic [ref=e133]: "4"
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - generic [ref=e136]: IMG-20260304-WA0018
+            - generic [ref=e137]: "Gambar • Urutan #4"
+          - generic [ref=e138]:
+            - button "" [ref=e139] [cursor=pointer]:
+              - generic [ref=e140]: 
+            - button "" [ref=e141] [cursor=pointer]:
+              - generic [ref=e142]: 
+            - button "" [ref=e143] [cursor=pointer]:
+              - generic [ref=e144]: 
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - generic [ref=e148]: "5"
+          - generic [ref=e149]:
+            - generic [ref=e150]: 
+            - text: VIDEO
+        - generic [ref=e151]:
+          - generic [ref=e152]:
+            - generic [ref=e153]: WhatsApp Video 2026-02-28 at 22.14.42
+            - generic [ref=e154]: "Video • Urutan #5"
+          - generic [ref=e155]:
+            - button "" [ref=e156] [cursor=pointer]:
+              - generic [ref=e157]: 
+            - button "" [ref=e158] [cursor=pointer]:
+              - generic [ref=e159]: 
+            - button "" [ref=e160] [cursor=pointer]:
+              - generic [ref=e161]: 
+      - generic [ref=e162]:
+        - generic [ref=e163]:
+          - img "ID UCAPAN (1)" [ref=e164]
+          - generic [ref=e165]: "6"
+        - generic [ref=e166]:
+          - generic [ref=e167]:
+            - generic [ref=e168]: ID UCAPAN (1)
+            - generic [ref=e169]: "Gambar • Urutan #6"
+          - generic [ref=e170]:
+            - button "" [ref=e171] [cursor=pointer]:
+              - generic [ref=e172]: 
+            - button "" [ref=e173] [cursor=pointer]:
+              - generic [ref=e174]: 
+    - text: 
+    - paragraph [ref=e176]: © 2026 Masjid Jami' Al-Hidayah • Sistem Administrasi v1.0

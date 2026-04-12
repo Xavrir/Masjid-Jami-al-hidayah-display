@@ -12,7 +12,7 @@ interface SupabaseApiService {
     suspend fun getKasTransactions(
         @Header("apikey") apiKey: String,
         @Header("Authorization") auth: String,
-        @Query("select") select: String = "*",
+        @Query("select") select: String = "id,tanggal,keterangan,nominal,jenis,kategori",
         @Query("order") order: String = "tanggal.desc"
     ): List<KasTransaksiRemote>
     
@@ -20,28 +20,32 @@ interface SupabaseApiService {
     suspend fun getQuranVerses(
         @Header("apikey") apiKey: String,
         @Header("Authorization") auth: String,
+        @Query("select") select: String = "id,surah,surahNumber,ayah,arabic,translation,transliteration",
         @Query("order") order: String = "surahNumber.asc,ayah.asc"
     ): List<QuranVerseRemote>
     
     @GET("rest/v1/hadits")
     suspend fun getHadiths(
         @Header("apikey") apiKey: String,
-        @Header("Authorization") auth: String
+        @Header("Authorization") auth: String,
+        @Query("select") select: String = "id,teks,sumber,kategori,aktif,terjemahan"
     ): List<HadithRemote>
     
     @GET("rest/v1/pengajian")
     suspend fun getPengajian(
         @Header("apikey") apiKey: String,
-        @Header("Authorization") auth: String
+        @Header("Authorization") auth: String,
+        @Query("select") select: String = "id,judul,pembicara,jam,hari,lokasi,deskripsi,tema,ustadz,tanggal,aktif"
     ): List<PengajianRemote>
 
     @GET("rest/v1/banners")
     suspend fun getBanners(
         @Header("apikey") apiKey: String,
         @Header("Authorization") auth: String,
-        @Query("select") select: String = "*",
+        @Query("select") select: String = "id,title,image_url,type,display_order,aktif,created_at",
         @Query("aktif") aktif: String = "eq.true",
-        @Query("order") order: String = "display_order.asc"
+        @Query("order") order: String = "display_order.asc",
+        @Query("limit") limit: Int = 10
     ): List<BannerRemote>
 }
 
@@ -96,6 +100,7 @@ data class BannerRemote(
     val id: Int,
     val title: String? = null,
     val image_url: String,
+    val local_path: String? = null,
     val type: String? = "image",
     val display_order: Int = 1,
     val aktif: Boolean = true,

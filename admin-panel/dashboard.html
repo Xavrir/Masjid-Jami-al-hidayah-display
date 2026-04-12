@@ -854,6 +854,8 @@
         console.log('✅ Dashboard Supabase initialized');
     </script>
 
+    <script src="js/cache.js"></script>
+
     <!-- Auth Check -->
     <script>
         // Wait for auth state and redirect if not logged in
@@ -1034,56 +1036,90 @@
         let bannerSlideInterval = null;
         let currentBannerIndex = 0;
         let bannerImages = [];
+        const DASHBOARD_BANNER_CACHE_KEY = 'banners:active';
+        const DASHBOARD_BANNER_CACHE_TTL_MS = 60 * 1000;
+
+        function resetBannerSlideshow(container, dotsContainer) {
+            if (bannerSlideInterval) {
+                clearInterval(bannerSlideInterval);
+                bannerSlideInterval = null;
+            }
+
+            currentBannerIndex = 0;
+            bannerImages = [];
+
+            container.querySelectorAll('img').forEach((img) => img.remove());
+            dotsContainer.innerHTML = '';
+        }
+
+        function startBannerCycle() {
+            if (bannerImages.length <= 1) return;
+
+            bannerSlideInterval = setInterval(() => {
+                if (document.hidden) return;
+                goToBanner((currentBannerIndex + 1) % bannerImages.length);
+            }, 10000);
+        }
+
+        function renderBannerSlideshow(banners) {
+            const section = document.getElementById('bannerSlideshowSection');
+            const container = document.getElementById('bannerSlideshowContainer');
+            const dotsContainer = document.getElementById('bannerDots');
+            const emptyState = document.getElementById('bannerEmpty');
+
+            resetBannerSlideshow(container, dotsContainer);
+
+            if (!banners || banners.length === 0) {
+                section.style.display = 'block';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            section.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            banners.forEach((banner, index) => {
+                const img = document.createElement('img');
+                img.src = banner.image_url;
+                img.alt = banner.title || `Banner ${index + 1}`;
+                img.loading = 'lazy';
+                if (index === 0) img.classList.add('active');
+                container.insertBefore(img, container.querySelector('.banner-slideshow-gradient'));
+                bannerImages.push(img);
+
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (index === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goToBanner(index));
+                dotsContainer.appendChild(dot);
+            });
+
+            startBannerCycle();
+        }
 
         async function loadBannerSlideshow() {
             try {
-                const { data: banners, error } = await window.supabase
-                    .from('banners')
-                    .select('*')
-                    .eq('aktif', true)
-                    .order('display_order', { ascending: true });
+                let banners = window.pageCache.get(DASHBOARD_BANNER_CACHE_KEY, DASHBOARD_BANNER_CACHE_TTL_MS);
 
-                if (error) {
-                    console.warn('⚠️ Banner table may not exist yet:', error.message);
-                    return;
+                if (!banners) {
+                    const { data, error } = await window.supabase
+                        .from('banners')
+                        .select('*')
+                        .eq('aktif', true)
+                        .order('display_order', { ascending: true });
+
+                    if (error) {
+                        console.warn('⚠️ Banner table may not exist yet:', error.message);
+                        return;
+                    }
+
+                    banners = data || [];
+                    window.pageCache.set(DASHBOARD_BANNER_CACHE_KEY, banners);
                 }
 
                 // Update banner count card
                 document.getElementById('bannerCount').textContent = (banners || []).length;
 
-                if (banners && banners.length > 0) {
-                    const section = document.getElementById('bannerSlideshowSection');
-                    const container = document.getElementById('bannerSlideshowContainer');
-                    const dotsContainer = document.getElementById('bannerDots');
-                    const emptyState = document.getElementById('bannerEmpty');
-
-                    section.style.display = 'block';
-                    emptyState.style.display = 'none';
-
-                    // Create image elements
-                    bannerImages = [];
-                    banners.forEach((banner, index) => {
-                        const img = document.createElement('img');
-                        img.src = banner.image_url;
-                        img.alt = banner.title || `Banner ${index + 1}`;
-                        if (index === 0) img.classList.add('active');
-                        container.insertBefore(img, container.querySelector('.banner-slideshow-gradient'));
-                        bannerImages.push(img);
-
-                        // Create dot
-                        const dot = document.createElement('div');
-                        dot.className = 'dot' + (index === 0 ? ' active' : '');
-                        dot.addEventListener('click', () => goToBanner(index));
-                        dotsContainer.appendChild(dot);
-                    });
-
-                    // Auto-cycle
-                    if (banners.length > 1) {
-                        bannerSlideInterval = setInterval(() => {
-                            goToBanner((currentBannerIndex + 1) % bannerImages.length);
-                        }, 6000);
-                    }
-                }
+                renderBannerSlideshow(banners);
 
                 console.log(`✅ Loaded ${(banners || []).length} banners on dashboard`);
             } catch (e) {

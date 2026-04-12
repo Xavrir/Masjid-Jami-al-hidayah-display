@@ -24,12 +24,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import coil.imageLoader
+import coil.request.ImageRequest
+import com.masjiddisplay.data.BannerAssetCache
 import com.masjiddisplay.data.MasjidConfig
 import com.masjiddisplay.data.Prayer
 import com.masjiddisplay.data.PrayerStatus
@@ -140,6 +144,14 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     var pengajian by remember { mutableStateOf<List<String>>(emptyList()) }
     var banners by remember { mutableStateOf<List<BannerRemote>>(emptyList()) }
     var fridayReminderAnnouncement by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val imageLoader = remember(context) { context.imageLoader }
+
+    suspend fun applyResolvedBanners(source: List<BannerRemote>) {
+        if (source.isEmpty()) return
+        val resolvedBanners = BannerAssetCache.resolve(context, source)
+        banners = if (resolvedBanners.isNotEmpty()) resolvedBanners else source
+    }
     
     val testPrayers = remember {
         listOf(
@@ -152,68 +164,110 @@ fun MasjidDisplayApp(soundService: SoundNotificationService?, showTestPanel: Mut
     }
 
     LaunchedEffect(Unit) {
+        SupabaseRepository.getCachedKasData()?.let { kasData = it }
+
+        val cachedQuran = SupabaseRepository.getCachedQuranVersesForDisplay()
+        if (cachedQuran.isNotEmpty()) {
+            quranVerses = cachedQuran
+        }
+
+        val cachedHadiths = SupabaseRepository.getCachedHadithsForDisplay()
+        if (cachedHadiths.isNotEmpty()) {
+            hadiths = cachedHadiths
+        }
+
+        val cachedPengajian = SupabaseRepository.getCachedPengajianForDisplay()
+        if (cachedPengajian.isNotEmpty()) {
+            pengajian = cachedPengajian
+        }
+
+        val cachedBanners = SupabaseRepository.getCachedBanners()
+        if (cachedBanners.isNotEmpty()) {
+            applyResolvedBanners(cachedBanners)
+        }
+    }
+
+    LaunchedEffect(Unit) {
         while (currentCoroutineContext().isActive) {
-            // Fetch each component independently so one failure doesn't block others
-            
-            // Kas Data
             try {
-                val fetchedKas = SupabaseRepository.getKasData()
+                val fetchedKas = SupabaseRepository.getKasData(maxAgeMs = 6L * 60 * 60 * 1000)
                 if (fetchedKas.recentTransactions.isNotEmpty() || fetchedKas.balance != 0L || fetchedKas.incomeMonth != 0L) {
                     kasData = fetchedKas
                 }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Kas): ${e.message}")
             }
-            
-            // Quran Verses
+            delay(6L * 60 * 60 * 1000)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (currentCoroutineContext().isActive) {
             try {
-                val fetchedQuran = SupabaseRepository.getQuranVersesForDisplay()
+                val fetchedQuran = SupabaseRepository.getQuranVersesForDisplay(maxAgeMs = 24L * 60 * 60 * 1000)
                 if (fetchedQuran.isNotEmpty()) {
                     quranVerses = fetchedQuran
                 }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Quran): ${e.message}")
             }
-            
-            // Hadiths
+            delay(24L * 60 * 60 * 1000)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (currentCoroutineContext().isActive) {
             try {
-                val fetchedHadiths = SupabaseRepository.getHadithsForDisplay()
+                val fetchedHadiths = SupabaseRepository.getHadithsForDisplay(maxAgeMs = 24L * 60 * 60 * 1000)
                 if (fetchedHadiths.isNotEmpty()) {
                     hadiths = fetchedHadiths
                 }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Hadiths): ${e.message}")
             }
-            
-            // Pengajian
+            delay(24L * 60 * 60 * 1000)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (currentCoroutineContext().isActive) {
             try {
-                val fetchedPengajian = SupabaseRepository.getPengajian()
-                val formattedPengajian = fetchedPengajian
-                    .filter { (it.judul ?: it.tema) != null && (it.pembicara ?: it.ustadz) != null }
-                    .map { 
-                        val title = it.judul ?: it.tema ?: ""
-                        val speaker = it.pembicara ?: it.ustadz ?: ""
-                        val schedule = it.hari ?: it.tanggal ?: "-"
-                        "$title oleh $speaker ($schedule, ${it.jam ?: "-"})"
-                    }
-                if (formattedPengajian.isNotEmpty()) {
-                    pengajian = formattedPengajian
+                val fetchedPengajian = SupabaseRepository.getPengajianForDisplay(maxAgeMs = 12L * 60 * 60 * 1000)
+                if (fetchedPengajian.isNotEmpty()) {
+                    pengajian = fetchedPengajian
                 }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Pengajian): ${e.message}")
             }
-            
-            // Banners
+            delay(12L * 60 * 60 * 1000)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (currentCoroutineContext().isActive) {
             try {
-                val fetchedBanners = SupabaseRepository.getBanners()
+                val fetchedBanners = SupabaseRepository.getBanners(maxAgeMs = 30L * 60 * 1000)
                 if (fetchedBanners.isNotEmpty()) {
-                    banners = fetchedBanners
+                    applyResolvedBanners(fetchedBanners)
                 }
             } catch (e: Exception) {
                 println("⚠️ Refresh error (Banners): ${e.message}")
             }
-
             delay(30L * 60 * 1000)
+        }
+    }
+
+    LaunchedEffect(banners) {
+        banners.forEach { banner ->
+            if (banner.type == "video") {
+                return@forEach
+            }
+
+            imageLoader.enqueue(
+                ImageRequest.Builder(context)
+                    .data(banner.local_path ?: banner.image_url)
+                    .build()
+            )
         }
     }
     

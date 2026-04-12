@@ -31,3 +31,5 @@ captures/
 .vscode/
 *.code-workspace
 node_modules
+.env
+scripts/.env

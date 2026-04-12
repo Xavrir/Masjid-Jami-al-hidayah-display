@@ -1,0 +1,12 @@
+Total messages: 10 (Errors: 0, Warnings: 0)
+
+[LOG] 🔄 Initializing Supabase client... @ http://127.0.0.1:4173/pages/kas_masjid.html:847
+[LOG] 📍 URL: https://wqupptqjbkuldglnpvor.supabase.co @ http://127.0.0.1:4173/pages/kas_masjid.html:848
+[LOG] ✅ Supabase client created: object @ http://127.0.0.1:4173/pages/kas_masjid.html:855
+[LOG] ✅ supabase.from exists: function @ http://127.0.0.1:4173/pages/kas_masjid.html:856
+[LOG] ✅ supabaseReady event dispatched @ http://127.0.0.1:4173/pages/kas_masjid.html:860
+[LOG] ✅ Kas Masjid Supabase Initialized @ http://127.0.0.1:4173/pages/kas_masjid.html:886
+[LOG] 🚀 Starting app, checking Supabase... @ http://127.0.0.1:4173/pages/kas_masjid.html:1187
+[LOG]    window.supabase: object @ http://127.0.0.1:4173/pages/kas_masjid.html:1188
+[LOG] ✅ Supabase is ready, calling waitForAuth() @ http://127.0.0.1:4173/pages/kas_masjid.html:1191
+[LOG] Initializing Kas Page for: admin@alhidayah.com @ http://127.0.0.1:4173/pages/kas_masjid.html:954

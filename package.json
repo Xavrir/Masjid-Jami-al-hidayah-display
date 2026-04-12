@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "fix:banner-cache": "node scripts/fix-banner-cache-headers.mjs"
+  },
   "dependencies": {
     "admin-lte": "^4.0.0-rc4"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.49.8"
   }
 }

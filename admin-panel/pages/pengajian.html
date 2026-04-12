@@ -915,6 +915,8 @@
         console.log('✅ Pengajian Supabase Initialized');
     </script>
 
+    <script src="../js/cache.js"></script>
+
     <!-- Page Logic -->
     <script>
         // DOM Elements
@@ -1001,17 +1003,29 @@
 
         const pengajianTableBody = document.getElementById('pengajianTableBody');
         const pengajianCount = document.getElementById('pengajianCount');
+        const PENGAJIAN_ACTIVE_CACHE_KEY = 'pengajian:active';
+        const PENGAJIAN_LIST_CACHE_KEY = 'pengajian:list';
+        const CACHE_TTL_MS = 5 * 60 * 1000;
 
         async function loadActivePengajian() {
             try {
-                const { data, error } = await window.supabase
-                    .from('pengajian')
-                    .select('*')
-                    .eq('aktif', true)
-                    .limit(1)
-                    .single();
+                let data = window.pageCache.get(PENGAJIAN_ACTIVE_CACHE_KEY, CACHE_TTL_MS);
 
-                if (error && error.code !== 'PGRST116') throw error;
+                if (!data) {
+                    const response = await window.supabase
+                        .from('pengajian')
+                        .select('*')
+                        .eq('aktif', true)
+                        .limit(1)
+                        .single();
+
+                    if (response.error && response.error.code !== 'PGRST116') throw response.error;
+
+                    data = response.data;
+                    if (data) {
+                        window.pageCache.set(PENGAJIAN_ACTIVE_CACHE_KEY, data);
+                    }
+                }
 
                 if (data) {
                     ustadzNameInput.value = data.ustadz || '';
@@ -1028,14 +1042,20 @@
 
         async function loadAllPengajian() {
             try {
-                const { data, error } = await window.supabase
-                    .from('pengajian')
-                    .select('*')
-                    .order('id', { ascending: true });
+                let items = window.pageCache.get(PENGAJIAN_LIST_CACHE_KEY, CACHE_TTL_MS);
 
-                if (error) throw error;
+                if (!items) {
+                    const response = await window.supabase
+                        .from('pengajian')
+                        .select('*')
+                        .order('id', { ascending: true });
 
-                const items = data || [];
+                    if (response.error) throw response.error;
+
+                    items = response.data || [];
+                    window.pageCache.set(PENGAJIAN_LIST_CACHE_KEY, items);
+                }
+
                 pengajianCount.textContent = `${items.length} data`;
 
                 if (items.length === 0) {
@@ -1095,6 +1115,8 @@
 
                 if (error) throw error;
 
+                window.pageCache.remove(PENGAJIAN_ACTIVE_CACHE_KEY);
+                window.pageCache.remove(PENGAJIAN_LIST_CACHE_KEY);
                 pageLoading.classList.remove('show');
                 showSuccess('Pengajian berhasil dihapus!');
                 await loadAllPengajian();
@@ -1125,6 +1147,8 @@
 
                 if (error) throw error;
 
+                window.pageCache.remove(PENGAJIAN_ACTIVE_CACHE_KEY);
+                window.pageCache.remove(PENGAJIAN_LIST_CACHE_KEY);
                 pageLoading.classList.remove('show');
                 showSuccess('Pengajian berhasil ditambahkan!');
                 pengajianForm.reset();
